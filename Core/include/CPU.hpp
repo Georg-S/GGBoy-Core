@@ -6,8 +6,19 @@ namespace ggb
 {
 	struct CPUState
 	{
+		struct FlagRegister 
+		{
+			// TODO: Is this order correct or should it be reversed?
+			uint8_t unused : 4;
+			uint8_t carry : 1;
+			uint8_t halfCarry : 1;
+			uint8_t subtraction : 1;
+			uint8_t zero : 1;
+		};
+		static_assert(sizeof(FlagRegister) == 1);
+
 		uint8_t A = 0;
-		uint8_t F = 0; // Flags
+		FlagRegister Flags = {}; // Flags
 		uint8_t B = 0;
 		uint8_t C = 0;
 		uint8_t D = 0;
@@ -21,6 +32,7 @@ namespace ggb
 	class CPU
 	{
 	public:
+		void reset();
 		void executeOneInstruction();
 		void setBus(BUS* bus);
 

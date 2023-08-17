@@ -20,6 +20,7 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 
     m_bus->setCartridge(m_currentCartridge.get());
     m_CPU.setBus(m_bus.get());
+    m_CPU.reset();
     return true;
 }
 
