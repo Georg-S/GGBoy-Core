@@ -1,0 +1,11 @@
+/[Ll]ibrary/
+/[Bb]uild/
+/Roms/
+/OtherResources/
+
+/cmake_refresh_VS2019.bat
+/out/
+
+# Visual Studio cache directory
+.vs/
+
