@@ -9,6 +9,7 @@ set(HEADERS
 	"include/Cartridge.hpp"
 	"include/Logging.hpp"
 	"include/Emulator.hpp"
+	"include/CPUState.hpp"
 	)
 
 set(SOURCES 
@@ -18,6 +19,7 @@ set(SOURCES
 	"src/Cartridge.cpp"
 	"src/Logging.cpp"
 	"src/Emulator.cpp"
+	"src/CPUState.cpp"
 	)
 
 

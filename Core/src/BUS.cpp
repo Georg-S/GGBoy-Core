@@ -22,6 +22,7 @@ uint8_t ggb::BUS::read(uint16_t address)
 
 uint16_t ggb::BUS::readTwoBytes(uint16_t address)
 {
+    // TODO implement more efficient
     assert(address < UINT16_MAX);
     uint16_t val1 = read(address);
     uint16_t val2 = read(address + 1);
