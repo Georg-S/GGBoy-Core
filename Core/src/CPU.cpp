@@ -18,11 +18,10 @@ void ggb::CPU::reset()
 
 void ggb::CPU::executeOneInstruction()
 {
-	auto opCode = m_bus->read(m_cpuState.InstructionPointer());
+	const int instructionPointer = m_cpuState.InstructionPointer();
+	auto opCode = m_bus->read(instructionPointer);
 	++m_cpuState.InstructionPointer();
-	ggb::opcodes[opCode](&m_cpuState, m_bus); // Execute instruction
-
-	int buf = 3;
+	m_opcodes.execute(opCode, &m_cpuState, m_bus);
 }
 
 void ggb::CPU::setBus(BUS* bus)

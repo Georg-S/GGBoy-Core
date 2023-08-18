@@ -2,6 +2,7 @@
 #include <cstdint>
 #include "BUS.hpp"
 #include "CPUState.hpp"
+#include "CPUInstructions.hpp"
 
 namespace ggb
 {
@@ -13,6 +14,7 @@ namespace ggb
 		void setBus(BUS* bus);
 
 	private:
+		OPCodes m_opcodes;
 		CPUState m_cpuState;
 		BUS* m_bus = nullptr;
 	};
