@@ -6,7 +6,7 @@ void ggb::BUS::setCartridge(Cartridge* cartridge)
     m_cartridge = cartridge;
 }
 
-uint8_t ggb::BUS::read(uint16_t address)
+uint8_t& ggb::BUS::read(uint16_t address)
 {
     if (address >= 0 && address <= 0x7FFF)
         return m_cartridge->read(address);
@@ -17,7 +17,7 @@ uint8_t ggb::BUS::read(uint16_t address)
 
     assert(!"Not implemented");
     
-    return 0;
+    return m_memory[address];
 }
 
 uint16_t ggb::BUS::readTwoBytes(uint16_t address)

@@ -22,11 +22,17 @@ namespace ggb
 		uint16_t& InstructionPointer();
 
 		void setZeroFlag(bool value);
+		bool getZeroFlag() const;
 		void setSubtractionFlag(bool value); // Also known as negative flag
+		bool getSubtractionFlag() const;
 		void setHalfCarryFlag(bool value);
+		bool getHalfCarryFlag() const;
 		void setCarryFlag(bool value);
+		bool getCarryFlag() const;
 
 	private:
+		uint8_t F() const;
+
 		union { uint16_t AF; uint8_t regs[2]; } afUnion;
 		union { uint16_t BC; uint8_t regs[2]; } bcUnion;
 		union { uint16_t DE; uint8_t regs[2]; } deUnion;

@@ -9,9 +9,9 @@ namespace ggb
 #define CPUInstructionParameters CPUState* cpu, BUS* bus
 	// It is possible to use std::function here, however debugging is easier with plain C function pointers (and no performance overhead)
 	using InstructionFunction = void (*)(CPUInstructionParameters);
-
 	void invalidInstruction(CPUInstructionParameters);
 	void notImplementedInstruction(CPUInstructionParameters);
+
 	void noop(CPUInstructionParameters);
 	void loadBCValue(CPUInstructionParameters);
 	void writeAToAddressBC(CPUInstructionParameters);
@@ -29,10 +29,92 @@ namespace ggb
 	void loadValueIntoC(CPUInstructionParameters);
 	void rotateARight(CPUInstructionParameters);
 
+	void stop(CPUInstructionParameters);
+	void loadTwoBytesIntoLD(CPUInstructionParameters);
+	void writeAToAddressDE(CPUInstructionParameters);
+	void incrementDE(CPUInstructionParameters);
+	void incrementD(CPUInstructionParameters);
+	void decrementD(CPUInstructionParameters);
+	void loadValueIntoD(CPUInstructionParameters);
+	void rotateALeftThroughCarry(CPUInstructionParameters);
+	void jumpRealativeToValue(CPUInstructionParameters);
+	void addDEToHL(CPUInstructionParameters);
+	void loadValuePointedByDEIntoA(CPUInstructionParameters);
+	void decrementDE(CPUInstructionParameters);
+	void incrementE(CPUInstructionParameters);
+	void decrementE(CPUInstructionParameters);
+	void loadValueIntoE(CPUInstructionParameters);
+	void rotateARightThroughCarry(CPUInstructionParameters);
 
+	void jumpRelativeNotZeroToValue(CPUInstructionParameters);
+	void loadTwoBytesIntoHL(CPUInstructionParameters);
+	void loadAIntoHLAndInc(CPUInstructionParameters);
+	void incrementHL(CPUInstructionParameters);
+	void incrementH(CPUInstructionParameters);
+	void decrementH(CPUInstructionParameters);
+	void loadValueIntoH(CPUInstructionParameters);
+	void decimalAdjustAccumulator(CPUInstructionParameters);
+	void jumpRealativeZeroToValue(CPUInstructionParameters);
+	void addHLToHL(CPUInstructionParameters);
+	void loadValuePointedByHLIntoAIncrementHL(CPUInstructionParameters);
+	void decrementHL(CPUInstructionParameters);
+	void incrementL(CPUInstructionParameters);
+	void decrementL(CPUInstructionParameters);
+	void loadValueIntoL(CPUInstructionParameters);
+	void complementAccumulator(CPUInstructionParameters);
+
+	void jumpRelativeNotCarryToValue(CPUInstructionParameters);
+	void loadTwoBytesIntoStackPointer(CPUInstructionParameters);
+	void loadAIntoHLAndDec(CPUInstructionParameters);
+	void incrementSP(CPUInstructionParameters);
+	void incrementAddressHL(CPUInstructionParameters);
+	void decrementAddressHL(CPUInstructionParameters);
+	void loadValueIntoAddressHL(CPUInstructionParameters);
+	void setCarryFlag(CPUInstructionParameters);
+	void jumpRealativeCarryToValue(CPUInstructionParameters);
+	void addSPToHL(CPUInstructionParameters);
+	void loadValuePointedByHLIntoADecrementHL(CPUInstructionParameters);
+	void decrementSP(CPUInstructionParameters);
 	void incrementA(CPUInstructionParameters);
-	void jumpToValue(CPUInstructionParameters);
-	void xorASelf(CPUInstructionParameters);
+	void decrementA(CPUInstructionParameters);
+	void loadValueIntoA(CPUInstructionParameters);
+	void complementCarryFlag(CPUInstructionParameters);
+
+	void loadBIntoB(CPUInstructionParameters);
+	void loadCIntoB(CPUInstructionParameters);
+	void loadDIntoB(CPUInstructionParameters);
+	void loadEIntoB(CPUInstructionParameters);
+	void loadHIntoB(CPUInstructionParameters);
+	void loadLIntoB(CPUInstructionParameters);
+	void loadAddressHLIntoB(CPUInstructionParameters);
+	void loadAIntoB(CPUInstructionParameters);
+	void loadBIntoC(CPUInstructionParameters);
+	void loadCIntoC(CPUInstructionParameters);
+	void loadDIntoC(CPUInstructionParameters);
+	void loadEIntoC(CPUInstructionParameters);
+	void loadHIntoC(CPUInstructionParameters);
+	void loadLIntoC(CPUInstructionParameters);
+	void loadAddressHLIntoC(CPUInstructionParameters);
+	void loadAIntoC(CPUInstructionParameters);
+
+	void loadBIntoD(CPUInstructionParameters);
+	void loadCIntoD(CPUInstructionParameters);
+	void loadDIntoD(CPUInstructionParameters);
+	void loadEIntoD(CPUInstructionParameters);
+	void loadHIntoD(CPUInstructionParameters);
+	void loadLIntoD(CPUInstructionParameters);
+	void loadAddressHLIntoD(CPUInstructionParameters);
+	void loadAIntoD(CPUInstructionParameters);
+	void loadBIntoE(CPUInstructionParameters);
+	void loadCIntoE(CPUInstructionParameters);
+	void loadDIntoE(CPUInstructionParameters);
+	void loadEIntoE(CPUInstructionParameters);
+	void loadHIntoE(CPUInstructionParameters);
+	void loadLIntoE(CPUInstructionParameters);
+	void loadAddressHLIntoE(CPUInstructionParameters);
+	void loadAIntoE(CPUInstructionParameters);
+
+
 
 	struct OpcodeEntry
 	{
@@ -62,51 +144,86 @@ namespace ggb
 		OpcodeEntry{decrementC, 4},
 		OpcodeEntry{loadValueIntoC, 8},
 		OpcodeEntry{rotateARight, 4},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
+		OpcodeEntry{stop, 4},
+		OpcodeEntry{loadTwoBytesIntoLD, 12},
+		OpcodeEntry{writeAToAddressDE, 8},
+		OpcodeEntry{incrementDE, 8},
+		OpcodeEntry{incrementD, 4},
+		OpcodeEntry{decrementD, 4},
+		OpcodeEntry{loadValueIntoD, 8},
+		OpcodeEntry{rotateALeftThroughCarry, 4},
+		OpcodeEntry{jumpRealativeToValue, 12},
+		OpcodeEntry{addDEToHL, 8},
+		OpcodeEntry{loadValuePointedByDEIntoA, 8},
+		OpcodeEntry{decrementDE, 8},
+		OpcodeEntry{incrementE, 4},
+		OpcodeEntry{decrementE, 4},
+		OpcodeEntry{loadValueIntoE, 8},
+		OpcodeEntry{rotateARightThroughCarry, 4},
+		OpcodeEntry{jumpRelativeNotZeroToValue, 8}, // TODO can have different cycle counts, maybe this should be handled
+		OpcodeEntry{loadTwoBytesIntoHL, 12},
+		OpcodeEntry{loadAIntoHLAndInc, 8},
+		OpcodeEntry{incrementHL, 8},
+		OpcodeEntry{incrementH, 4},
+		OpcodeEntry{decrementH, 4},
+		OpcodeEntry{loadValueIntoH, 8},
+		OpcodeEntry{decimalAdjustAccumulator, 4},
+		OpcodeEntry{jumpRealativeZeroToValue, 8}, // TODO can have different cycle counts, maybe this should be handled
+		OpcodeEntry{addHLToHL, 8},
+		OpcodeEntry{loadValuePointedByHLIntoAIncrementHL, 8},
+		OpcodeEntry{decrementHL, 8},
+		OpcodeEntry{incrementL, 4},
+		OpcodeEntry{decrementL, 4},
+		OpcodeEntry{loadValueIntoL, 8},
+		OpcodeEntry{complementAccumulator, 4},
+		OpcodeEntry{jumpRelativeNotCarryToValue, 8},
+		OpcodeEntry{loadTwoBytesIntoStackPointer, 12},
+		OpcodeEntry{loadAIntoHLAndDec, 8},
+		OpcodeEntry{incrementSP, 8},
+		OpcodeEntry{incrementAddressHL, 12},
+		OpcodeEntry{decrementAddressHL, 12},
+		OpcodeEntry{loadValueIntoAddressHL, 12},
+		OpcodeEntry{setCarryFlag, 4},
+		OpcodeEntry{jumpRealativeCarryToValue, 8}, // TODO can have different cycle counts, maybe this should be handled
+		OpcodeEntry{addSPToHL, 8},
+		OpcodeEntry{loadValuePointedByHLIntoADecrementHL, 8},
+		OpcodeEntry{decrementSP, 8},
 		OpcodeEntry{incrementA, 4},
+		OpcodeEntry{decrementA, 4},
+		OpcodeEntry{loadValueIntoA, 8},
+		OpcodeEntry{complementCarryFlag, 4},
+		OpcodeEntry{loadBIntoB, 4},
+		OpcodeEntry{loadCIntoB, 4},
+		OpcodeEntry{loadDIntoB, 4},
+		OpcodeEntry{loadEIntoB, 4},
+		OpcodeEntry{loadHIntoB, 4},
+		OpcodeEntry{loadLIntoB, 0},
+		OpcodeEntry{loadAddressHLIntoB, 8},
+		OpcodeEntry{loadAIntoB, 4},
+		OpcodeEntry{loadBIntoC, 4},
+		OpcodeEntry{loadCIntoC, 4},
+		OpcodeEntry{loadDIntoC, 4},
+		OpcodeEntry{loadEIntoC, 4},
+		OpcodeEntry{loadHIntoC, 4},
+		OpcodeEntry{loadLIntoC, 4},
+		OpcodeEntry{loadAddressHLIntoC, 8},
+		OpcodeEntry{loadAIntoC, 4},
+		OpcodeEntry{loadBIntoD, 4},
+		OpcodeEntry{loadCIntoD, 4},
+		OpcodeEntry{loadDIntoD, 4},
+		OpcodeEntry{loadEIntoD, 4},
+		OpcodeEntry{loadHIntoD, 4},
+		OpcodeEntry{loadLIntoD, 4},
+		OpcodeEntry{loadAddressHLIntoD, 8},
+		OpcodeEntry{loadAIntoD, 4},
+		OpcodeEntry{loadBIntoE, 4},
+		OpcodeEntry{loadCIntoE, 4},
+		OpcodeEntry{loadDIntoE, 4},
+		OpcodeEntry{loadEIntoE, 4},
+		OpcodeEntry{loadHIntoE, 4},
+		OpcodeEntry{loadLIntoE, 4},
+		OpcodeEntry{loadAddressHLIntoE, 8},
+		OpcodeEntry{loadAIntoE, 4},
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
@@ -206,42 +323,6 @@ namespace ggb
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{xorASelf, 4},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		OpcodeEntry{notImplementedInstruction, 0},
-		//OpcodeEntry{jumpToValue, 16}, // TODO check if this is correct
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
@@ -560,4 +641,6 @@ namespace ggb
 		OpcodeEntry{notImplementedInstruction, 0},
 		OpcodeEntry{notImplementedInstruction, 0},
 	};
+
+
 }

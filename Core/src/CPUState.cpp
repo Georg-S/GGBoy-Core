@@ -1,11 +1,6 @@
 #include "CPUState.hpp"
 
-static void setBitToValue(uint8_t& out,int bit, uint8_t value) 
-{
-	// TODO double check if this is correct
-	//out ^= (-value ^ out) & (uint8_t(1) << bit);
-	out = out & ~(1 << bit) | (value << bit);
-}
+#include "Utility.hpp"
 
 uint8_t& ggb::CPUState::A()
 {
@@ -82,9 +77,20 @@ void ggb::CPUState::setZeroFlag(bool value)
 	setBitToValue(F(), 7, value);
 }
 
+bool ggb::CPUState::getZeroFlag() const
+{
+	return isBitSet(F(), 7);
+}
+
 void ggb::CPUState::setSubtractionFlag(bool value) 
 {
 	setBitToValue(F(), 6, value);
+}
+
+bool ggb::CPUState::getSubtractionFlag() const
+{
+	return isBitSet(F(), 6);
+
 }
 
 void ggb::CPUState::setHalfCarryFlag(bool value) 
@@ -92,7 +98,22 @@ void ggb::CPUState::setHalfCarryFlag(bool value)
 	setBitToValue(F(), 5, value);
 }
 
+bool ggb::CPUState::getHalfCarryFlag() const
+{
+	return isBitSet(F(), 5);
+}
+
 void ggb::CPUState::setCarryFlag(bool value) 
 {
 	setBitToValue(F(), 4, value);
+}
+
+bool ggb::CPUState::getCarryFlag() const
+{
+	return isBitSet(F(), 4);
+}
+
+uint8_t ggb::CPUState::F() const
+{
+	return afUnion.regs[1];
 }

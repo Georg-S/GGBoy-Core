@@ -10,6 +10,7 @@ set(HEADERS
 	"include/Logging.hpp"
 	"include/Emulator.hpp"
 	"include/CPUState.hpp"
+	"include/Utility.hpp"
 	)
 
 set(SOURCES 

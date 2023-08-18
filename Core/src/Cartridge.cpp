@@ -18,14 +18,14 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
     m_cartridgeData.clear();
     m_cartridgeData.reserve(bufData.size());
     for (auto& data : bufData)
-        m_cartridgeData.emplace_back(static_cast<std::byte>(std::move(data)));
+        m_cartridgeData.emplace_back(static_cast<uint8_t>(std::move(data)));
 
     return true;
 }
 
-uint8_t ggb::Cartridge::read(uint16_t address)
+uint8_t& ggb::Cartridge::read(uint16_t address)
 {
-    return static_cast<uint8_t>(m_cartridgeData[address]);
+    return m_cartridgeData[address];
 }
 
 std::unique_ptr<Cartridge> ggb::loadCartridge(const std::filesystem::path& path)
