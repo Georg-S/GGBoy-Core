@@ -35,3 +35,13 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;
 }
+
+void ggb::BUS::write(uint16_t address, uint16_t value)
+{
+    const uint8_t high = value >> 8;
+    const uint8_t low = value && 0xFFFF;
+
+    assert(address + 1 < m_memory.size());
+    m_memory[address] = high;
+    m_memory[address+1] = low;
+}
