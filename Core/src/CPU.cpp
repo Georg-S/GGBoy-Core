@@ -22,7 +22,7 @@ void ggb::CPU::executeOneInstruction()
 {
 	const int instructionPointer = m_cpuState.InstructionPointer();
 	auto opCode = m_bus->read(instructionPointer);
-	logInfo(m_opcodes.getMnemonic(opCode));
+	logInfo(m_opcodes.getMnemonic(opCode) + "\t \t" + std::to_string(m_cpuState.B()));
 	++m_cpuState.InstructionPointer();
 	m_opcodes.execute(opCode, &m_cpuState, m_bus);
 }

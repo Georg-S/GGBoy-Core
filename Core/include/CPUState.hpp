@@ -33,10 +33,10 @@ namespace ggb
 	private:
 		uint8_t F() const;
 
-		union { uint16_t AF; uint8_t regs[2]; } afUnion;
-		union { uint16_t BC; uint8_t regs[2]; } bcUnion;
-		union { uint16_t DE; uint8_t regs[2]; } deUnion;
-		union { uint16_t HL; uint8_t regs[2]; } hlUnion;
+		union { uint16_t AF; uint8_t regs[2]; } afUnion = {};
+		union { uint16_t BC; uint8_t regs[2]; } bcUnion = {};
+		union { uint16_t DE; uint8_t regs[2]; } deUnion = {};
+		union { uint16_t HL; uint8_t regs[2]; } hlUnion = {};
 		uint16_t stackPointer = 0;
 		uint16_t instructionPointer = 0;
 	};

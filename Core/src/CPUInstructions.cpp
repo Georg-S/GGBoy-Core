@@ -1,6 +1,8 @@
 #include "CPUInstructions.hpp"
 
 #include "CPU.hpp"
+#include "Logging.hpp"
+#include "Utility.hpp"
 
 #include <cassert>
 #include <exception>
@@ -19,7 +21,12 @@ static uint8_t read(CPUState* cpu, BUS* bus)
 	return result;
 }
 
-static uint8_t readSigned(CPUState* cpu, BUS* bus)
+static uint8_t& readReference(CPUState* cpu, BUS* bus)
+{
+	return bus->read(cpu->InstructionPointer()++);
+}
+
+static int8_t readSigned(CPUState* cpu, BUS* bus)
 {
 	// TODO double check
 	return static_cast<int8_t>(read(cpu, bus));
@@ -80,57 +87,128 @@ static void decrement(CPUState* cpu, uint8_t& toDecrement)
 static void rotateLeft(CPUState* cpu, uint8_t& out)
 {
 	// TODO double check
-	constexpr uint8_t lastBit = uint8_t(1) << uint8_t(7);
-	uint8_t carry = (out & lastBit) == lastBit;
+	const bool carry = isBitSet(out, 7);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(static_cast<bool>(carry));
+	cpu->setCarryFlag(carry);
 	out = out << 1;
-	out |= carry;
+	setBitToValue(out, 7, carry);
 }
 
 static void rotateLeftThroughCarry(CPUState* cpu, uint8_t& out)
 {
-	constexpr uint8_t lastBit = uint8_t(1) << uint8_t(7);
-
 	// TODO double check
-	const uint8_t oldCarry = cpu->getCarryFlag();
-	const uint8_t carry = (out & lastBit) == lastBit;
+	const bool oldCarry = cpu->getCarryFlag();
+	const bool carry = isBitSet(out, 7);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(static_cast<bool>(carry));
 	out = out << 1;
-	out |= oldCarry;
+	setBitToValue(out, 0, oldCarry);
+}
+
+static void rotateLeftSetZero(CPUState* cpu, uint8_t& out)
+{
+	rotateLeft(cpu, out);
+	cpu->setZeroFlag(out == 0);
+}
+
+static void rotateLeftThroughCarrySetZero(CPUState* cpu, uint8_t& out)
+{
+	rotateLeftThroughCarry(cpu, out);
+	cpu->setZeroFlag(out == 0);
+}
+
+static void shiftLeftArithmetically(CPUState* cpu, uint8_t& out) 
+{
+	const bool carry = isBitSet(out, 7);
+	out = out << 1;
+	cpu->setZeroFlag(out == 0);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(carry);
 }
 
 static void rotateRight(CPUState* cpu, uint8_t& out)
 {
-	// TODO double check
-	constexpr uint8_t firstbit = uint8_t(1);
-	uint8_t carry = (out & firstbit) == firstbit;
+	const bool carry = isBitSet(out, 0);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(static_cast<bool>(carry));
+	cpu->setCarryFlag(carry);
 	out = out >> 1;
-	out |= (carry << 7);
+	setBitToValue(out, 7, carry);
 }
 
 static void rotateRightThroughCarry(CPUState* cpu, uint8_t& out)
 {
-	constexpr uint8_t firstbit = uint8_t(1);
-
 	// TODO double check
-	const uint8_t oldCarry = cpu->getCarryFlag();
-	const uint8_t carry = (out & firstbit) == firstbit;
+	const bool oldCarry = cpu->getCarryFlag();
+	const bool carry = isBitSet(out, 0);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(static_cast<bool>(carry));
+	cpu->setCarryFlag(carry);
 	out = out >> 1;
-	out |= (oldCarry << 7);
+	setBitToValue(out, 7, oldCarry);
+}
+
+static void rotateRightSetZero(CPUState* cpu, uint8_t& out)
+{
+	rotateRight(cpu, out);
+	cpu->setZeroFlag(out == 0);
+}
+
+static void rotateRightThroughCarrySetZero(CPUState* cpu, uint8_t& out)
+{
+	rotateRightThroughCarry(cpu, out);
+	cpu->setZeroFlag(out == 0);
+}
+
+static void shiftRightArithmetically(CPUState* cpu, uint8_t& out)
+{
+	const bool carry = isBitSet(out, 0);
+	const bool upperBit = isBitSet(out, 7);
+
+	out = out >> 1;
+	cpu->setZeroFlag(out == 0);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(carry);
+	setBitToValue(out, 7, upperBit); // TODO check
+}
+
+static void shiftRightLogically(CPUState* cpu, uint8_t& out)
+{
+	const bool carry = isBitSet(out, 0);
+
+	out = out >> 1;
+	cpu->setZeroFlag(out == 0);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(carry);
+}
+
+// Swaps the two nibbles
+static void swap(CPUState* cpu, uint8_t& out) 
+{
+	const uint8_t upper = out >> 4;
+	const uint8_t lower = out << 4;
+	out = lower | upper;
+	cpu->setZeroFlag(out == 0);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(false);
+}
+
+static void checkBit(CPUState* cpu, uint8_t num, int bit) 
+{
+	const bool isSet = isBitSet(num, bit);
+	cpu->setHalfCarryFlag(true);
+	cpu->setSubtractionFlag(false);
+	cpu->setZeroFlag(!isSet);
 }
 
 static void add(CPUState* cpu, uint16_t& outReg, uint16_t reg2)
@@ -225,6 +303,13 @@ static void compare(CPUState* cpu, uint8_t outReg, uint8_t reg2)
 {
 	sub(cpu, outReg, reg2);
 }
+
+
+
+
+
+
+
 
 static void invalidInstruction(CPUInstructionParameters)
 {
@@ -400,8 +485,9 @@ static void rotateARightThroughCarry(CPUInstructionParameters)
 
 static void jumpRelativeNotZeroToValue(CPUInstructionParameters)
 {
-	int8_t jumpDistance = cpu->getZeroFlag() ? 0 : readSigned(cpu, bus);
-	cpu->InstructionPointer() += jumpDistance;
+	auto num = readSigned(cpu, bus);
+	if (!cpu->getZeroFlag())
+		cpu->InstructionPointer() += num;
 }
 
 static void loadTwoBytesIntoHL(CPUInstructionParameters)
@@ -441,8 +527,9 @@ static void decimalAdjustAccumulator(CPUInstructionParameters)
 
 static void jumpRealativeZeroToValue(CPUInstructionParameters)
 {
-	int8_t jumpDistance = cpu->getZeroFlag() ? readSigned(cpu, bus) : 0;
-	cpu->InstructionPointer() += jumpDistance;
+	auto num = readSigned(cpu, bus);
+	if (cpu->getZeroFlag())
+		cpu->InstructionPointer() += num;
 }
 
 static void addHLToHL(CPUInstructionParameters)
@@ -485,8 +572,9 @@ static void complementAccumulator(CPUInstructionParameters)
 
 static void jumpRelativeNotCarryToValue(CPUInstructionParameters)
 {
-	int8_t jumpDistance = cpu->getHalfCarryFlag() ? 0 : readSigned(cpu, bus);
-	cpu->InstructionPointer() += jumpDistance;
+	auto num = readSigned(cpu, bus);
+	if (!cpu->getCarryFlag())
+		cpu->InstructionPointer() += num;
 }
 
 static void loadTwoBytesIntoStackPointer(CPUInstructionParameters)
@@ -530,8 +618,9 @@ static void setCarryFlag(CPUInstructionParameters)
 
 static void jumpRealativeCarryToValue(CPUInstructionParameters)
 {
-	int8_t jumpDistance = cpu->getHalfCarryFlag() ? readSigned(cpu, bus) : 0;
-	cpu->InstructionPointer() += jumpDistance;
+	auto num = readSigned(cpu, bus);
+	if (cpu->getCarryFlag())
+		cpu->InstructionPointer() += num;
 }
 
 static void addSPToHL(CPUInstructionParameters)
@@ -1242,8 +1331,8 @@ static void call(CPUInstructionParameters, bool call)
 	if (!call)
 		return;
 
-	writeToStack(cpu, bus, number);
-	cpu->StackPointer() = number;
+	writeToStack(cpu, bus, cpu->InstructionPointer());
+	cpu->InstructionPointer() = number;
 }
 
 static void callNotZeroNumber(CPUInstructionParameters)
@@ -1518,6 +1607,1312 @@ static void restart38(CPUInstructionParameters)
 	restart(cpu, bus, 0x38);
 }
 
+static void rotateBLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->B());
+}
+
+static void rotateCLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->C());
+}
+
+static void rotateDLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->D());
+}
+
+static void rotateELeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->E());
+}
+
+static void rotateHLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->H());
+}
+
+static void rotateLLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->L());
+}
+
+static void rotateHLAddressLeft(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, readReference(cpu, bus));
+}
+
+static void rotateALeftSetZero(CPUInstructionParameters)
+{
+	rotateLeftSetZero(cpu, cpu->A());
+}
+
+static void rotateBRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->B());
+}
+
+static void rotateCRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->C());
+}
+
+static void rotateDRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->D());
+}
+
+static void rotateERight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->E());
+}
+
+static void rotateHRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->H());
+}
+
+static void rotateLRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->L());
+}
+
+static void rotateHLAddressRight(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, readReference(cpu, bus));
+}
+
+static void rotateARightSetZero(CPUInstructionParameters)
+{
+	rotateRightSetZero(cpu, cpu->A());
+}
+
+static void rotateBRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->B());
+}
+
+static void rotateCRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->C());
+}
+
+static void rotateDRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->D());
+}
+
+static void rotateERightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->E());
+}
+
+static void rotateHRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->H());
+}
+
+static void rotateLRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->L());
+}
+
+static void rotateHLAddressRightThroughCarry(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, readReference(cpu, bus));
+}
+
+static void rotateARightThroughCarrySetZero(CPUInstructionParameters)
+{
+	rotateRightThroughCarrySetZero(cpu, cpu->A());
+}
+
+static void rotateBLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->B());
+}
+
+static void rotateCLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->C());
+}
+
+static void rotateDLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->D());
+}
+
+static void rotateELeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->E());
+}
+
+static void rotateHLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->H());
+}
+
+static void rotateLLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->L());
+}
+
+static void rotateHLAddressLeftThroughCarry(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, readReference(cpu, bus));
+}
+
+static void rotateALeftThroughCarrySetZero(CPUInstructionParameters)
+{
+	rotateLeftThroughCarrySetZero(cpu, cpu->A());
+}
+
+static void shiftBLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->B());
+}
+
+static void shiftCLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->C());
+}
+
+static void shiftDLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->D());
+}
+
+static void shiftELeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->E());
+}
+
+static void shiftHLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->H());
+}
+
+static void shiftLLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->L());
+}
+
+static void shiftHLAddressLeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, readReference(cpu, bus));
+}
+
+static void shiftALeftArithmetically(CPUInstructionParameters)
+{
+	shiftLeftArithmetically(cpu, cpu->A());
+}
+
+static void shiftBRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->B());
+}
+
+static void shiftCRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->C());
+}
+
+static void shiftDRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->D());
+}
+
+static void shiftERightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->E());
+}
+
+static void shiftHRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->H());
+}
+
+static void shiftLRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->L());
+}
+
+static void shiftHLAddressRightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, readReference(cpu, bus));
+}
+
+static void shiftARightArithmetically(CPUInstructionParameters)
+{
+	shiftRightArithmetically(cpu, cpu->A());
+}
+
+
+
+
+static void swapB(CPUInstructionParameters)
+{
+	swap(cpu, cpu->B());
+}
+
+static void swapC(CPUInstructionParameters)
+{
+	swap(cpu, cpu->C());
+}
+
+static void swapD(CPUInstructionParameters)
+{
+	swap(cpu, cpu->D());
+}
+
+static void swapE(CPUInstructionParameters)
+{
+	swap(cpu, cpu->E());
+}
+
+static void swapH(CPUInstructionParameters)
+{
+	swap(cpu, cpu->H());
+}
+
+static void swapL(CPUInstructionParameters)
+{
+	swap(cpu, cpu->L());
+}
+
+static void swapHLAddress(CPUInstructionParameters)
+{
+	swap(cpu, readReference(cpu, bus));
+}
+
+static void swapA(CPUInstructionParameters)
+{
+	swap(cpu, cpu->A());
+}
+
+
+
+
+
+
+
+
+static void shiftBRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->B());
+}
+
+static void shiftCRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->C());
+}
+
+static void shiftDRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->D());
+}
+
+static void shiftERightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->E());
+}
+
+static void shiftHRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->H());
+}
+
+static void shiftLRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->L());
+}
+
+static void shiftHLAddressRightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, readReference(cpu, bus));
+}
+
+static void shiftARightLogically(CPUInstructionParameters)
+{
+	shiftRightLogically(cpu, cpu->A());
+}
+
+static void checkBit0A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 0);
+}
+
+static void checkBit1A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 1);
+}
+
+static void checkBit2A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 2);
+}
+
+static void checkBit3A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 3);
+}
+
+static void checkBit4A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 4);
+}
+
+static void checkBit5A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 5);
+}
+
+static void checkBit6A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 6);
+}
+
+static void checkBit7A(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->A(), 7);
+}
+
+static void checkBit0B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 0);
+}
+
+static void checkBit1B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 1);
+}
+
+static void checkBit2B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 2);
+}
+
+static void checkBit3B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 3);
+}
+
+static void checkBit4B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 4);
+}
+
+static void checkBit5B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 5);
+}
+
+static void checkBit6B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 6);
+}
+
+static void checkBit7B(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->B(), 7);
+}
+
+static void checkBit0C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 0);
+}
+
+static void checkBit1C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 1);
+}
+
+static void checkBit2C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 2);
+}
+
+static void checkBit3C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 3);
+}
+
+static void checkBit4C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 4);
+}
+
+static void checkBit5C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 5);
+}
+
+static void checkBit6C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 6);
+}
+
+static void checkBit7C(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->C(), 7);
+}
+
+
+static void checkBit0D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 0);
+}
+
+static void checkBit1D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 1);
+}
+
+static void checkBit2D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 2);
+}
+
+static void checkBit3D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 3);
+}
+
+static void checkBit4D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 4);
+}
+
+static void checkBit5D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 5);
+}
+
+static void checkBit6D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 6);
+}
+
+static void checkBit7D(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->D(), 7);
+}
+
+static void checkBit0E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 0);
+}
+
+static void checkBit1E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 1);
+}
+
+static void checkBit2E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 2);
+}
+
+static void checkBit3E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 3);
+}
+
+static void checkBit4E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 4);
+}
+
+static void checkBit5E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 5);
+}
+
+static void checkBit6E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 6);
+}
+
+static void checkBit7E(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->E(), 7);
+}
+
+static void checkBit0H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 0);
+}
+
+static void checkBit1H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 1);
+}
+
+static void checkBit2H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 2);
+}
+
+static void checkBit3H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 3);
+}
+
+static void checkBit4H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 4);
+}
+
+static void checkBit5H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 5);
+}
+
+static void checkBit6H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 6);
+}
+
+static void checkBit7H(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->H(), 7);
+}
+
+static void checkBit0L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 0);
+}
+
+static void checkBit1L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 1);
+}
+
+static void checkBit2L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 2);
+}
+
+static void checkBit3L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 3);
+}
+
+static void checkBit4L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 4);
+}
+
+static void checkBit5L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 5);
+}
+
+static void checkBit6L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 6);
+}
+
+static void checkBit7L(CPUInstructionParameters)
+{
+	checkBit(cpu, cpu->L(), 7);
+}
+
+static void checkBit0HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 0);
+}
+
+static void checkBit1HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 1);
+}
+
+static void checkBit2HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 2);
+}
+
+static void checkBit3HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 3);
+}
+
+static void checkBit4HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 4);
+}
+
+static void checkBit5HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 5);
+}
+
+static void checkBit6HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 6);
+}
+
+static void checkBit7HLAddress(CPUInstructionParameters)
+{
+	checkBit(cpu, bus->read(cpu->HL()), 7);
+}
+
+
+
+
+
+
+static void resetBit0A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 0);
+}
+
+static void resetBit1A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 1);
+}
+
+static void resetBit2A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 2);
+}
+
+static void resetBit3A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 3);
+}
+
+static void resetBit4A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 4);
+}
+
+static void resetBit5A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 5);
+}
+
+static void resetBit6A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 6);
+}
+
+static void resetBit7A(CPUInstructionParameters)
+{
+	clearBit(cpu->A(), 7);
+}
+
+static void resetBit0B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 0);
+}
+
+static void resetBit1B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 1);
+}
+
+static void resetBit2B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 2);
+}
+
+static void resetBit3B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 3);
+}
+
+static void resetBit4B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 4);
+}
+
+static void resetBit5B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 5);
+}
+
+static void resetBit6B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 6);
+}
+
+static void resetBit7B(CPUInstructionParameters)
+{
+	clearBit(cpu->B(), 7);
+}
+
+static void resetBit0C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 0);
+}
+
+static void resetBit1C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 1);
+}
+
+static void resetBit2C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 2);
+}
+
+static void resetBit3C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 3);
+}
+
+static void resetBit4C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 4);
+}
+
+static void resetBit5C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 5);
+}
+
+static void resetBit6C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 6);
+}
+
+static void resetBit7C(CPUInstructionParameters)
+{
+	clearBit(cpu->C(), 7);
+}
+
+
+static void resetBit0D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 0);
+}
+
+static void resetBit1D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 1);
+}
+
+static void resetBit2D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 2);
+}
+
+static void resetBit3D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 3);
+}
+
+static void resetBit4D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 4);
+}
+
+static void resetBit5D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 5);
+}
+
+static void resetBit6D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 6);
+}
+
+static void resetBit7D(CPUInstructionParameters)
+{
+	clearBit(cpu->D(), 7);
+}
+
+static void resetBit0E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 0);
+}
+
+static void resetBit1E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 1);
+}
+
+static void resetBit2E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 2);
+}
+
+static void resetBit3E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 3);
+}
+
+static void resetBit4E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 4);
+}
+
+static void resetBit5E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 5);
+}
+
+static void resetBit6E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 6);
+}
+
+static void resetBit7E(CPUInstructionParameters)
+{
+	clearBit(cpu->E(), 7);
+}
+
+static void resetBit0H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 0);
+}
+
+static void resetBit1H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 1);
+}
+
+static void resetBit2H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 2);
+}
+
+static void resetBit3H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 3);
+}
+
+static void resetBit4H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 4);
+}
+
+static void resetBit5H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 5);
+}
+
+static void resetBit6H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 6);
+}
+
+static void resetBit7H(CPUInstructionParameters)
+{
+	clearBit(cpu->H(), 7);
+}
+
+static void resetBit0L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 0);
+}
+
+static void resetBit1L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 1);
+}
+
+static void resetBit2L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 2);
+}
+
+static void resetBit3L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 3);
+}
+
+static void resetBit4L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 4);
+}
+
+static void resetBit5L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 5);
+}
+
+static void resetBit6L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 6);
+}
+
+static void resetBit7L(CPUInstructionParameters)
+{
+	clearBit(cpu->L(), 7);
+}
+
+static void resetBit0HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 0);
+}
+
+static void resetBit1HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 1);
+}
+
+static void resetBit2HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 2);
+}
+
+static void resetBit3HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 3);
+}
+
+static void resetBit4HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 4);
+}
+
+static void resetBit5HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 5);
+}
+
+static void resetBit6HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 6);
+}
+
+static void resetBit7HLAddress(CPUInstructionParameters)
+{
+	clearBit(bus->read(cpu->HL()), 7);
+}
+
+
+
+
+
+
+
+
+static void setBit0A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 0);
+}
+
+static void setBit1A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 1);
+}
+
+static void setBit2A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 2);
+}
+
+static void setBit3A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 3);
+}
+
+static void setBit4A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 4);
+}
+
+static void setBit5A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 5);
+}
+
+static void setBit6A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 6);
+}
+
+static void setBit7A(CPUInstructionParameters)
+{
+	setBit(cpu->A(), 7);
+}
+
+static void setBit0B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 0);
+}
+
+static void setBit1B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 1);
+}
+
+static void setBit2B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 2);
+}
+
+static void setBit3B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 3);
+}
+
+static void setBit4B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 4);
+}
+
+static void setBit5B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 5);
+}
+
+static void setBit6B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 6);
+}
+
+static void setBit7B(CPUInstructionParameters)
+{
+	setBit(cpu->B(), 7);
+}
+
+static void setBit0C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 0);
+}
+
+static void setBit1C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 1);
+}
+
+static void setBit2C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 2);
+}
+
+static void setBit3C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 3);
+}
+
+static void setBit4C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 4);
+}
+
+static void setBit5C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 5);
+}
+
+static void setBit6C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 6);
+}
+
+static void setBit7C(CPUInstructionParameters)
+{
+	setBit(cpu->C(), 7);
+}
+
+
+static void setBit0D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 0);
+}
+
+static void setBit1D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 1);
+}
+
+static void setBit2D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 2);
+}
+
+static void setBit3D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 3);
+}
+
+static void setBit4D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 4);
+}
+
+static void setBit5D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 5);
+}
+
+static void setBit6D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 6);
+}
+
+static void setBit7D(CPUInstructionParameters)
+{
+	setBit(cpu->D(), 7);
+}
+
+static void setBit0E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 0);
+}
+
+static void setBit1E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 1);
+}
+
+static void setBit2E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 2);
+}
+
+static void setBit3E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 3);
+}
+
+static void setBit4E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 4);
+}
+
+static void setBit5E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 5);
+}
+
+static void setBit6E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 6);
+}
+
+static void setBit7E(CPUInstructionParameters)
+{
+	setBit(cpu->E(), 7);
+}
+
+static void setBit0H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 0);
+}
+
+static void setBit1H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 1);
+}
+
+static void setBit2H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 2);
+}
+
+static void setBit3H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 3);
+}
+
+static void setBit4H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 4);
+}
+
+static void setBit5H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 5);
+}
+
+static void setBit6H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 6);
+}
+
+static void setBit7H(CPUInstructionParameters)
+{
+	setBit(cpu->H(), 7);
+}
+
+static void setBit0L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 0);
+}
+
+static void setBit1L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 1);
+}
+
+static void setBit2L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 2);
+}
+
+static void setBit3L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 3);
+}
+
+static void setBit4L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 4);
+}
+
+static void setBit5L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 5);
+}
+
+static void setBit6L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 6);
+}
+
+static void setBit7L(CPUInstructionParameters)
+{
+	setBit(cpu->L(), 7);
+}
+
+static void setBit0HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 0);
+}
+
+static void setBit1HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 1);
+}
+
+static void setBit2HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 2);
+}
+
+static void setBit3HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 3);
+}
+
+static void setBit4HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 4);
+}
+
+static void setBit5HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 5);
+}
+
+static void setBit6HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 6);
+}
+
+static void setBit7HLAddress(CPUInstructionParameters)
+{
+	setBit(bus->read(cpu->HL()), 7);
+}
+
+
 
 
 
@@ -1532,7 +2927,8 @@ ggb::OPCodes::OPCodes()
 
 void OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
 {
-	m_opcodes[opCode].func(cpu, bus);
+	auto& opCodeStr = m_opcodes[opCode];
+	opCodeStr.func(cpu, bus);
 }
 
 std::string OPCodes::getMnemonic(uint16_t opCode) const
@@ -1545,6 +2941,13 @@ void ggb::OPCodes::setOpcode(OPCode&& opcode)
 	assert(opcode.id == m_counter);
 	m_opcodes[m_counter] = std::move(opcode);
 	++m_counter;
+}
+
+void ggb::OPCodes::setExtendedOpcode(OPCode&& opcode)
+{
+	assert(opcode.id == m_extendedOpcodeCounter);
+	m_extendedOpcodes[m_extendedOpcodeCounter] = std::move(opcode);
+	++m_extendedOpcodeCounter;
 }
 
 void ggb::OPCodes::initOpcodesArray()
@@ -1809,4 +3212,262 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xFE,compareAWithNumber, 8, "CP A,u8" });
 	setOpcode({ 0xFF,restart38, 16, "RST 38h" });
 
+	// Extended OPcodes start
+	setExtendedOpcode({ 0x00,rotateBLeft, 8, "RLC B" });
+	setExtendedOpcode({ 0x01,rotateCLeft, 8, "RLC C" });
+	setExtendedOpcode({ 0x02,rotateDLeft, 8, "RLC D" });
+	setExtendedOpcode({ 0x03,rotateELeft, 8, "RLC E" });
+	setExtendedOpcode({ 0x04,rotateHLeft, 8, "RLC H" });
+	setExtendedOpcode({ 0x05,rotateLLeft, 8, "RLC L" });
+	setExtendedOpcode({ 0x06,rotateHLAddressLeft, 16, "RLC (HL)" });
+	setExtendedOpcode({ 0x07,rotateALeftSetZero, 8, "RLC A" });
+	setExtendedOpcode({ 0x08,rotateBRight, 8, "RRC B" });
+	setExtendedOpcode({ 0x09,rotateCRight, 8, "RRC C" });
+	setExtendedOpcode({ 0x0A,rotateDRight, 8, "RRC D" });
+	setExtendedOpcode({ 0x0B,rotateERight, 8, "RRC E" });
+	setExtendedOpcode({ 0x0C,rotateHRight, 8, "RRC H" });
+	setExtendedOpcode({ 0x0D,rotateLRight, 8, "RRC L" });
+	setExtendedOpcode({ 0x0E,rotateHLAddressRight, 16, "RRC (HL)" });
+	setExtendedOpcode({ 0x0F,rotateARightSetZero, 8, "RRC A" });
+	setExtendedOpcode({ 0x10,rotateBLeftThroughCarry, 8, "RL B" });
+	setExtendedOpcode({ 0x11,rotateCLeftThroughCarry, 8, "RL C" });
+	setExtendedOpcode({ 0x12,rotateDLeftThroughCarry, 8, "RL D" });
+	setExtendedOpcode({ 0x13,rotateELeftThroughCarry, 8, "RL E" });
+	setExtendedOpcode({ 0x14,rotateHLeftThroughCarry, 8, "RL H" });
+	setExtendedOpcode({ 0x15,rotateLLeftThroughCarry, 8, "RL L" });
+	setExtendedOpcode({ 0x16,rotateHLAddressLeftThroughCarry, 16, "RL (HL)" });
+	setExtendedOpcode({ 0x17,rotateALeftThroughCarrySetZero, 8, "RL A" });
+	setExtendedOpcode({ 0x18,rotateBRightThroughCarry, 8, "RR B" });
+	setExtendedOpcode({ 0x19,rotateCRightThroughCarry, 8, "RR C" });
+	setExtendedOpcode({ 0x1A,rotateDRightThroughCarry, 8, "RR D" });
+	setExtendedOpcode({ 0x1B,rotateERightThroughCarry, 8, "RR E" });
+	setExtendedOpcode({ 0x1C,rotateHRightThroughCarry, 8, "RR H" });
+	setExtendedOpcode({ 0x1D,rotateLRightThroughCarry, 8, "RR L" });
+	setExtendedOpcode({ 0x1E,rotateHLAddressRightThroughCarry, 16, "RR (HL)" });
+	setExtendedOpcode({ 0x1F,rotateARightThroughCarrySetZero, 8, "RR A" });
+	setExtendedOpcode({ 0x20,shiftBLeftArithmetically, 8, "SLA B" });
+	setExtendedOpcode({ 0x21,shiftCLeftArithmetically, 8, "SLA C" });
+	setExtendedOpcode({ 0x22,shiftDLeftArithmetically, 8, "SLA D" });
+	setExtendedOpcode({ 0x23,shiftELeftArithmetically, 8, "SLA E" });
+	setExtendedOpcode({ 0x24,shiftHLeftArithmetically, 8, "SLA H" });
+	setExtendedOpcode({ 0x25,shiftLLeftArithmetically, 8, "SLA L" });
+	setExtendedOpcode({ 0x26,shiftHLAddressLeftArithmetically, 16, "SLA (HL)" });
+	setExtendedOpcode({ 0x27,shiftALeftArithmetically, 8, "SLA A" });
+	setExtendedOpcode({ 0x28,shiftBRightArithmetically, 8, "SRA B" });
+	setExtendedOpcode({ 0x29,shiftCRightArithmetically, 8, "SRA C" });
+	setExtendedOpcode({ 0x2A,shiftDRightArithmetically, 8, "SRA D" });
+	setExtendedOpcode({ 0x2B,shiftERightArithmetically, 8, "SRA E" });
+	setExtendedOpcode({ 0x2C,shiftHRightArithmetically, 8, "SRA H" });
+	setExtendedOpcode({ 0x2D,shiftLRightArithmetically, 8, "SRA L" });
+	setExtendedOpcode({ 0x2E,shiftHLAddressRightArithmetically, 16, "SRA (HL)" });
+	setExtendedOpcode({ 0x2F,shiftARightArithmetically, 8, "SRA A" });
+	setExtendedOpcode({ 0x30,swapB, 8, "SWAP B" });
+	setExtendedOpcode({ 0x31,swapC, 8, "SWAP C" });
+	setExtendedOpcode({ 0x32,swapD, 8, "SWAP D" });
+	setExtendedOpcode({ 0x33,swapE, 8, "SWAP E" });
+	setExtendedOpcode({ 0x34,swapH, 8, "SWAP H" });
+	setExtendedOpcode({ 0x35,swapL, 8, "SWAP L" });
+	setExtendedOpcode({ 0x36,swapHLAddress, 16, "SWAP (HL)" });
+	setExtendedOpcode({ 0x37,swapA, 8, "SWAP A" });
+	setExtendedOpcode({ 0x38,shiftBRightLogically, 8, "SRL B" });
+	setExtendedOpcode({ 0x39,shiftCRightLogically, 8, "SRL C" });
+	setExtendedOpcode({ 0x3A,shiftDRightLogically, 8, "SRL D" });
+	setExtendedOpcode({ 0x3B,shiftERightLogically, 8, "SRL E" });
+	setExtendedOpcode({ 0x3C,shiftHRightLogically, 8, "SRL H" });
+	setExtendedOpcode({ 0x3D,shiftLRightLogically, 8, "SRL L" });
+	setExtendedOpcode({ 0x3E,shiftHLAddressRightLogically, 16, "SRL (HL)" });
+	setExtendedOpcode({ 0x3F,shiftARightLogically, 8, "SRL A" });
+	setExtendedOpcode({ 0x40,checkBit0B, 8, "BIT 0,B" });
+	setExtendedOpcode({ 0x41,checkBit0C, 8, "BIT 0,C" });
+	setExtendedOpcode({ 0x42,checkBit0D, 8, "BIT 0,D" });
+	setExtendedOpcode({ 0x43,checkBit0E, 8, "BIT 0,E" });
+	setExtendedOpcode({ 0x44,checkBit0H, 8, "BIT 0,H" });
+	setExtendedOpcode({ 0x45,checkBit0L, 8, "BIT 0,L" });
+	setExtendedOpcode({ 0x46,checkBit0HLAddress, 12, "BIT 0,(HL)" });
+	setExtendedOpcode({ 0x47,checkBit0A, 8, "BIT 0,A" });
+	setExtendedOpcode({ 0x48,checkBit1B, 8, "BIT 1,B" });
+	setExtendedOpcode({ 0x49,checkBit1C, 8, "BIT 1,C" });
+	setExtendedOpcode({ 0x4A,checkBit1D, 8, "BIT 1,D" });
+	setExtendedOpcode({ 0x4B,checkBit1E, 8, "BIT 1,E" });
+	setExtendedOpcode({ 0x4C,checkBit1H, 8, "BIT 1,H" });
+	setExtendedOpcode({ 0x4D,checkBit1L, 8, "BIT 1,L" });
+	setExtendedOpcode({ 0x4E,checkBit1HLAddress, 12, "BIT 1,(HL)" });
+	setExtendedOpcode({ 0x4F,checkBit1A, 8, "BIT 1,A" });
+	setExtendedOpcode({ 0x50,checkBit2B, 8, "BIT 2,B" });
+	setExtendedOpcode({ 0x51,checkBit2C, 8, "BIT 2,C" });
+	setExtendedOpcode({ 0x52,checkBit2D, 8, "BIT 2,D" });
+	setExtendedOpcode({ 0x53,checkBit2E, 8, "BIT 2,E" });
+	setExtendedOpcode({ 0x54,checkBit2H, 8, "BIT 2,H" });
+	setExtendedOpcode({ 0x55,checkBit2L, 8, "BIT 2,L" });
+	setExtendedOpcode({ 0x56,checkBit2HLAddress, 12, "BIT 2,(HL)" });
+	setExtendedOpcode({ 0x57,checkBit2A, 8, "BIT 2,A" });
+	setExtendedOpcode({ 0x58,checkBit3B, 8, "BIT 3,B" });
+	setExtendedOpcode({ 0x59,checkBit3C, 8, "BIT 3,C" });
+	setExtendedOpcode({ 0x5A,checkBit3D, 8, "BIT 3,D" });
+	setExtendedOpcode({ 0x5B,checkBit3E, 8, "BIT 3,E" });
+	setExtendedOpcode({ 0x5C,checkBit3H, 8, "BIT 3,H" });
+	setExtendedOpcode({ 0x5D,checkBit3L, 8, "BIT 3,L" });
+	setExtendedOpcode({ 0x5E,checkBit3HLAddress, 12, "BIT 3,(HL)" });
+	setExtendedOpcode({ 0x5F,checkBit3A, 8, "BIT 3,A" });
+	setExtendedOpcode({ 0x60,checkBit4B, 8, "BIT 4,B" });
+	setExtendedOpcode({ 0x61,checkBit4C, 8, "BIT 4,C" });
+	setExtendedOpcode({ 0x62,checkBit4D, 8, "BIT 4,D" });
+	setExtendedOpcode({ 0x63,checkBit4E, 8, "BIT 4,E" });
+	setExtendedOpcode({ 0x64,checkBit4H, 8, "BIT 4,H" });
+	setExtendedOpcode({ 0x65,checkBit4L, 8, "BIT 4,L" });
+	setExtendedOpcode({ 0x66,checkBit4HLAddress, 12, "BIT 4,(HL)" });
+	setExtendedOpcode({ 0x67,checkBit4A, 8, "BIT 4,A" });
+	setExtendedOpcode({ 0x68,checkBit5B, 8, "BIT 5,B" });
+	setExtendedOpcode({ 0x69,checkBit5C, 8, "BIT 5,C" });
+	setExtendedOpcode({ 0x6A,checkBit5D, 8, "BIT 5,D" });
+	setExtendedOpcode({ 0x6B,checkBit5E, 8, "BIT 5,E" });
+	setExtendedOpcode({ 0x6C,checkBit5H, 8, "BIT 5,H" });
+	setExtendedOpcode({ 0x6D,checkBit5L, 8, "BIT 5,L" });
+	setExtendedOpcode({ 0x6E,checkBit5HLAddress, 12, "BIT 5,(HL)" });
+	setExtendedOpcode({ 0x6F,checkBit5A, 8, "BIT 5,A" });
+	setExtendedOpcode({ 0x70,checkBit6B, 8, "BIT 6,B" });
+	setExtendedOpcode({ 0x71,checkBit6C, 8, "BIT 6,C" });
+	setExtendedOpcode({ 0x72,checkBit6D, 8, "BIT 6,D" });
+	setExtendedOpcode({ 0x73,checkBit6E, 8, "BIT 6,E" });
+	setExtendedOpcode({ 0x74,checkBit6H, 8, "BIT 6,H" });
+	setExtendedOpcode({ 0x75,checkBit6L, 8, "BIT 6,L" });
+	setExtendedOpcode({ 0x76,checkBit6HLAddress, 12, "BIT 6,(HL)" });
+	setExtendedOpcode({ 0x77,checkBit6A, 8, "BIT 6,A" });
+	setExtendedOpcode({ 0x78,checkBit7B, 8, "BIT 7,B" });
+	setExtendedOpcode({ 0x79,checkBit7C, 8, "BIT 7,C" });
+	setExtendedOpcode({ 0x7A,checkBit7D, 8, "BIT 7,D" });
+	setExtendedOpcode({ 0x7B,checkBit7E, 8, "BIT 7,E" });
+	setExtendedOpcode({ 0x7C,checkBit7H, 8, "BIT 7,H" });
+	setExtendedOpcode({ 0x7D,checkBit7L, 8, "BIT 7,L" });
+	setExtendedOpcode({ 0x7E,checkBit7HLAddress, 12, "BIT 7,(HL)" });
+	setExtendedOpcode({ 0x7F,checkBit7A, 8, "BIT 7,A" });
+	setExtendedOpcode({ 0x80,resetBit0B, 8, "RES 0,B" });
+	setExtendedOpcode({ 0x81,resetBit0C, 8, "RES 0,C" });
+	setExtendedOpcode({ 0x82,resetBit0D, 8, "RES 0,D" });
+	setExtendedOpcode({ 0x83,resetBit0E, 8, "RES 0,E" });
+	setExtendedOpcode({ 0x84,resetBit0H, 8, "RES 0,H" });
+	setExtendedOpcode({ 0x85,resetBit0L, 8, "RES 0,L" });
+	setExtendedOpcode({ 0x86,resetBit0HLAddress, 16, "RES 0,(HL)" });
+	setExtendedOpcode({ 0x87,resetBit0A, 8, "RES 0,A" });
+	setExtendedOpcode({ 0x88,resetBit1B, 8, "RES 1,B" });
+	setExtendedOpcode({ 0x89,resetBit1C, 8, "RES 1,C" });
+	setExtendedOpcode({ 0x8A,resetBit1D, 8, "RES 1,D" });
+	setExtendedOpcode({ 0x8B,resetBit1E, 8, "RES 1,E" });
+	setExtendedOpcode({ 0x8C,resetBit1H, 8, "RES 1,H" });
+	setExtendedOpcode({ 0x8D,resetBit1L, 8, "RES 1,L" });
+	setExtendedOpcode({ 0x8E,resetBit1HLAddress, 16, "RES 1,(HL)" });
+	setExtendedOpcode({ 0x8F,resetBit1A, 8, "RES 1,A" });
+	setExtendedOpcode({ 0x90,resetBit2B, 8, "RES 2,B" });
+	setExtendedOpcode({ 0x91,resetBit2C, 8, "RES 2,C" });
+	setExtendedOpcode({ 0x92,resetBit2D, 8, "RES 2,D" });
+	setExtendedOpcode({ 0x93,resetBit2E, 8, "RES 2,E" });
+	setExtendedOpcode({ 0x94,resetBit2H, 8, "RES 2,H" });
+	setExtendedOpcode({ 0x95,resetBit2L, 8, "RES 2,L" });
+	setExtendedOpcode({ 0x96,resetBit2HLAddress, 16, "RES 2,(HL)" });
+	setExtendedOpcode({ 0x97,resetBit2A, 8, "RES 2,A" });
+	setExtendedOpcode({ 0x98,resetBit3B, 8, "RES 3,B" });
+	setExtendedOpcode({ 0x99,resetBit3C, 8, "RES 3,C" });
+	setExtendedOpcode({ 0x9A,resetBit3D, 8, "RES 3,D" });
+	setExtendedOpcode({ 0x9B,resetBit3E, 8, "RES 3,E" });
+	setExtendedOpcode({ 0x9C,resetBit3H, 8, "RES 3,H" });
+	setExtendedOpcode({ 0x9D,resetBit3L, 8, "RES 3,L" });
+	setExtendedOpcode({ 0x9E,resetBit3HLAddress, 16, "RES 3,(HL)" });
+	setExtendedOpcode({ 0x9F,resetBit3A, 8, "RES 3,A" });
+	setExtendedOpcode({ 0xA0,resetBit4B, 8, "RES 4,B" });
+	setExtendedOpcode({ 0xA1,resetBit4C, 8, "RES 4,C" });
+	setExtendedOpcode({ 0xA2,resetBit4D, 8, "RES 4,D" });
+	setExtendedOpcode({ 0xA3,resetBit4E, 8, "RES 4,E" });
+	setExtendedOpcode({ 0xA4,resetBit4H, 8, "RES 4,H" });
+	setExtendedOpcode({ 0xA5,resetBit4L, 8, "RES 4,L" });
+	setExtendedOpcode({ 0xA6,resetBit4HLAddress, 16, "RES 4,(HL)" });
+	setExtendedOpcode({ 0xA7,resetBit4A, 8, "RES 4,A" });
+	setExtendedOpcode({ 0xA8,resetBit5B, 8, "RES 5,B" });
+	setExtendedOpcode({ 0xA9,resetBit5C, 8, "RES 5,C" });
+	setExtendedOpcode({ 0xAA,resetBit5D, 8, "RES 5,D" });
+	setExtendedOpcode({ 0xAB,resetBit5E, 8, "RES 5,E" });
+	setExtendedOpcode({ 0xAC,resetBit5H, 8, "RES 5,H" });
+	setExtendedOpcode({ 0xAD,resetBit5L, 8, "RES 5,L" });
+	setExtendedOpcode({ 0xAE,resetBit5HLAddress, 16, "RES 5,(HL)" });
+	setExtendedOpcode({ 0xAF,resetBit5A, 8, "RES 5,A" });
+	setExtendedOpcode({ 0xB0,resetBit6B, 8, "RES 6,B" });
+	setExtendedOpcode({ 0xB1,resetBit6C, 8, "RES 6,C" });
+	setExtendedOpcode({ 0xB2,resetBit6D, 8, "RES 6,D" });
+	setExtendedOpcode({ 0xB3,resetBit6E, 8, "RES 6,E" });
+	setExtendedOpcode({ 0xB4,resetBit6H, 8, "RES 6,H" });
+	setExtendedOpcode({ 0xB5,resetBit6L, 8, "RES 6,L" });
+	setExtendedOpcode({ 0xB6,resetBit6HLAddress, 16, "RES 6,(HL)" });
+	setExtendedOpcode({ 0xB7,resetBit6A, 8, "RES 6,A" });
+	setExtendedOpcode({ 0xB8,resetBit7B, 8, "RES 7,B" });
+	setExtendedOpcode({ 0xB9,resetBit7C, 8, "RES 7,C" });
+	setExtendedOpcode({ 0xBA,resetBit7D, 8, "RES 7,D" });
+	setExtendedOpcode({ 0xBB,resetBit7E, 8, "RES 7,E" });
+	setExtendedOpcode({ 0xBC,resetBit7H, 8, "RES 7,H" });
+	setExtendedOpcode({ 0xBD,resetBit7L, 8, "RES 7,L" });
+	setExtendedOpcode({ 0xBE,resetBit7HLAddress, 16, "RES 7,(HL)" });
+	setExtendedOpcode({ 0xBF,resetBit7A, 8, "RES 7,A" });
+
+	setExtendedOpcode({ 0xC0,setBit0B, 8, "SET 0,B" });
+	setExtendedOpcode({ 0xC1,setBit0C, 8, "SET 0,C" });
+	setExtendedOpcode({ 0xC2,setBit0D, 8, "SET 0,D" });
+	setExtendedOpcode({ 0xC3,setBit0E, 8, "SET 0,E" });
+	setExtendedOpcode({ 0xC4,setBit0H, 8, "SET 0,H" });
+	setExtendedOpcode({ 0xC5,setBit0L, 8, "SET 0,L" });
+	setExtendedOpcode({ 0xC6,setBit0HLAddress, 16, "SET 0,(HL)" });
+	setExtendedOpcode({ 0xC7,setBit0A, 8, "SET 0,A" });
+	setExtendedOpcode({ 0xC8,setBit1B, 8, "SET 1,B" });
+	setExtendedOpcode({ 0xC9,setBit1C, 8, "SET 1,C" });
+	setExtendedOpcode({ 0xCA,setBit1D, 8, "SET 1,D" });
+	setExtendedOpcode({ 0xCB,setBit1E, 8, "SET 1,E" });
+	setExtendedOpcode({ 0xCC,setBit1H, 8, "SET 1,H" });
+	setExtendedOpcode({ 0xCD,setBit1L, 8, "SET 1,L" });
+	setExtendedOpcode({ 0xCE,setBit1HLAddress, 16, "SET 1,(HL)" });
+	setExtendedOpcode({ 0xCF,setBit1A, 8, "SET 1,A" });
+	setExtendedOpcode({ 0xD0,setBit2B, 8, "SET 2,B" });
+	setExtendedOpcode({ 0xD1,setBit2C, 8, "SET 2,C" });
+	setExtendedOpcode({ 0xD2,setBit2D, 8, "SET 2,D" });
+	setExtendedOpcode({ 0xD3,setBit2E, 8, "SET 2,E" });
+	setExtendedOpcode({ 0xD4,setBit2H, 8, "SET 2,H" });
+	setExtendedOpcode({ 0xD5,setBit2L, 8, "SET 2,L" });
+	setExtendedOpcode({ 0xD6,setBit2HLAddress, 16, "SET 2,(HL)" });
+	setExtendedOpcode({ 0xD7,setBit2A, 8, "SET 2,A" });
+	setExtendedOpcode({ 0xD8,setBit3B, 8, "SET 3,B" });
+	setExtendedOpcode({ 0xD9,setBit3C, 8, "SET 3,C" });
+	setExtendedOpcode({ 0xDA,setBit3D, 8, "SET 3,D" });
+	setExtendedOpcode({ 0xDB,setBit3E, 8, "SET 3,E" });
+	setExtendedOpcode({ 0xDC,setBit3H, 8, "SET 3,H" });
+	setExtendedOpcode({ 0xDD,setBit3L, 8, "SET 3,L" });
+	setExtendedOpcode({ 0xDE,setBit3HLAddress, 16, "SET 3,(HL)" });
+	setExtendedOpcode({ 0xDF,setBit3A, 8, "SET 3,A" });
+	setExtendedOpcode({ 0xE0,setBit4B, 8, "SET 4,B" });
+	setExtendedOpcode({ 0xE1,setBit4C, 8, "SET 4,C" });
+	setExtendedOpcode({ 0xE2,setBit4D, 8, "SET 4,D" });
+	setExtendedOpcode({ 0xE3,setBit4E, 8, "SET 4,E" });
+	setExtendedOpcode({ 0xE4,setBit4H, 8, "SET 4,H" });
+	setExtendedOpcode({ 0xE5,setBit4L, 8, "SET 4,L" });
+	setExtendedOpcode({ 0xE6,setBit4HLAddress, 16, "SET 4,(HL)" });
+	setExtendedOpcode({ 0xE7,setBit4A, 8, "SET 4,A" });
+	setExtendedOpcode({ 0xE8,setBit5B, 8, "SET 5,B" });
+	setExtendedOpcode({ 0xE9,setBit5C, 8, "SET 5,C" });
+	setExtendedOpcode({ 0xEA,setBit5D, 8, "SET 5,D" });
+	setExtendedOpcode({ 0xEB,setBit5E, 8, "SET 5,E" });
+	setExtendedOpcode({ 0xEC,setBit5H, 8, "SET 5,H" });
+	setExtendedOpcode({ 0xED,setBit5L, 8, "SET 5,L" });
+	setExtendedOpcode({ 0xEE,setBit5HLAddress, 16, "SET 5,(HL)" });
+	setExtendedOpcode({ 0xEF,setBit5A, 8, "SET 5,A" });
+	setExtendedOpcode({ 0xF0,setBit6B, 8, "SET 6,B" });
+	setExtendedOpcode({ 0xF1,setBit6C, 8, "SET 6,C" });
+	setExtendedOpcode({ 0xF2,setBit6D, 8, "SET 6,D" });
+	setExtendedOpcode({ 0xF3,setBit6E, 8, "SET 6,E" });
+	setExtendedOpcode({ 0xF4,setBit6H, 8, "SET 6,H" });
+	setExtendedOpcode({ 0xF5,setBit6L, 8, "SET 6,L" });
+	setExtendedOpcode({ 0xF6,setBit6HLAddress, 16, "SET 6,(HL)" });
+	setExtendedOpcode({ 0xF7,setBit6A, 8, "SET 6,A" });
+	setExtendedOpcode({ 0xF8,setBit7B, 8, "SET 7,B" });
+	setExtendedOpcode({ 0xF9,setBit7C, 8, "SET 7,C" });
+	setExtendedOpcode({ 0xFA,setBit7D, 8, "SET 7,D" });
+	setExtendedOpcode({ 0xFB,setBit7E, 8, "SET 7,E" });
+	setExtendedOpcode({ 0xFC,setBit7H, 8, "SET 7,H" });
+	setExtendedOpcode({ 0xFD,setBit7L, 8, "SET 7,L" });
+	setExtendedOpcode({ 0xFE,setBit7HLAddress, 16, "SET 7,(HL)" });
+	setExtendedOpcode({ 0xFF,setBit7A, 8, "SET 7,A" });
 }

@@ -16,6 +16,6 @@ namespace ggb
 
 	private:
 		Cartridge* m_cartridge = nullptr;
-		std::vector<uint8_t> m_memory = std::vector<uint8_t>(uint16_t(0xFFFF), 0);
+		std::vector<uint8_t> m_memory = std::vector<uint8_t>(uint16_t(0xFFFF)+1, 0);
 	};
 }

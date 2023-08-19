@@ -17,9 +17,9 @@ namespace ggb
 	public:
 		struct OPCode 
 		{
-			int id;
-			InstructionFunction func;
-			int baseCycleCount;
+			int id = -1;
+			InstructionFunction func = nullptr;
+			int baseCycleCount = 0;
 			std::string mnemonic;
 		};
 		OPCodes();
@@ -27,9 +27,12 @@ namespace ggb
 		std::string getMnemonic(uint16_t opCode)const;
 	private:
 		void setOpcode(OPCode&& opcode);
+		void setExtendedOpcode(OPCode&& opcode);
 		void initOpcodesArray();
 
 		std::array<OPCode, 512> m_opcodes;
+		std::array<OPCode, 512> m_extendedOpcodes;
 		int m_counter = 0;
+		int m_extendedOpcodeCounter;
 	};
 }
