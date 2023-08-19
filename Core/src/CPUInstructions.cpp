@@ -1388,6 +1388,135 @@ static void restart18(CPUInstructionParameters)
 	restart(cpu, bus, 0x18);
 }
 
+static void loadAIntoSpecialAddressPlusNumber(CPUInstructionParameters) 
+{
+	auto num = read(cpu, bus);
+	bus->write(0xFF00 + num, cpu->A());
+}
+
+static void POPHL(CPUInstructionParameters) 
+{
+	cpu->HL() = readTwoBytes(bus, cpu->StackPointer());
+}
+
+static void loadAIntoSpecialAddressPlusCarry(CPUInstructionParameters)
+{
+	// TODO double check
+	bus->write(0xFF00 + cpu->getCarryFlag(), cpu->A());
+}
+
+static void pushHL(CPUInstructionParameters)
+{
+	writeToStack(cpu, bus, cpu->HL());
+}
+
+static void bitwiseAndAAndNumber(CPUInstructionParameters) 
+{
+	auto num = read(cpu, bus);
+	cpu->A() = cpu->A() & num;
+}
+
+static void restart20(CPUInstructionParameters)
+{
+	restart(cpu, bus, 0x20);
+}
+
+static void addNumberToStackPointer(CPUInstructionParameters)
+{
+	// TODO implement
+	notImplementedInstruction(cpu, bus);
+}
+
+static void jumpToHL(CPUInstructionParameters) 
+{
+	cpu->InstructionPointer() = cpu->HL();
+}
+
+static void loadAIntoNumberAddress(CPUInstructionParameters)
+{
+	auto address = readTwoBytes(cpu, bus);
+	bus->write(address, cpu->A());
+}
+
+static void xorAAndNumber(CPUInstructionParameters)
+{
+	auto num = read(cpu, bus);
+	cpu->A() = cpu->A() ^ num;
+}
+
+static void restart28(CPUInstructionParameters)
+{
+	restart(cpu, bus, 0x28);
+}
+
+static void loadSpecialAddressPlusNumberIntoA(CPUInstructionParameters) 
+{
+	auto num = read(cpu, bus);
+	cpu->A() = bus->read(0xFF00 + num);
+}
+
+static void POPAF(CPUInstructionParameters)
+{
+	cpu->AF() = readTwoBytes(bus, cpu->StackPointer());
+}
+
+static void loadSpecialAddressPlusCarryIntoA(CPUInstructionParameters)
+{
+	cpu->A() = bus->read(0xFF00 + cpu->getCarryFlag());
+}
+
+static void disableInterrupts(CPUInstructionParameters) 
+{
+	notImplementedInstruction(cpu, bus);
+}
+
+static void pushAF(CPUInstructionParameters)
+{
+	writeToStack(cpu, bus, cpu->AF());
+}
+
+static void bitwiseOrAAndNumber(CPUInstructionParameters) 
+{
+	auto num = read(cpu, bus);
+	cpu->A() |= num;
+}
+
+static void restart30(CPUInstructionParameters)
+{
+	restart(cpu, bus, 0x30);
+}
+
+static void loadStackPointerPlusNumberIntoHL(CPUInstructionParameters)
+{
+	notImplementedInstruction(cpu,bus);
+}
+
+static void loadHLIntoStackPointer(CPUInstructionParameters)
+{
+	cpu->StackPointer() = cpu->HL();
+}
+
+static void loadAddressIntoA(CPUInstructionParameters)
+{
+	auto address = readTwoBytes(cpu, bus);
+	cpu->A() = bus->read(address);
+}
+
+static void enableInterrupts(CPUInstructionParameters)
+{
+	notImplementedInstruction(cpu, bus);
+}
+
+static void compareAWithNumber(CPUInstructionParameters)
+{
+	auto num = read(cpu, bus);
+	compare(cpu, cpu->A(), num);
+}
+
+static void restart38(CPUInstructionParameters)
+{
+	restart(cpu, bus, 0x38);
+}
 
 
 
@@ -1631,7 +1760,6 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xCD,callInstr, 24, "CALL u16" });
 	setOpcode({ 0xCE,addNumberAndCarryToA, 8, "ADC A,u8" });
 	setOpcode({ 0xCF,restart08, 16, "RST 08h" });
-
 	setOpcode({ 0xD0,returnNotCarry, 8, "RET NC" });// TODO can have different cycle counts
 	setOpcode({ 0xD1,popDE, 12, "POP DE" });
 	setOpcode({ 0xD2,jumpNotCarryToNumber, 12, "JP NC,u16" });// TODO can have different cycle counts
@@ -1648,5 +1776,37 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xDD,invalidInstruction, 0, "DD=INVALID" });
 	setOpcode({ 0xDE,subtractNumberAndCarryFromA, 8, "SBC A,u8"});
 	setOpcode({ 0xDF,restart18, 16, "RST 18h" });
+	setOpcode({ 0xE0,loadAIntoSpecialAddressPlusNumber, 12, "LD (FF00+u8),A" });
+	setOpcode({ 0xE1,POPHL, 12, "POP HL" });
+	setOpcode({ 0xE2,loadAIntoSpecialAddressPlusCarry, 8, "LD (FF00+C),A" });
+	setOpcode({ 0xE3,invalidInstruction, 0, "E3=INVALID" });
+	setOpcode({ 0xE4,invalidInstruction, 0, "E4=INVALID" });
+	setOpcode({ 0xE5,pushHL, 16, "PUSH HL" });
+	setOpcode({ 0xE6,bitwiseAndAAndNumber, 8, "AND A,u8" });
+	setOpcode({ 0xE7,restart20, 16, "RST 20h" });
+	setOpcode({ 0xE8,addNumberToStackPointer, 16, "ADD SP,i8" }); 
+	setOpcode({ 0xE9,jumpToHL, 4, "JP HL" });
+	setOpcode({ 0xEA,loadAIntoNumberAddress, 16, "LD (u16),A" });
+	setOpcode({ 0xEB,invalidInstruction, 0, "EB=INVALID" });
+	setOpcode({ 0xEC,invalidInstruction, 0, "EC=INVALID" });// TODO can have different cycle counts
+	setOpcode({ 0xED,invalidInstruction, 0, "ED=INVALID" });
+	setOpcode({ 0xEE,xorAAndNumber, 8, "XOR A,u8" });
+	setOpcode({ 0xEF,restart28, 16, "RST 28h" });
+	setOpcode({ 0xF0,loadSpecialAddressPlusNumberIntoA, 12, "LD A,(FF00+u8)" });
+	setOpcode({ 0xF1,POPAF, 12, "POP AF" });
+	setOpcode({ 0xF2,loadSpecialAddressPlusCarryIntoA, 8, "LD A,(FF00+C)" });
+	setOpcode({ 0xF3,disableInterrupts, 4, "DI" });
+	setOpcode({ 0xF4,invalidInstruction, 0, "F4=INVALID" });
+	setOpcode({ 0xF5,pushAF, 16, "PUSH AF" });
+	setOpcode({ 0xF6,bitwiseOrAAndNumber, 8, "OR A,u8" });
+	setOpcode({ 0xF7,restart30, 16, "RST 30h" });
+	setOpcode({ 0xF8,loadStackPointerPlusNumberIntoHL, 12, "LD HL,SP+i8" });
+	setOpcode({ 0xF9,loadHLIntoStackPointer, 8, "LD SP,HL" });
+	setOpcode({ 0xFA,loadAddressIntoA, 16, "LD A,(u16)" });
+	setOpcode({ 0xFB,enableInterrupts, 0, "EI" });
+	setOpcode({ 0xFC,invalidInstruction, 0, "FC=INVALID" });// TODO can have different cycle counts
+	setOpcode({ 0xFD,invalidInstruction, 0, "FD=INVALID" });
+	setOpcode({ 0xFE,compareAWithNumber, 8, "CP A,u8" });
+	setOpcode({ 0xFF,restart38, 16, "RST 38h" });
 
 }
