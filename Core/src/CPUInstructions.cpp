@@ -16,14 +16,25 @@ static uint8_t read(CPUState* cpu, BUS* bus)
 
 uint8_t readSigned(CPUState* cpu, BUS* bus)
 {
+	// TODO double check
 	return static_cast<int8_t>(read(cpu, bus));
 }
 
 static uint16_t readTwoBytes(CPUState* cpu, BUS* bus)
 {
-	auto result = bus->readTwoBytes(cpu->InstructionPointer());
-	cpu->InstructionPointer() += 2;
-	return result;
+	uint16_t lower = bus->read(cpu->InstructionPointer()++);
+	uint16_t upper = bus->read(cpu->InstructionPointer()++);
+
+	return (upper << 8) | lower;
+}
+
+static void writeTwoBytes(BUS* bus, uint16_t address, uint16_t num)
+{
+	// TODO double check
+	uint8_t lower = static_cast<uint8_t>(num);
+	uint8_t upper = static_cast<uint8_t>(num >> 8);
+	bus->write(address, lower);
+	bus->write(address, upper);
 }
 
 static void increment(CPUState* cpu, uint8_t& toIncrement)
@@ -55,6 +66,21 @@ static void rotateLeft(CPUState* cpu, uint8_t& out)
 	out |= carry;
 }
 
+static void rotateLeftThroughCarry(CPUState* cpu, uint8_t& out)
+{
+	constexpr uint8_t lastBit = uint8_t(1) << uint8_t(7);
+
+	// TODO double check
+	const uint8_t oldCarry = cpu->getCarryFlag();
+	const uint8_t carry = (out & lastBit) == lastBit;
+	cpu->setZeroFlag(false);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(static_cast<bool>(carry));
+	out = out << 1;
+	out |= oldCarry;
+}
+
 static void rotateRight(CPUState* cpu, uint8_t& out)
 {
 	// TODO double check
@@ -66,6 +92,21 @@ static void rotateRight(CPUState* cpu, uint8_t& out)
 	cpu->setCarryFlag(static_cast<bool>(carry));
 	out = out >> 1;
 	out |= (carry << 7);
+}
+
+static void rotateRightThroughCarry(CPUState* cpu, uint8_t& out)
+{
+	constexpr uint8_t firstbit = uint8_t(1);
+
+	// TODO double check
+	const uint8_t oldCarry = cpu->getCarryFlag();
+	const uint8_t carry = (out & firstbit) == firstbit;
+	cpu->setZeroFlag(false);
+	cpu->setSubtractionFlag(false);
+	cpu->setHalfCarryFlag(false);
+	cpu->setCarryFlag(static_cast<bool>(carry));
+	out = out >> 1;
+	out |= (oldCarry << 7);
 }
 
 static void add(CPUState* cpu, uint16_t& outReg, uint16_t reg2)
@@ -215,7 +256,7 @@ static void rotateALeft(CPUInstructionParameters)
 static void loadStackPointerIntoAddress(CPUInstructionParameters)
 {
 	auto address = readTwoBytes(cpu, bus);
-	bus->write(address, cpu->StackPointer());
+	writeTwoBytes(bus, address, cpu->StackPointer());
 }
 
 static void addBCToHL(CPUInstructionParameters)
@@ -290,8 +331,7 @@ static void loadValueIntoD(CPUInstructionParameters)
 
 static void rotateALeftThroughCarry(CPUInstructionParameters)
 {
-	// TODO: Is this really the same as rotateALeft()????
-	rotateALeft(cpu, bus);
+	rotateLeftThroughCarry(cpu, cpu->A());
 }
 
 static void jumpRealativeToValue(CPUInstructionParameters)
@@ -331,8 +371,7 @@ static void loadValueIntoE(CPUInstructionParameters)
 
 static void rotateARightThroughCarry(CPUInstructionParameters)
 {
-	// TODO: is this really the same as a normal rotate right???
-	rotateRight(cpu, cpu->A());
+	rotateRightThroughCarry(cpu, cpu->A());
 }
 
 static void jumpRelativeNotZeroToValue(CPUInstructionParameters)
@@ -346,7 +385,7 @@ static void loadTwoBytesIntoHL(CPUInstructionParameters)
 	cpu->HL() = readTwoBytes(cpu, bus);
 }
 
-static void loadAIntoHLAndInc(CPUInstructionParameters)
+static void loadAIntoHLAddressAndInc(CPUInstructionParameters)
 {
 	bus->write(cpu->HL()++, cpu->A());
 }
@@ -387,7 +426,7 @@ static void addHLToHL(CPUInstructionParameters)
 	add(cpu, cpu->HL(), cpu->HL());
 }
 
-static void loadValuePointedByHLIntoAIncrementHL(CPUInstructionParameters)
+static void loadHLAddressIntoAIncrementHL(CPUInstructionParameters)
 {
 	cpu->A() = bus->read(cpu->HL()++);
 }
@@ -431,7 +470,7 @@ static void loadTwoBytesIntoStackPointer(CPUInstructionParameters)
 	cpu->StackPointer() = readTwoBytes(cpu, bus);
 }
 
-static void loadAIntoHLAndDec(CPUInstructionParameters)
+static void loadAIntoHLAddressAndDec(CPUInstructionParameters)
 {
 	bus->write(cpu->HL()--, cpu->A());
 }
@@ -476,8 +515,9 @@ static void addSPToHL(CPUInstructionParameters)
 	add(cpu, cpu->HL(), cpu->StackPointer());
 }
 
-static void loadValuePointedByHLIntoADecrementHL(CPUInstructionParameters)
+static void loadHLAddressIntoADecrementHL(CPUInstructionParameters)
 {
+	// TODO double check
 	cpu->A() = bus->read(cpu->HL()--);
 }
 
@@ -1164,6 +1204,11 @@ void OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
 	m_opcodes[opCode].func(cpu, bus);
 }
 
+std::string OPCodes::getMnemonic(uint16_t opCode) const
+{
+	return m_opcodes[opCode].mnemonic;
+}
+
 void ggb::OPCodes::setOpcode(OPCode&& opcode)
 {
 	assert(opcode.id == m_counter);
@@ -1176,196 +1221,196 @@ void ggb::OPCodes::initOpcodesArray()
 	for (auto& opcode : m_opcodes)
 		opcode = OPCode({ -1, notImplementedInstruction, -1 });
 
-	setOpcode({ 0x00, noop, 4 });
-	setOpcode({ 0x01,loadBCValue, 12 });
-	setOpcode({ 0x02,writeAToAddressBC, 8 });
-	setOpcode({ 0x03,incrementBC, 8 });
-	setOpcode({ 0x04,incrementB, 4 });
-	setOpcode({ 0x05,decrementB, 4 });
-	setOpcode({ 0x06,loadNumberIntoB, 8 });
-	setOpcode({ 0x07,rotateALeft, 4 });
-	setOpcode({ 0x08,loadStackPointerIntoAddress, 20 });
-	setOpcode({ 0x09,addBCToHL, 8 });
-	setOpcode({ 0x0A,loadValuePointedByBCIntoA, 8 });
-	setOpcode({ 0x0B,decrementBC, 8 });
-	setOpcode({ 0x0C,incrementC, 4 });
-	setOpcode({ 0x0D,decrementC, 4 });
-	setOpcode({ 0x0E,loadValueIntoC, 8 });
-	setOpcode({ 0x0F,rotateARight, 4 });
-	setOpcode({ 0x10,stop, 4 });
-	setOpcode({ 0x11,loadTwoBytesIntoLD, 12 });
-	setOpcode({ 0x12,writeAToAddressDE, 8 });
-	setOpcode({ 0x13,incrementDE, 8 });
-	setOpcode({ 0x14,incrementD, 4 });
-	setOpcode({ 0x15,decrementD, 4 });
-	setOpcode({ 0x16,loadValueIntoD, 8 });
-	setOpcode({ 0x17,rotateALeftThroughCarry, 4 });
-	setOpcode({ 0x18,jumpRealativeToValue, 12 });
-	setOpcode({ 0x19,addDEToHL, 8 });
-	setOpcode({ 0x1A,loadValuePointedByDEIntoA, 8 });
-	setOpcode({ 0x1B,decrementDE, 8 });
-	setOpcode({ 0x1C,incrementE, 4 });
-	setOpcode({ 0x1D,decrementE, 4 });
-	setOpcode({ 0x1E,loadValueIntoE, 8 });
-	setOpcode({ 0x1F,rotateARightThroughCarry, 4 });
-	setOpcode({ 0x20,jumpRelativeNotZeroToValue, 8 }); // TODO can have different cycle counts, maybe this should be handled
-	setOpcode({ 0x21,loadTwoBytesIntoHL, 12 });
-	setOpcode({ 0x22,loadAIntoHLAndInc, 8 });
-	setOpcode({ 0x23,incrementHL, 8 });
-	setOpcode({ 0x24,incrementH, 4 });
-	setOpcode({ 0x25,decrementH, 4 });
-	setOpcode({ 0x26,loadValueIntoH, 8 });
-	setOpcode({ 0x27,decimalAdjustAccumulator, 4 });
-	setOpcode({ 0x28,jumpRealativeZeroToValue, 8 }); // TODO can have different cycle counts, maybe this should be handled
-	setOpcode({ 0x29,addHLToHL, 8 });
-	setOpcode({ 0x2A,loadValuePointedByHLIntoAIncrementHL, 8 });
-	setOpcode({ 0x2B,decrementHL, 8 });
-	setOpcode({ 0x2C,incrementL, 4 });
-	setOpcode({ 0x2D,decrementL, 4 });
-	setOpcode({ 0x2E,loadValueIntoL, 8 });
-	setOpcode({ 0x2F,complementAccumulator, 4 });
-	setOpcode({ 0x30,jumpRelativeNotCarryToValue, 8 });
-	setOpcode({ 0x31,loadTwoBytesIntoStackPointer, 12 });
-	setOpcode({ 0x32,loadAIntoHLAndDec, 8 });
-	setOpcode({ 0x33,incrementSP, 8 });
-	setOpcode({ 0x34,incrementAddressHL, 12 });
-	setOpcode({ 0x35,decrementAddressHL, 12 });
-	setOpcode({ 0x36,loadValueIntoAddressHL, 12 });
-	setOpcode({ 0x37,setCarryFlag, 4 });
-	setOpcode({ 0x38,jumpRealativeCarryToValue, 8 }); // TODO can have different cycle counts, maybe this should be handled
-	setOpcode({ 0x39,addSPToHL, 8 });
-	setOpcode({ 0x3A,loadValuePointedByHLIntoADecrementHL, 8 });
-	setOpcode({ 0x3B,decrementSP, 8 });
-	setOpcode({ 0x3C,incrementA, 4 });
-	setOpcode({ 0x3D,decrementA, 4 });
-	setOpcode({ 0x3E,loadValueIntoA, 8 });
-	setOpcode({ 0x3F,complementCarryFlag, 4 });
-	setOpcode({ 0x40,loadBIntoB, 4 });
-	setOpcode({ 0x41,loadCIntoB, 4 });
-	setOpcode({ 0x42,loadDIntoB, 4 });
-	setOpcode({ 0x43,loadEIntoB, 4 });
-	setOpcode({ 0x44,loadHIntoB, 4 });
-	setOpcode({ 0x45,loadLIntoB, 0 });
-	setOpcode({ 0x46,loadAddressHLIntoB, 8 });
-	setOpcode({ 0x47,loadAIntoB, 4 });
-	setOpcode({ 0x48,loadBIntoC, 4 });
-	setOpcode({ 0x49,loadCIntoC, 4 });
-	setOpcode({ 0x4A,loadDIntoC, 4 });
-	setOpcode({ 0x4B,loadEIntoC, 4 });
-	setOpcode({ 0x4C,loadHIntoC, 4 });
-	setOpcode({ 0x4D,loadLIntoC, 4 });
-	setOpcode({ 0x4E,loadAddressHLIntoC, 8 });
-	setOpcode({ 0x4F,loadAIntoC, 4 });
-	setOpcode({ 0x50,loadBIntoD, 4 });
-	setOpcode({ 0x51,loadCIntoD, 4 });
-	setOpcode({ 0x52,loadDIntoD, 4 });
-	setOpcode({ 0x53,loadEIntoD, 4 });
-	setOpcode({ 0x54,loadHIntoD, 4 });
-	setOpcode({ 0x55,loadLIntoD, 4 });
-	setOpcode({ 0x56,loadAddressHLIntoD, 8 });
-	setOpcode({ 0x57,loadAIntoD, 4 });
-	setOpcode({ 0x58,loadBIntoE, 4 });
-	setOpcode({ 0x59,loadCIntoE, 4 });
-	setOpcode({ 0x5A,loadDIntoE, 4 });
-	setOpcode({ 0x5B,loadEIntoE, 4 });
-	setOpcode({ 0x5C,loadHIntoE, 4 });
-	setOpcode({ 0x5D,loadLIntoE, 4 });
-	setOpcode({ 0x5E,loadAddressHLIntoE, 8 });
-	setOpcode({ 0x5F,loadAIntoE, 4 });
-	setOpcode({ 0x60,loadBIntoH, 4 });
-	setOpcode({ 0x61,loadCIntoH, 4 });
-	setOpcode({ 0x62,loadDIntoH, 4 });
-	setOpcode({ 0x63,loadEIntoH, 4 });
-	setOpcode({ 0x64,loadHIntoH, 4 });
-	setOpcode({ 0x65,loadLIntoH, 4 });
-	setOpcode({ 0x66,loadAddressHLIntoH, 8 });
-	setOpcode({ 0x67,loadAIntoH, 4 });
-	setOpcode({ 0x68,loadBIntoL, 4 });
-	setOpcode({ 0x69,loadCIntoL, 4 });
-	setOpcode({ 0x6A,loadDIntoL, 4 });
-	setOpcode({ 0x6B,loadEIntoL, 4 });
-	setOpcode({ 0x6C,loadHIntoL, 4 });
-	setOpcode({ 0x6D,loadLIntoL, 4 });
-	setOpcode({ 0x6E,loadAddressHLIntoL, 8 });
-	setOpcode({ 0x6F,loadAIntoL, 4 });
-	setOpcode({ 0x70,loadBIntoHLAddress, 8 });
-	setOpcode({ 0x71,loadCIntoHLAddress, 8 });
-	setOpcode({ 0x72,loadDIntoHLAddress, 8 });
-	setOpcode({ 0x73,loadEIntoHLAddress, 8 });
-	setOpcode({ 0x74,loadHIntoHLAddress, 8 });
-	setOpcode({ 0x75,loadLIntoHLAddress, 8 });
-	setOpcode({ 0x76,halt, 4 });
-	setOpcode({ 0x77,loadAIntoHLAddress, 8 });
-	setOpcode({ 0x78,loadBIntoA, 4 });
-	setOpcode({ 0x79,loadCIntoA, 4 });
-	setOpcode({ 0x7A,loadDIntoA, 4 });
-	setOpcode({ 0x7B,loadEIntoA, 4 });
-	setOpcode({ 0x7C,loadHIntoA, 4 });
-	setOpcode({ 0x7D,loadLIntoA, 4 });
-	setOpcode({ 0x7E,loadAddressHLIntoA, 8 });
-	setOpcode({ 0x7F,loadAIntoA, 4 });
-	setOpcode({ 0x80,addBToA, 4 });
-	setOpcode({ 0x81,addCToA, 4 });
-	setOpcode({ 0x82,addDToA, 4 });
-	setOpcode({ 0x83,addEToA, 4 });
-	setOpcode({ 0x84,addHToA, 4 });
-	setOpcode({ 0x85,addLToA, 4 });
-	setOpcode({ 0x86,addHLAddressToA, 8 });
-	setOpcode({ 0x87,addAToA, 4 });
-	setOpcode({ 0x88,addBAndCarryToA, 4 });
-	setOpcode({ 0x89,addCAndCarryToA, 4 });
-	setOpcode({ 0x8A,addDAndCarryToA, 4 });
-	setOpcode({ 0x8B,addEAndCarryToA, 4 });
-	setOpcode({ 0x8C,addHAndCarryToA, 4 });
-	setOpcode({ 0x8D,addLAndCarryToA, 4 });
-	setOpcode({ 0x8E,addHLAddressAndCarryToA, 8 });
-	setOpcode({ 0x8F,addAAndCarryToA, 4 });
-	setOpcode({ 0x90,subBFromA, 4 });
-	setOpcode({ 0x91,subCFromA, 4 });
-	setOpcode({ 0x92,subDFromA, 4 });
-	setOpcode({ 0x93,subEFromA, 4 });
-	setOpcode({ 0x94,subHFromA, 4 });
-	setOpcode({ 0x95,subLFromA, 4 });
-	setOpcode({ 0x96,subHLAddressFromA, 8 });
-	setOpcode({ 0x97,subAFromA, 4 });
-	setOpcode({ 0x98,subBAndCarryFromA, 4 });
-	setOpcode({ 0x99,subCAndCarryFromA, 4 });
-	setOpcode({ 0x9A,subDAndCarryFromA, 4 });
-	setOpcode({ 0x9B,subEAndCarryFromA, 4 });
-	setOpcode({ 0x9C,subHAndCarryFromA, 4 });
-	setOpcode({ 0x9D,subLAndCarryFromA, 4 });
-	setOpcode({ 0x9E,subHLAddressAndCarryFromA, 8 });
-	setOpcode({ 0x9F,subAAndCarryFromA, 4 });
-	setOpcode({ 0xA0,bitwiseAndAAndB, 4 });
-	setOpcode({ 0xA1,bitwiseAndAAndC, 4 });
-	setOpcode({ 0xA2,bitwiseAndAAndD, 4 });
-	setOpcode({ 0xA3,bitwiseAndAAndE, 4 });
-	setOpcode({ 0xA4,bitwiseAndAAndH, 4 });
-	setOpcode({ 0xA5,bitwiseAndAAndL, 4 });
-	setOpcode({ 0xA6,bitwiseAndAAndHLAddress, 8 });
-	setOpcode({ 0xA7,bitwiseAndAAndA, 4 });
-	setOpcode({ 0xA8,bitwiseXORAAndB, 4 });
-	setOpcode({ 0xA9,bitwiseXORAAndC, 4 });
-	setOpcode({ 0xAA,bitwiseXORAAndD, 4 });
-	setOpcode({ 0xAB,bitwiseXORAAndE, 4 });
-	setOpcode({ 0xAC,bitwiseXORAAndH, 4 });
-	setOpcode({ 0xAD,bitwiseXORAAndL, 4 });
-	setOpcode({ 0xAE,bitwiseXORAAndHLAddress, 8 });
-	setOpcode({ 0xAF,bitwiseXORAAndA, 4 });
-	setOpcode({ 0xB0,bitwiseORAndB, 4 });
-	setOpcode({ 0xB1,bitwiseORAndC, 4 });
-	setOpcode({ 0xB2,bitwiseORAndD, 4 });
-	setOpcode({ 0xB3,bitwiseORAndE, 4 });
-	setOpcode({ 0xB4,bitwiseORAndH, 4 });
-	setOpcode({ 0xB5,bitwiseORAndL, 4 });
-	setOpcode({ 0xB6,bitwiseORAAndHLAddress, 8 });
-	setOpcode({ 0xB7,bitwiseORAAndA, 4 });
-	setOpcode({ 0xB8,compareAAndB, 4 });
-	setOpcode({ 0xB9,compareAAndC, 4 });
-	setOpcode({ 0xBA,compareAAndD, 4 });
-	setOpcode({ 0xBB,compareAAndE, 4 });
-	setOpcode({ 0xBC,compareAAndH, 4 });
-	setOpcode({ 0xBD,compareAAndL, 4 });
-	setOpcode({ 0xBE,compareAAndHLAddress, 8 });
-	setOpcode({ 0xBF,compareAAndA, 4 });
+	setOpcode({ 0x00, noop, 4, "NOP"});
+	setOpcode({ 0x01,loadBCValue, 12, "LD BC,u16"});
+	setOpcode({ 0x02,writeAToAddressBC, 8, "LD (BC),A"});
+	setOpcode({ 0x03,incrementBC, 8, "INC BC"});
+	setOpcode({ 0x04,incrementB, 4, "INC B" });
+	setOpcode({ 0x05,decrementB, 4, "DEC B"});
+	setOpcode({ 0x06,loadNumberIntoB, 8, "LD B,u8"});
+	setOpcode({ 0x07,rotateALeft, 4, "RLCA"});
+	setOpcode({ 0x08,loadStackPointerIntoAddress, 20 ,"LD (u16),SP"});
+	setOpcode({ 0x09,addBCToHL, 8 ,"ADD HL,BC"});
+	setOpcode({ 0x0A,loadValuePointedByBCIntoA, 8 ,"LD A,(BC)"});
+	setOpcode({ 0x0B,decrementBC, 8, "DEC BC"});
+	setOpcode({ 0x0C,incrementC, 4, "INC C"});
+	setOpcode({ 0x0D,decrementC, 4, "DEC C"});
+	setOpcode({ 0x0E,loadValueIntoC, 8, "LD C,u8"});
+	setOpcode({ 0x0F,rotateARight, 4, "RRCA"});
+	setOpcode({ 0x10,stop, 4, "STOP"});
+	setOpcode({ 0x11,loadTwoBytesIntoLD, 12, "LD DE,u16"});
+	setOpcode({ 0x12,writeAToAddressDE, 8, "LD (DE),A"});
+	setOpcode({ 0x13,incrementDE, 8, "INC DE"});
+	setOpcode({ 0x14,incrementD, 4, "INC D"});
+	setOpcode({ 0x15,decrementD, 4, "DEC D"});
+	setOpcode({ 0x16,loadValueIntoD, 8, "LD D,u8"});
+	setOpcode({ 0x17,rotateALeftThroughCarry, 4, "RLA"});
+	setOpcode({ 0x18,jumpRealativeToValue, 12, "JR i8"});
+	setOpcode({ 0x19,addDEToHL, 8, "ADD HL,DE"});
+	setOpcode({ 0x1A,loadValuePointedByDEIntoA, 8, "LD A,(DE)"});
+	setOpcode({ 0x1B,decrementDE, 8, "DEC DE"});
+	setOpcode({ 0x1C,incrementE, 4, "INC E"});
+	setOpcode({ 0x1D,decrementE, 4, "DEC E"});
+	setOpcode({ 0x1E,loadValueIntoE, 8, "LD E,u8"});
+	setOpcode({ 0x1F,rotateARightThroughCarry, 4, "RRA"});
+	setOpcode({ 0x20,jumpRelativeNotZeroToValue, 8, "JR NZ,i8"}); // TODO can have different cycle counts, maybe this should be handled
+	setOpcode({ 0x21,loadTwoBytesIntoHL, 12, "LD HL,u16"});
+	setOpcode({ 0x22,loadAIntoHLAddressAndInc, 8, "LD (HL+),A"});
+	setOpcode({ 0x23,incrementHL, 8, "INC HL"});
+	setOpcode({ 0x24,incrementH, 4, "INC H"});
+	setOpcode({ 0x25,decrementH, 4, "DEC H"});
+	setOpcode({ 0x26,loadValueIntoH, 8, "LD H,u8"});
+	setOpcode({ 0x27,decimalAdjustAccumulator, 4, "DAA"});
+	setOpcode({ 0x28,jumpRealativeZeroToValue, 8, "JR Z,i8"}); // TODO can have different cycle counts, maybe this should be handled
+	setOpcode({ 0x29,addHLToHL, 8, "ADD HL,HL"});
+	setOpcode({ 0x2A,loadHLAddressIntoAIncrementHL, 8, "LD A,(HL+)"});
+	setOpcode({ 0x2B,decrementHL, 8, "DEC HL"});
+	setOpcode({ 0x2C,incrementL, 4, "INC L"});
+	setOpcode({ 0x2D,decrementL, 4, "DEC L"});
+	setOpcode({ 0x2E,loadValueIntoL, 8, "LD L,u8"});
+	setOpcode({ 0x2F,complementAccumulator, 4, "CPL"});
+	setOpcode({ 0x30,jumpRelativeNotCarryToValue, 8, "JR NC,i8"});
+	setOpcode({ 0x31,loadTwoBytesIntoStackPointer, 12, "LD SP,u16"});
+	setOpcode({ 0x32,loadAIntoHLAddressAndDec, 8, "LD (HL-),A"});
+	setOpcode({ 0x33,incrementSP, 8, "INC SP"});
+	setOpcode({ 0x34,incrementAddressHL, 12, "INC (HL)"});
+	setOpcode({ 0x35,decrementAddressHL, 12, "DEC (HL)"});
+	setOpcode({ 0x36,loadValueIntoAddressHL, 12, "LD (HL),u8"});
+	setOpcode({ 0x37,setCarryFlag, 4, "SCF"});
+	setOpcode({ 0x38,jumpRealativeCarryToValue, 8, "JR C,i8"}); // TODO can have different cycle counts, maybe this should be handled
+	setOpcode({ 0x39,addSPToHL, 8, "ADD HL,SP"});
+	setOpcode({ 0x3A,loadHLAddressIntoADecrementHL, 8, "LD A,(HL-)"});
+	setOpcode({ 0x3B,decrementSP, 8, "DEC SP"});
+	setOpcode({ 0x3C,incrementA, 4, "INC A"});
+	setOpcode({ 0x3D,decrementA, 4, "DEC A"});
+	setOpcode({ 0x3E,loadValueIntoA, 8, "LD A,u8"});
+	setOpcode({ 0x3F,complementCarryFlag, 4, "CCF"});
+	setOpcode({ 0x40,loadBIntoB, 4, "LD B,B"});
+	setOpcode({ 0x41,loadCIntoB, 4, "LD B,C"});
+	setOpcode({ 0x42,loadDIntoB, 4, "LD B,D"});
+	setOpcode({ 0x43,loadEIntoB, 4, "LD B,E"});
+	setOpcode({ 0x44,loadHIntoB, 4, "LD B,H"});
+	setOpcode({ 0x45,loadLIntoB, 0, "LD B,L"});
+	setOpcode({ 0x46,loadAddressHLIntoB, 8, "LD B,(HL)"});
+	setOpcode({ 0x47,loadAIntoB, 4, "LD B,A"});
+	setOpcode({ 0x48,loadBIntoC, 4, "LD C,B"});
+	setOpcode({ 0x49,loadCIntoC, 4, "LD C,C" });
+	setOpcode({ 0x4A,loadDIntoC, 4, "LD C,D" });
+	setOpcode({ 0x4B,loadEIntoC, 4, "LD C,E" });
+	setOpcode({ 0x4C,loadHIntoC, 4, "LD C,H" });
+	setOpcode({ 0x4D,loadLIntoC, 4, "LD C,L" });
+	setOpcode({ 0x4E,loadAddressHLIntoC, 8, "LD C,(HL)"});
+	setOpcode({ 0x4F,loadAIntoC, 4, "LD C,A"});
+	setOpcode({ 0x50,loadBIntoD, 4, "LD D,B"});
+	setOpcode({ 0x51,loadCIntoD, 4, "LD D,C" });
+	setOpcode({ 0x52,loadDIntoD, 4, "LD D,D" });
+	setOpcode({ 0x53,loadEIntoD, 4, "LD D,E" });
+	setOpcode({ 0x54,loadHIntoD, 4, "LD D,H" });
+	setOpcode({ 0x55,loadLIntoD, 4, "LD D,L" });
+	setOpcode({ 0x56,loadAddressHLIntoD, 8, "LD D,(HL)"});
+	setOpcode({ 0x57,loadAIntoD, 4, "LD D,A" });
+	setOpcode({ 0x58,loadBIntoE, 4, "LD E,B" });
+	setOpcode({ 0x59,loadCIntoE, 4, "LD E,C" });
+	setOpcode({ 0x5A,loadDIntoE, 4, "LD E,D" });
+	setOpcode({ 0x5B,loadEIntoE, 4, "LD E,E" });
+	setOpcode({ 0x5C,loadHIntoE, 4, "LD E,H" });
+	setOpcode({ 0x5D,loadLIntoE, 4, "LD E,L" });
+	setOpcode({ 0x5E,loadAddressHLIntoE, 8, "LD E,(HL)"});
+	setOpcode({ 0x5F,loadAIntoE, 4, "LD E,A" });
+	setOpcode({ 0x60,loadBIntoH, 4, "LD H,B" });
+	setOpcode({ 0x61,loadCIntoH, 4, "LD H,C" });
+	setOpcode({ 0x62,loadDIntoH, 4, "LD H,D" });
+	setOpcode({ 0x63,loadEIntoH, 4, "LD H,E" });
+	setOpcode({ 0x64,loadHIntoH, 4, "LD H,H" });
+	setOpcode({ 0x65,loadLIntoH, 4, "LD H,L" });
+	setOpcode({ 0x66,loadAddressHLIntoH, 8, "LD H,(HL)"});
+	setOpcode({ 0x67,loadAIntoH, 4, "LD H,A" });
+	setOpcode({ 0x68,loadBIntoL, 4, "LD L,B" });
+	setOpcode({ 0x69,loadCIntoL, 4, "LD L,C" });
+	setOpcode({ 0x6A,loadDIntoL, 4, "LD L,D" });
+	setOpcode({ 0x6B,loadEIntoL, 4, "LD L,E" });
+	setOpcode({ 0x6C,loadHIntoL, 4, "LD L,H" });
+	setOpcode({ 0x6D,loadLIntoL, 4, "LD L,L" });
+	setOpcode({ 0x6E,loadAddressHLIntoL, 8, "LD L,(HL)"});
+	setOpcode({ 0x6F,loadAIntoL, 4, "LD L,A" });
+	setOpcode({ 0x70,loadBIntoHLAddress, 8, "LD (HL),B" });
+	setOpcode({ 0x71,loadCIntoHLAddress, 8, "LD (HL),C" });
+	setOpcode({ 0x72,loadDIntoHLAddress, 8, "LD (HL),D" });
+	setOpcode({ 0x73,loadEIntoHLAddress, 8, "LD (HL),E" });
+	setOpcode({ 0x74,loadHIntoHLAddress, 8, "LD (HL),H" });
+	setOpcode({ 0x75,loadLIntoHLAddress, 8, "LD (HL),L" });
+	setOpcode({ 0x76,halt, 4, "HALT"});
+	setOpcode({ 0x77,loadAIntoHLAddress, 8, "LD (HL),A" });
+	setOpcode({ 0x78,loadBIntoA, 4, "LD A,B"});
+	setOpcode({ 0x79,loadCIntoA, 4, "LD A,C" });
+	setOpcode({ 0x7A,loadDIntoA, 4, "LD A,D" });
+	setOpcode({ 0x7B,loadEIntoA, 4, "LD A,E" });
+	setOpcode({ 0x7C,loadHIntoA, 4, "LD A,H" });
+	setOpcode({ 0x7D,loadLIntoA, 4, "LD A,L" });
+	setOpcode({ 0x7E,loadAddressHLIntoA, 8, "LD A,(HL)" });
+	setOpcode({ 0x7F,loadAIntoA, 4, "LD A,A" });
+	setOpcode({ 0x80,addBToA, 4, "ADD A,B"});
+	setOpcode({ 0x81,addCToA, 4, "ADD A,C" });
+	setOpcode({ 0x82,addDToA, 4, "ADD A,D" });
+	setOpcode({ 0x83,addEToA, 4, "ADD A,E" });
+	setOpcode({ 0x84,addHToA, 4, "ADD A,H" });
+	setOpcode({ 0x85,addLToA, 4, "ADD A,L" });
+	setOpcode({ 0x86,addHLAddressToA, 8, "ADD A,(HL)"});
+	setOpcode({ 0x87,addAToA, 4, "ADD A,A" });
+	setOpcode({ 0x88,addBAndCarryToA, 4, "ADC A,B" });
+	setOpcode({ 0x89,addCAndCarryToA, 4, "ADC A,C" });
+	setOpcode({ 0x8A,addDAndCarryToA, 4, "ADC A,D" });
+	setOpcode({ 0x8B,addEAndCarryToA, 4, "ADC A,E" });
+	setOpcode({ 0x8C,addHAndCarryToA, 4, "ADC A,H" });
+	setOpcode({ 0x8D,addLAndCarryToA, 4, "ADC A,L" });
+	setOpcode({ 0x8E,addHLAddressAndCarryToA, 8, "ADC A,(HL)" });
+	setOpcode({ 0x8F,addAAndCarryToA, 4, "ADC A,A" });
+	setOpcode({ 0x90,subBFromA, 4, "SUB A,B"});
+	setOpcode({ 0x91,subCFromA, 4, "SUB A,C" });
+	setOpcode({ 0x92,subDFromA, 4, "SUB A,D" });
+	setOpcode({ 0x93,subEFromA, 4, "SUB A,E" });
+	setOpcode({ 0x94,subHFromA, 4, "SUB A,H" });
+	setOpcode({ 0x95,subLFromA, 4, "SUB A,L" });
+	setOpcode({ 0x96,subHLAddressFromA, 8, "SUB A,(HL)" });
+	setOpcode({ 0x97,subAFromA, 4, "SUB A,A" });
+	setOpcode({ 0x98,subBAndCarryFromA, 4, "SBC A,B" });
+	setOpcode({ 0x99,subCAndCarryFromA, 4, "SBC A,c" });
+	setOpcode({ 0x9A,subDAndCarryFromA, 4, "SBC A,D" });
+	setOpcode({ 0x9B,subEAndCarryFromA, 4, "SBC A,E" });
+	setOpcode({ 0x9C,subHAndCarryFromA, 4, "SBC A,H" });
+	setOpcode({ 0x9D,subLAndCarryFromA, 4, "SBC A,L" });
+	setOpcode({ 0x9E,subHLAddressAndCarryFromA, 8, "SBC A,(HL)" });
+	setOpcode({ 0x9F,subAAndCarryFromA, 4, "SBC A,A" });
+	setOpcode({ 0xA0,bitwiseAndAAndB, 4, "AND A,B"});
+	setOpcode({ 0xA1,bitwiseAndAAndC, 4, "AND A,C" });
+	setOpcode({ 0xA2,bitwiseAndAAndD, 4, "AND A,D" });
+	setOpcode({ 0xA3,bitwiseAndAAndE, 4, "AND A,E" });
+	setOpcode({ 0xA4,bitwiseAndAAndH, 4, "AND A,H" });
+	setOpcode({ 0xA5,bitwiseAndAAndL, 4, "AND A,L" });
+	setOpcode({ 0xA6,bitwiseAndAAndHLAddress, 8, "AND A,(HL)" });
+	setOpcode({ 0xA7,bitwiseAndAAndA, 4, "AND A,A" });
+	setOpcode({ 0xA8,bitwiseXORAAndB, 4, "XOR A,B" });
+	setOpcode({ 0xA9,bitwiseXORAAndC, 4, "XOR A,C" });
+	setOpcode({ 0xAA,bitwiseXORAAndD, 4, "XOR A,D" });
+	setOpcode({ 0xAB,bitwiseXORAAndE, 4, "XOR A,E" });
+	setOpcode({ 0xAC,bitwiseXORAAndH, 4, "XOR A,H" });
+	setOpcode({ 0xAD,bitwiseXORAAndL, 4, "XOR A,L" });
+	setOpcode({ 0xAE,bitwiseXORAAndHLAddress, 8, "XOR A,(HL)" });
+	setOpcode({ 0xAF,bitwiseXORAAndA, 4, "XOR A,A" });
+	setOpcode({ 0xB0,bitwiseORAndB, 4, "OR A,B"});
+	setOpcode({ 0xB1,bitwiseORAndC, 4, "OR A,C" });
+	setOpcode({ 0xB2,bitwiseORAndD, 4, "OR A,D" });
+	setOpcode({ 0xB3,bitwiseORAndE, 4, "OR A,E" });
+	setOpcode({ 0xB4,bitwiseORAndH, 4, "OR A,H" });
+	setOpcode({ 0xB5,bitwiseORAndL, 4, "OR A,L" });
+	setOpcode({ 0xB6,bitwiseORAAndHLAddress, 8, "OR A,(HL)" });
+	setOpcode({ 0xB7,bitwiseORAAndA, 4, "OR A,A" });
+	setOpcode({ 0xB8,compareAAndB, 4, "CP A,B"});
+	setOpcode({ 0xB9,compareAAndC, 4, "CP A,C" });
+	setOpcode({ 0xBA,compareAAndD, 4, "CP A,D" });
+	setOpcode({ 0xBB,compareAAndE, 4, "CP A,E" });
+	setOpcode({ 0xBC,compareAAndH, 4, "CP A,H" });
+	setOpcode({ 0xBD,compareAAndL, 4, "CP A,L" });
+	setOpcode({ 0xBE,compareAAndHLAddress, 8, "CP A,(HL)" });
+	setOpcode({ 0xBF,compareAAndA, 4, "CP A,A" });
 }

@@ -20,9 +20,11 @@ namespace ggb
 			int id;
 			InstructionFunction func;
 			int baseCycleCount;
+			std::string mnemonic;
 		};
 		OPCodes();
 		void execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus);
+		std::string getMnemonic(uint16_t opCode)const;
 	private:
 		void setOpcode(OPCode&& opcode);
 		void initOpcodesArray();

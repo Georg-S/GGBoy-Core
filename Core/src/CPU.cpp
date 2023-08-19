@@ -1,5 +1,7 @@
 #include "CPU.hpp"
+
 #include "CPUInstructions.hpp"
+#include "Logging.hpp"
 
 void ggb::CPU::reset()
 {
@@ -20,6 +22,7 @@ void ggb::CPU::executeOneInstruction()
 {
 	const int instructionPointer = m_cpuState.InstructionPointer();
 	auto opCode = m_bus->read(instructionPointer);
+	logInfo(m_opcodes.getMnemonic(opCode));
 	++m_cpuState.InstructionPointer();
 	m_opcodes.execute(opCode, &m_cpuState, m_bus);
 }
