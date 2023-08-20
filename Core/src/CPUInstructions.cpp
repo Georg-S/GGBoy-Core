@@ -405,7 +405,7 @@ static void rotateARight(CPUInstructionParameters)
 static void stop(CPUInstructionParameters)
 {
 	// TODO should anything be done here?
-	//assert(!"Not implemented yet"); // Not really sure what to do here
+	assert(!"Not implemented yet"); // Not really sure what to do here
 }
 
 static void loadTwoBytesIntoLD(CPUInstructionParameters)

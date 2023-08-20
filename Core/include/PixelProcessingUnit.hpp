@@ -27,6 +27,7 @@ namespace ggb
 	private:
 		constexpr int getModeDuration(LCDMode mode);
 		uint8_t incrementLine();
+		ColorPalette getBackgroundColorPalette();
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;

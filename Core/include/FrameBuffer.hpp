@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <array>
 
 #include "BUS.hpp"
 
@@ -19,10 +20,25 @@ namespace ggb
 		uint8_t msBits;
 	};
 
+	enum class GBColor
+	{
+		WHITE = 0,
+		LIGHT_GREY = 1,
+		DARK_GREY = 2,
+		BLACK = 3,
+	};
+
+	struct ColorPalette 
+	{
+		std::array<GBColor, 4> m_color = {};
+	};
+
+	RGB convertGBColorToRGB(GBColor color);
+
 	struct Tile 
 	{
-		Tile(BUS* bus, int tileIndex);
-		void readTileDataFromBus(BUS* bus, int tileIndex);
+		Tile(BUS* bus, int tileIndex, const ColorPalette& palette);
+		void readTileDataFromBus(BUS* bus, int tileIndex, const ColorPalette& palette);
 
 		std::vector<std::vector<RGB>> m_data;
 		std::vector<TileRawData> m_rawData;

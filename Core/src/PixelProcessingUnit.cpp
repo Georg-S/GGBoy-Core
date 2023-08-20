@@ -1,6 +1,7 @@
 #include "PixelProcessingUnit.hpp"
 
 #include "Utility.hpp"
+#include <iostream>
 
 using namespace ggb;
 
@@ -51,10 +52,12 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		auto line = incrementLine();
 		if (line == 0)
 			setLCDMode(LCDMode::OAMBlocked);
-		//m_bus->printVRAM();
+
 		m_tiles.clear();
-		for (int i = 0; i < 256; i++) 
-			m_tiles.emplace_back(m_bus, i);
+		m_tiles.reserve(256);
+		auto colorPalette = getBackgroundColorPalette();
+		for (int i = 0; i < 256; i++)
+			m_tiles.emplace_back(m_bus, i, colorPalette);
 
 		if (m_drawTileDataCallback)
 			m_drawTileDataCallback(m_tiles);
@@ -107,4 +110,18 @@ uint8_t ggb::PixelProcessingUnit::incrementLine()
 	++(*m_currentLine);
 	*m_currentLine %= 154;
 	return *m_currentLine;
+}
+
+ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()
+{
+	ColorPalette result = {};
+	constexpr uint16_t backGroundPaletteAddress = 0xFF47;
+	const auto res = m_bus->read(backGroundPaletteAddress);
+
+	result.m_color[0] = GBColor(res & 0b11);
+	result.m_color[1] = GBColor((res >> 2) & 0b11);
+	result.m_color[2] = GBColor((res >> 4) & 0b11);
+	result.m_color[3] = GBColor((res >> 6) & 0b11);
+
+	return result;
 }
