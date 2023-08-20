@@ -10,8 +10,8 @@ namespace ggb
 	{
 	public:
 		void reset();
-		void step();
 		void setBus(BUS* bus);
+		int step();
 
 	private:
 		void handleInterrupts();

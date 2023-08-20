@@ -1,5 +1,6 @@
 #include "BUS.hpp"
 #include <cassert>
+#include <iostream>
 
 constexpr static bool isVRAMAddress(uint16_t address) 
 {
@@ -8,11 +9,11 @@ constexpr static bool isVRAMAddress(uint16_t address)
 
 constexpr static bool isCartridgeROM(uint16_t address)
 {
-    return (address >= 0x000 && address <= 0x7FFF) 
-        || (address >= 0xA000 && address <= 0xBFFF);
+    return (address >= 0x000 && address <= 0x7FFF);
+        //|| (address >= 0xA000 && address <= 0xBFFF);
 }
 
-constexpr static bool isCopyMemory(uint16_t address) 
+constexpr static bool isEchoMemory(uint16_t address) 
 {
     return (address >= 0xE000 && address <= 0xFDFF);
 }
@@ -26,8 +27,8 @@ uint8_t& ggb::BUS::read(uint16_t address)
 {
     if (isCartridgeROM(address))
         return m_cartridge->read(address);
-    if (isCopyMemory(address))
-        assert(!"PROBLEM");
+    if (isEchoMemory(address))
+        address -= 0x2000;
 
     //assert(!"Not implemented");
     
@@ -38,6 +39,8 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 {
     if (isVRAMAddress(address))
         int b = 3;
+    if (isEchoMemory(address))
+        address -= 0x2000;
 
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;
@@ -52,4 +55,31 @@ void ggb::BUS::write(uint16_t address, uint16_t value)
     //assert(address + 1 < m_memory.size());
     //m_memory[address] = high;
     //m_memory[address+1] = low;
+}
+
+void ggb::BUS::printVRAM()
+{
+    //for (size_t i = 0x8000; i < 0x9FFF; i++) 
+    //{
+    //    std::cout << (int)m_memory[i] << std::endl;
+    //}
+
+    bool print = false;
+    for (size_t i = 0x9800; i < 0x9BFF; i++)
+    {
+        if (m_memory[i] != 0)
+            print = true;
+
+
+    }
+
+    for (size_t i = 0x9800; i < 0x9BFF; i++)
+    {
+        if (m_memory[i] != 0)
+            int b = 3;
+        if (print)
+            std::cout << (int)m_memory[i] << std::endl;
+    }
+    if (print)
+        int d = 3;
 }

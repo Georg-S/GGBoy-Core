@@ -1485,9 +1485,15 @@ static void returnCarry(CPUInstructionParameters)
 	}
 }
 
+static void enableInterrupts(CPUInstructionParameters)
+{
+	cpu->enableInterrupts();
+}
+
 static void returnFromInterruptHandler(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	enableInterrupts(cpu, bus, branchTaken);
+	returnInstr(cpu, bus, branchTaken);
 }
 
 static void jumpCarryToNumber(CPUInstructionParameters)
@@ -1628,11 +1634,6 @@ static void loadAddressIntoA(CPUInstructionParameters)
 {
 	auto address = readTwoBytes(cpu, bus);
 	cpu->A() = bus->read(address);
-}
-
-static void enableInterrupts(CPUInstructionParameters)
-{
-	cpu->enableInterrupts();
 }
 
 static void compareAWithNumber(CPUInstructionParameters)

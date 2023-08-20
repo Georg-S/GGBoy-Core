@@ -11,6 +11,8 @@ set(HEADERS
 	"include/Emulator.hpp"
 	"include/CPUState.hpp"
 	"include/Utility.hpp"
+	"include/PixelProcessingUnit.hpp"
+	"include/FrameBuffer.hpp"
 	)
 
 set(SOURCES 
@@ -21,6 +23,8 @@ set(SOURCES
 	"src/Logging.cpp"
 	"src/Emulator.cpp"
 	"src/CPUState.cpp"
+	"src/PixelProcessingUnit.cpp"
+	"src/FrameBuffer.cpp"
 	)
 
 

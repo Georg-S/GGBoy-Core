@@ -13,6 +13,7 @@ namespace ggb
 		uint8_t& read(uint16_t address);
 		void write(uint16_t address, uint8_t value);
 		void write(uint16_t address, uint16_t value);
+		void printVRAM();
 
 	private:
 		Cartridge* m_cartridge = nullptr;

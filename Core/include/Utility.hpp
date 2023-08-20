@@ -12,6 +12,11 @@ namespace ggb
 		number |= toSetBit;
 	}
 
+	constexpr uint8_t getNumberFromBits(bool bitZero, bool bitOne)
+	{
+		return static_cast<uint8_t>((bitOne << 1) | static_cast<int>(bitZero));
+	}
+
 	template<typename T>
 	constexpr void clearBit(T& number, int bit)
 	{
