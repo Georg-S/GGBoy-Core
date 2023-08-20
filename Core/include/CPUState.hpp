@@ -3,8 +3,10 @@
 
 namespace ggb 
 {
-	struct CPUState
+	class CPUState
 	{
+	public:
+		// 8 Bit registers
 		uint8_t& A();
 		uint8_t& F();
 		uint8_t& B();
@@ -13,7 +15,7 @@ namespace ggb
 		uint8_t& E();
 		uint8_t& H();
 		uint8_t& L();
-
+		// 16 Bit registers
 		uint16_t& AF();
 		uint16_t& BC();
 		uint16_t& DE();
@@ -29,6 +31,9 @@ namespace ggb
 		bool getHalfCarryFlag() const;
 		void setCarryFlag(bool value);
 		bool getCarryFlag() const;
+		void disableInterrupts();
+		void enableInterrupts();
+		bool interruptsEnabled() const;
 
 	private:
 		uint8_t F() const;
@@ -37,7 +42,8 @@ namespace ggb
 		union { uint16_t BC; uint8_t regs[2]; } bcUnion = {};
 		union { uint16_t DE; uint8_t regs[2]; } deUnion = {};
 		union { uint16_t HL; uint8_t regs[2]; } hlUnion = {};
-		uint16_t stackPointer = 0;
-		uint16_t instructionPointer = 0;
+		uint16_t m_stackPointer = 0;
+		uint16_t m_instructionPointer = 0;
+		bool m_interruptsEnabled = true;
 	};
 }

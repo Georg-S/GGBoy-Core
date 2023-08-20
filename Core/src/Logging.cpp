@@ -14,5 +14,5 @@ void ggb::logError(const std::string& message)
 
 void ggb::logInfo(const std::string& message)
 {
-	std::cout << "INFO: " << message << std::endl;
+	std::cout << "INFO: " << message << "\n";
 }

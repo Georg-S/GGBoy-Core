@@ -1,6 +1,22 @@
 #include "BUS.hpp"
 #include <cassert>
 
+constexpr static bool isVRAMAddress(uint16_t address) 
+{
+    return (address >= 0x800 && address <= 0x9FFF);
+}
+
+constexpr static bool isCartridgeROM(uint16_t address)
+{
+    return (address >= 0x000 && address <= 0x7FFF) 
+        || (address >= 0xA000 && address <= 0xBFFF);
+}
+
+constexpr static bool isCopyMemory(uint16_t address) 
+{
+    return (address >= 0xE000 && address <= 0xFDFF);
+}
+
 void ggb::BUS::setCartridge(Cartridge* cartridge)
 {
     m_cartridge = cartridge;
@@ -8,20 +24,21 @@ void ggb::BUS::setCartridge(Cartridge* cartridge)
 
 uint8_t& ggb::BUS::read(uint16_t address)
 {
-    if (address >= 0 && address <= 0x7FFF)
+    if (isCartridgeROM(address))
         return m_cartridge->read(address);
-    if (address >= 0xA000 && address <= 0xBFFF)
-        return m_cartridge->read(address);
+    if (isCopyMemory(address))
+        assert(!"PROBLEM");
 
-
-
-    assert(!"Not implemented");
+    //assert(!"Not implemented");
     
     return m_memory[address];
 }
 
 void ggb::BUS::write(uint16_t address, uint8_t value)
 {
+    if (isVRAMAddress(address))
+        int b = 3;
+
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;
 }

@@ -10,12 +10,15 @@ namespace ggb
 	{
 	public:
 		void reset();
-		void executeOneInstruction();
+		void step();
 		void setBus(BUS* bus);
 
 	private:
+		void handleInterrupts();
+
 		OPCodes m_opcodes;
 		CPUState m_cpuState;
 		BUS* m_bus = nullptr;
+		uint64_t m_instructionCounter = 0;
 	};
 }

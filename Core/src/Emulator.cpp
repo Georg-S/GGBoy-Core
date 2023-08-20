@@ -28,6 +28,6 @@ void ggb::Emulator::run()
 {
     while (true) 
     {
-        m_CPU.executeOneInstruction();
+        m_CPU.step();
     }
 }

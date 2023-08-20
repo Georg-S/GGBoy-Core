@@ -1,12 +1,11 @@
 #pragma once
-#include <array>
+#include <vector>
 
 #include "CPUState.hpp"
 #include "BUS.hpp"
 
 namespace ggb
 {
-	//class BUS;
 	// TODO: Is this really cleaner than having it in every method???
 #define CPUInstructionParameters CPUState* cpu, BUS* bus
 	// It is possible to use std::function here, however debugging is easier with plain C function pointers (and no performance overhead)
@@ -30,9 +29,9 @@ namespace ggb
 		void setExtendedOpcode(OPCode&& opcode);
 		void initOpcodesArray();
 
-		std::array<OPCode, 512> m_opcodes;
-		std::array<OPCode, 512> m_extendedOpcodes;
+		std::vector<OPCode> m_opcodes;
+		std::vector<OPCode> m_extendedOpcodes;
 		int m_counter = 0;
-		int m_extendedOpcodeCounter;
+		int m_extendedOpcodeCounter = 0;
 	};
 }

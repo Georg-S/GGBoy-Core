@@ -18,16 +18,24 @@ void ggb::CPU::reset()
 	m_cpuState.StackPointer() = 0xFFFE;
 }
 
-void ggb::CPU::executeOneInstruction()
+void ggb::CPU::step()
 {
+	if (m_cpuState.interruptsEnabled())
+		handleInterrupts();
+
 	const int instructionPointer = m_cpuState.InstructionPointer();
 	auto opCode = m_bus->read(instructionPointer);
 	logInfo(m_opcodes.getMnemonic(opCode) + "\t \t" + std::to_string(m_cpuState.B()));
 	++m_cpuState.InstructionPointer();
 	m_opcodes.execute(opCode, &m_cpuState, m_bus);
+	++m_instructionCounter;
 }
 
 void ggb::CPU::setBus(BUS* bus)
 {
 	m_bus = bus;
+}
+
+void ggb::CPU::handleInterrupts()
+{
 }

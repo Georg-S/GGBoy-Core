@@ -28,7 +28,6 @@ static uint8_t& readReference(CPUState* cpu, BUS* bus)
 
 static int8_t readSigned(CPUState* cpu, BUS* bus)
 {
-	// TODO double check
 	return static_cast<int8_t>(read(cpu, bus));
 }
 
@@ -121,7 +120,7 @@ static void rotateLeftThroughCarrySetZero(CPUState* cpu, uint8_t& out)
 	cpu->setZeroFlag(out == 0);
 }
 
-static void shiftLeftArithmetically(CPUState* cpu, uint8_t& out) 
+static void shiftLeftArithmetically(CPUState* cpu, uint8_t& out)
 {
 	const bool carry = isBitSet(out, 7);
 	out = out << 1;
@@ -192,7 +191,7 @@ static void shiftRightLogically(CPUState* cpu, uint8_t& out)
 }
 
 // Swaps the two nibbles
-static void swap(CPUState* cpu, uint8_t& out) 
+static void swap(CPUState* cpu, uint8_t& out)
 {
 	const uint8_t upper = out >> 4;
 	const uint8_t lower = out << 4;
@@ -203,7 +202,7 @@ static void swap(CPUState* cpu, uint8_t& out)
 	cpu->setCarryFlag(false);
 }
 
-static void checkBit(CPUState* cpu, uint8_t num, int bit) 
+static void checkBit(CPUState* cpu, uint8_t num, int bit)
 {
 	const bool isSet = isBitSet(num, bit);
 	cpu->setHalfCarryFlag(true);
@@ -215,7 +214,7 @@ static void add(CPUState* cpu, uint16_t& outReg, uint16_t reg2)
 {
 	const uint32_t res = uint32_t(outReg) + reg2;
 	const bool halfCarry = (((outReg & 0xFFF) + (reg2 & 0xFFF)) & 0x1000) == 0x1000;
-	const bool carry = (res & (0x1 << 16)) == (0x1 << 16);
+	const bool carry = isBitSet(res, 16);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(halfCarry);
 	cpu->setCarryFlag(carry);
@@ -405,7 +404,8 @@ static void rotateARight(CPUInstructionParameters)
 
 static void stop(CPUInstructionParameters)
 {
-	assert(!"Not implemented yet"); // Not really sure what to do here
+	// TODO should anything be done here?
+	//assert(!"Not implemented yet"); // Not really sure what to do here
 }
 
 static void loadTwoBytesIntoLD(CPUInstructionParameters)
@@ -1357,35 +1357,35 @@ static void restart(CPUInstructionParameters, uint16_t address)
 	cpu->InstructionPointer() = address;
 }
 
-static void restart00(CPUInstructionParameters) 
+static void restart00(CPUInstructionParameters)
 {
 	restart(cpu, bus, 0x00);
 }
 
-static void returnZero(CPUInstructionParameters) 
+static void returnZero(CPUInstructionParameters)
 {
 	if (cpu->getZeroFlag())
 		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
 }
 
-static void returnInstr(CPUInstructionParameters) 
+static void returnInstr(CPUInstructionParameters)
 {
 	cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
 }
 
-static void jumpZeroToNumber(CPUInstructionParameters) 
+static void jumpZeroToNumber(CPUInstructionParameters)
 {
 	const uint16_t bytes = readTwoBytes(cpu, bus);
 	if (cpu->getZeroFlag())
 		cpu->InstructionPointer() = bytes;
 }
 
-static void prefixOPCode(CPUInstructionParameters) 
+static void prefixOPCode(CPUInstructionParameters)
 {
 	notImplementedInstruction(cpu, bus);
 }
 
-static void callZeroNumber(CPUInstructionParameters) 
+static void callZeroNumber(CPUInstructionParameters)
 {
 	call(cpu, bus, cpu->getZeroFlag());
 }
@@ -1395,7 +1395,7 @@ static void callInstr(CPUInstructionParameters)
 	call(cpu, bus, true);
 }
 
-static void addNumberAndCarryToA(CPUInstructionParameters) 
+static void addNumberAndCarryToA(CPUInstructionParameters)
 {
 	add(cpu, cpu->A(), read(cpu, bus), cpu->getCarryFlag());
 }
@@ -1405,7 +1405,7 @@ static void restart08(CPUInstructionParameters)
 	restart(cpu, bus, 0x08);
 }
 
-static void returnNotCarry(CPUInstructionParameters) 
+static void returnNotCarry(CPUInstructionParameters)
 {
 	if (cpu->getCarryFlag())
 		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
@@ -1450,7 +1450,7 @@ static void returnCarry(CPUInstructionParameters)
 		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
 }
 
-static void returnFromInterruptHandler(CPUInstructionParameters) 
+static void returnFromInterruptHandler(CPUInstructionParameters)
 {
 	notImplementedInstruction(cpu, bus);
 }
@@ -1477,13 +1477,13 @@ static void restart18(CPUInstructionParameters)
 	restart(cpu, bus, 0x18);
 }
 
-static void loadAIntoSpecialAddressPlusNumber(CPUInstructionParameters) 
+static void loadAIntoSpecialAddressPlusNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
 	bus->write(0xFF00 + num, cpu->A());
 }
 
-static void POPHL(CPUInstructionParameters) 
+static void POPHL(CPUInstructionParameters)
 {
 	cpu->HL() = readTwoBytes(bus, cpu->StackPointer());
 }
@@ -1499,7 +1499,7 @@ static void pushHL(CPUInstructionParameters)
 	writeToStack(cpu, bus, cpu->HL());
 }
 
-static void bitwiseAndAAndNumber(CPUInstructionParameters) 
+static void bitwiseAndAAndNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
 	cpu->A() = cpu->A() & num;
@@ -1516,7 +1516,7 @@ static void addNumberToStackPointer(CPUInstructionParameters)
 	notImplementedInstruction(cpu, bus);
 }
 
-static void jumpToHL(CPUInstructionParameters) 
+static void jumpToHL(CPUInstructionParameters)
 {
 	cpu->InstructionPointer() = cpu->HL();
 }
@@ -1538,7 +1538,7 @@ static void restart28(CPUInstructionParameters)
 	restart(cpu, bus, 0x28);
 }
 
-static void loadSpecialAddressPlusNumberIntoA(CPUInstructionParameters) 
+static void loadSpecialAddressPlusNumberIntoA(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
 	cpu->A() = bus->read(0xFF00 + num);
@@ -1554,9 +1554,9 @@ static void loadSpecialAddressPlusCarryIntoA(CPUInstructionParameters)
 	cpu->A() = bus->read(0xFF00 + cpu->getCarryFlag());
 }
 
-static void disableInterrupts(CPUInstructionParameters) 
+static void disableInterrupts(CPUInstructionParameters)
 {
-	notImplementedInstruction(cpu, bus);
+	cpu->disableInterrupts();
 }
 
 static void pushAF(CPUInstructionParameters)
@@ -1564,7 +1564,7 @@ static void pushAF(CPUInstructionParameters)
 	writeToStack(cpu, bus, cpu->AF());
 }
 
-static void bitwiseOrAAndNumber(CPUInstructionParameters) 
+static void bitwiseOrAAndNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
 	cpu->A() |= num;
@@ -1577,7 +1577,7 @@ static void restart30(CPUInstructionParameters)
 
 static void loadStackPointerPlusNumberIntoHL(CPUInstructionParameters)
 {
-	notImplementedInstruction(cpu,bus);
+	notImplementedInstruction(cpu, bus);
 }
 
 static void loadHLIntoStackPointer(CPUInstructionParameters)
@@ -1889,13 +1889,6 @@ static void swapA(CPUInstructionParameters)
 {
 	swap(cpu, cpu->A());
 }
-
-
-
-
-
-
-
 
 static void shiftBRightLogically(CPUInstructionParameters)
 {
@@ -2258,11 +2251,6 @@ static void checkBit7HLAddress(CPUInstructionParameters)
 	checkBit(cpu, bus->read(cpu->HL()), 7);
 }
 
-
-
-
-
-
 static void resetBit0A(CPUInstructionParameters)
 {
 	clearBit(cpu->A(), 0);
@@ -2583,13 +2571,6 @@ static void resetBit7HLAddress(CPUInstructionParameters)
 {
 	clearBit(bus->read(cpu->HL()), 7);
 }
-
-
-
-
-
-
-
 
 static void setBit0A(CPUInstructionParameters)
 {
@@ -2927,8 +2908,17 @@ ggb::OPCodes::OPCodes()
 
 void OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
 {
-	auto& opCodeStr = m_opcodes[opCode];
-	opCodeStr.func(cpu, bus);
+	OPCode* toExecute = nullptr;
+	if (opCode == 0xCB) 
+	{
+		auto extendedOpcode = read(cpu, bus);
+		toExecute = &m_extendedOpcodes[extendedOpcode];
+	}
+	else 
+	{
+		toExecute = &m_opcodes[opCode];
+	}
+	toExecute->func(cpu, bus);
 }
 
 std::string OPCodes::getMnemonic(uint16_t opCode) const
@@ -2952,6 +2942,9 @@ void ggb::OPCodes::setExtendedOpcode(OPCode&& opcode)
 
 void ggb::OPCodes::initOpcodesArray()
 {
+	m_opcodes = std::vector<OPCode>(0xFF + 1);
+	m_extendedOpcodes = std::vector<OPCode>(0xFF + 1);
+
 	for (auto& opcode : m_opcodes)
 		opcode = OPCode({ -1, notImplementedInstruction, -1 });
 
@@ -3166,7 +3159,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xD0,returnNotCarry, 8, "RET NC" });// TODO can have different cycle counts
 	setOpcode({ 0xD1,popDE, 12, "POP DE" });
 	setOpcode({ 0xD2,jumpNotCarryToNumber, 12, "JP NC,u16" });// TODO can have different cycle counts
-	setOpcode({ 0xD3,invalidInstruction, 0, "D3=INVALID"});
+	setOpcode({ 0xD3,invalidInstruction, 0, "D3=INVALID" });
 	setOpcode({ 0xD4,callNotCarryNumber, 12, "CALL NC,u16" });// TODO can have different cycle counts
 	setOpcode({ 0xD5,pushDE, 16, "PUSH DE" });
 	setOpcode({ 0xD6,subNumberFromA, 8, "SUB A,u8" });
@@ -3177,7 +3170,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xDB,invalidInstruction, 0, "DB=INVALID" });
 	setOpcode({ 0xDC,callCarryNumber, 12, "CALL C,u16" });// TODO can have different cycle counts
 	setOpcode({ 0xDD,invalidInstruction, 0, "DD=INVALID" });
-	setOpcode({ 0xDE,subtractNumberAndCarryFromA, 8, "SBC A,u8"});
+	setOpcode({ 0xDE,subtractNumberAndCarryFromA, 8, "SBC A,u8" });
 	setOpcode({ 0xDF,restart18, 16, "RST 18h" });
 	setOpcode({ 0xE0,loadAIntoSpecialAddressPlusNumber, 12, "LD (FF00+u8),A" });
 	setOpcode({ 0xE1,POPHL, 12, "POP HL" });
@@ -3187,7 +3180,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xE5,pushHL, 16, "PUSH HL" });
 	setOpcode({ 0xE6,bitwiseAndAAndNumber, 8, "AND A,u8" });
 	setOpcode({ 0xE7,restart20, 16, "RST 20h" });
-	setOpcode({ 0xE8,addNumberToStackPointer, 16, "ADD SP,i8" }); 
+	setOpcode({ 0xE8,addNumberToStackPointer, 16, "ADD SP,i8" });
 	setOpcode({ 0xE9,jumpToHL, 4, "JP HL" });
 	setOpcode({ 0xEA,loadAIntoNumberAddress, 16, "LD (u16),A" });
 	setOpcode({ 0xEB,invalidInstruction, 0, "EB=INVALID" });

@@ -64,12 +64,12 @@ uint16_t& ggb::CPUState::HL()
 
 uint16_t& ggb::CPUState::StackPointer()
 {
-	return stackPointer;
+	return m_stackPointer;
 }
 
 uint16_t& ggb::CPUState::InstructionPointer()
 {
-	return instructionPointer;
+	return m_instructionPointer;
 }
 
 void ggb::CPUState::setZeroFlag(bool value)
@@ -111,6 +111,21 @@ void ggb::CPUState::setCarryFlag(bool value)
 bool ggb::CPUState::getCarryFlag() const
 {
 	return isBitSet(F(), 4);
+}
+
+void ggb::CPUState::disableInterrupts()
+{
+	m_interruptsEnabled = false;
+}
+
+void ggb::CPUState::enableInterrupts()
+{
+	m_interruptsEnabled = true;
+}
+
+bool ggb::CPUState::interruptsEnabled() const
+{
+	return m_interruptsEnabled;
 }
 
 uint8_t ggb::CPUState::F() const
