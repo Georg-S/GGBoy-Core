@@ -741,7 +741,7 @@ static void loadLIntoC(CPUInstructionParameters)
 	cpu->C() = cpu->L();
 }
 
-static void loadAddressHLIntoC(CPUInstructionParameters)
+static void loadHLAddressIntoC(CPUInstructionParameters)
 {
 	cpu->C() = bus->read(cpu->HL());
 }
@@ -781,7 +781,7 @@ static void loadLIntoD(CPUInstructionParameters)
 	cpu->D() = cpu->L();
 }
 
-static void loadAddressHLIntoD(CPUInstructionParameters)
+static void loadHLAddressIntoD(CPUInstructionParameters)
 {
 	cpu->D() = bus->read(cpu->HL());
 }
@@ -1315,7 +1315,7 @@ static void returnNotZero(CPUInstructionParameters)
 {
 	if (!cpu->getZeroFlag()) 
 	{
-		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
+		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer()); // TODO refactor make a function popstack
 		*branchTaken = true;
 	}
 }
@@ -1530,10 +1530,9 @@ static void POPHL(CPUInstructionParameters)
 	cpu->HL() = readTwoBytes(bus, cpu->StackPointer());
 }
 
-static void loadAIntoSpecialAddressPlusCarry(CPUInstructionParameters)
+static void loadAIntoSpecialAddressPlusC(CPUInstructionParameters)
 {
-	// TODO double check
-	bus->write(0xFF00 + cpu->getCarryFlag(), cpu->A());
+	bus->write(0xFF00 + cpu->C(), cpu->A());
 }
 
 static void pushHL(CPUInstructionParameters)
@@ -1544,7 +1543,7 @@ static void pushHL(CPUInstructionParameters)
 static void bitwiseAndAAndNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
-	cpu->A() = cpu->A() & num;
+	bitwiseAnd(cpu, cpu->A(), num);
 }
 
 static void restart20(CPUInstructionParameters)
@@ -1572,7 +1571,7 @@ static void loadAIntoNumberAddress(CPUInstructionParameters)
 static void xorAAndNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
-	cpu->A() = cpu->A() ^ num;
+	bitwiseXOR(cpu, cpu->A(), num);
 }
 
 static void restart28(CPUInstructionParameters)
@@ -1591,9 +1590,9 @@ static void POPAF(CPUInstructionParameters)
 	cpu->AF() = readTwoBytes(bus, cpu->StackPointer());
 }
 
-static void loadSpecialAddressPlusCarryIntoA(CPUInstructionParameters)
+static void loadSpecialAddressPlusCIntoA(CPUInstructionParameters)
 {
-	cpu->A() = bus->read(0xFF00 + cpu->getCarryFlag());
+	cpu->A() = bus->read(0xFF00 + cpu->C());
 }
 
 static void disableInterrupts(CPUInstructionParameters)
@@ -3121,7 +3120,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x4B,loadEIntoC, 4, "LD C,E" });
 	setOpcode({ 0x4C,loadHIntoC, 4, "LD C,H" });
 	setOpcode({ 0x4D,loadLIntoC, 4, "LD C,L" });
-	setOpcode({ 0x4E,loadAddressHLIntoC, 8, "LD C,(HL)" });
+	setOpcode({ 0x4E,loadHLAddressIntoC, 8, "LD C,(HL)" });
 	setOpcode({ 0x4F,loadAIntoC, 4, "LD C,A" });
 	setOpcode({ 0x50,loadBIntoD, 4, "LD D,B" });
 	setOpcode({ 0x51,loadCIntoD, 4, "LD D,C" });
@@ -3129,7 +3128,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x53,loadEIntoD, 4, "LD D,E" });
 	setOpcode({ 0x54,loadHIntoD, 4, "LD D,H" });
 	setOpcode({ 0x55,loadLIntoD, 4, "LD D,L" });
-	setOpcode({ 0x56,loadAddressHLIntoD, 8, "LD D,(HL)" });
+	setOpcode({ 0x56,loadHLAddressIntoD, 8, "LD D,(HL)" });
 	setOpcode({ 0x57,loadAIntoD, 4, "LD D,A" });
 	setOpcode({ 0x58,loadBIntoE, 4, "LD E,B" });
 	setOpcode({ 0x59,loadCIntoE, 4, "LD E,C" });
@@ -3219,7 +3218,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xAD,bitwiseXORAAndL, 4, "XOR A,L" });
 	setOpcode({ 0xAE,bitwiseXORAAndHLAddress, 8, "XOR A,(HL)" });
 	setOpcode({ 0xAF,bitwiseXORAAndA, 4, "XOR A,A" });
-	setOpcode({ 0xB0,bitwiseORAndB, 4, "OR A,B" });
+	setOpcode({ 0xB0,bitwiseORAndB, 4, "OR A,B" }); // TODO RENAME
 	setOpcode({ 0xB1,bitwiseORAndC, 4, "OR A,C" });
 	setOpcode({ 0xB2,bitwiseORAndD, 4, "OR A,D" });
 	setOpcode({ 0xB3,bitwiseORAndE, 4, "OR A,E" });
@@ -3269,7 +3268,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xDF,restart18, 16, "RST 18h" });
 	setOpcode({ 0xE0,loadAIntoSpecialAddressPlusNumber, 12, "LD (FF00+u8),A" });
 	setOpcode({ 0xE1,POPHL, 12, "POP HL" });
-	setOpcode({ 0xE2,loadAIntoSpecialAddressPlusCarry, 8, "LD (FF00+C),A" });
+	setOpcode({ 0xE2,loadAIntoSpecialAddressPlusC, 8, "LD (FF00+C),A" });
 	setOpcode({ 0xE3,invalidInstruction, 0, "E3=INVALID" });
 	setOpcode({ 0xE4,invalidInstruction, 0, "E4=INVALID" });
 	setOpcode({ 0xE5,pushHL, 16, "PUSH HL" });
@@ -3285,7 +3284,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xEF,restart28, 16, "RST 28h" });
 	setOpcode({ 0xF0,loadSpecialAddressPlusNumberIntoA, 12, "LD A,(FF00+u8)" });
 	setOpcode({ 0xF1,POPAF, 12, "POP AF" });
-	setOpcode({ 0xF2,loadSpecialAddressPlusCarryIntoA, 8, "LD A,(FF00+C)" });
+	setOpcode({ 0xF2,loadSpecialAddressPlusCIntoA, 8, "LD A,(FF00+C)" });
 	setOpcode({ 0xF3,disableInterrupts, 4, "DI" });
 	setOpcode({ 0xF4,invalidInstruction, 0, "F4=INVALID" });
 	setOpcode({ 0xF5,pushAF, 16, "PUSH AF" });
