@@ -1340,14 +1340,13 @@ static void jumpToNumber(CPUInstructionParameters)
 	cpu->InstructionPointer() = readTwoBytes(cpu, bus);
 }
 
-static void call(CPUState* cpu, BUS* bus, bool call)
+static void call(CPUState* cpu, BUS* bus, bool shouldCall)
 {
-	const auto number = readTwoBytes(cpu, bus);
-	if (!call)
+	const auto callAddr = readTwoBytes(cpu, bus);
+	if (!shouldCall)
 		return;
 
-	writeToStack(cpu, bus, cpu->InstructionPointer());
-	cpu->InstructionPointer() = number;
+	callAddress(cpu, bus, callAddr);
 }
 
 static void callNotZeroNumber(CPUInstructionParameters)
@@ -2985,7 +2984,11 @@ static void setBit7HLAddress(CPUInstructionParameters)
 
 
 
-
+void ggb::callAddress(CPUState* cpu, BUS* bus, uint16_t address)
+{
+	writeToStack(cpu, bus, cpu->InstructionPointer());
+	cpu->InstructionPointer() = address;
+}
 
 ggb::OPCodes::OPCodes()
 {

@@ -11,6 +11,9 @@ namespace ggb
 	// It is possible to use std::function here, however debugging is easier with plain C function pointers (and no performance overhead)
 	using InstructionFunction = void (*)(CPUInstructionParameters);
 
+
+	void callAddress(CPUState* cpu, BUS* bus, uint16_t address);
+
 	class OPCodes 
 	{
 	public:
