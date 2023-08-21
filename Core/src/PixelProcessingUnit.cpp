@@ -1,6 +1,7 @@
 #include "PixelProcessingUnit.hpp"
 
 #include "Utility.hpp"
+#include "Logging.hpp"
 #include <iostream>
 
 using namespace ggb;
@@ -39,8 +40,9 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	case ggb::LCDMode::HBLank: 
 	{
 		auto line = incrementLine();
-		if (line >= 144)
+		if (line >= 144) 
 			setLCDMode(LCDMode::VBLank);
+
 		return;
 	}
 	case ggb::LCDMode::VBLank: 
@@ -67,19 +69,19 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 
 bool ggb::PixelProcessingUnit::isEnabled() const
 {
-	return m_bus->checkBit(LCDCRegisterAddress, 7);
+	return m_bus->checkBit(LCDControlRegisterAddress, 7);
 }
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
-	const uint8_t buf = m_bus->read(LCDCRegisterAddress) & 0b11;
+	const uint8_t buf = m_bus->read(LCDControlRegisterAddress) & 0b11;
 	return LCDMode(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	m_bus->setBitValue(LCDCRegisterAddress, 0, (static_cast<uint8_t>(mode) & 1));
-	m_bus->setBitValue(LCDCRegisterAddress, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
+	m_bus->setBitValue(LCDControlRegisterAddress, 0, (static_cast<uint8_t>(mode) & 1));
+	m_bus->setBitValue(LCDControlRegisterAddress, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
 }
 
 void ggb::PixelProcessingUnit::setDrawTileDataCallback(std::function<void(std::vector<Tile>)> func)
@@ -107,7 +109,25 @@ uint8_t ggb::PixelProcessingUnit::incrementLine()
 	newLinevalue = (newLinevalue + 1) % 154;
 	m_bus->write(lineAddress, newLinevalue);
 
+	auto lycCompare = m_bus->read(lineCompareAddress);
+	if (lycCompare == newLinevalue)
+	{
+		m_bus->setBit(LCDStatusRegisterAddress, 2);
+
+		if (m_bus->checkBit(LCDStatusRegisterAddress, 6))
+			m_bus->setBit(0xFF0F, 1);
+	}
+	else
+	{
+		m_bus->resetBit(LCDStatusRegisterAddress, 2);
+	}
+
 	return newLinevalue;
+}
+
+uint8_t ggb::PixelProcessingUnit::getLine() const
+{
+	return m_bus->read(lineAddress);
 }
 
 ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()

@@ -11,7 +11,7 @@ using namespace ggb;
 
 static uint16_t combineUpperAndLower(uint8_t upper, uint8_t lower)
 {
-	return (upper << 8) | lower;
+	return (static_cast<int>(upper) << 8) | lower;
 }
 
 static uint8_t read(CPUState* cpu, BUS* bus)

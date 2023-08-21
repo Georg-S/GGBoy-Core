@@ -27,12 +27,15 @@ namespace ggb
 	private:
 		constexpr int getModeDuration(LCDMode mode);
 		uint8_t incrementLine();
+		uint8_t getLine() const;
 		ColorPalette getBackgroundColorPalette();
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;
-		static constexpr uint16_t LCDCRegisterAddress = 0xFF40;
+		static constexpr uint16_t LCDControlRegisterAddress = 0xFF40;
+		static constexpr uint16_t LCDStatusRegisterAddress = 0xFF41;
 		static constexpr uint16_t lineAddress = 0xFF44;
+		static constexpr uint16_t lineCompareAddress = 0xFF45;
 		std::vector<Tile> m_tiles;
 		std::function<void(std::vector<Tile>)> m_drawTileDataCallback;
 	};

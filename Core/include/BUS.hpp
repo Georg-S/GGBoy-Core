@@ -14,6 +14,7 @@ namespace ggb
 		void write(uint16_t address, uint8_t value);
 		void write(uint16_t address, uint16_t value);
 		void setBitValue(uint16_t address, int bit, bool bitValue);
+		void setBit(uint16_t address, int bit);
 		void resetBit(uint16_t address, int bit);
 		bool checkBit(uint16_t address, int bit) const;
 		void printVRAM();

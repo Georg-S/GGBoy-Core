@@ -66,6 +66,13 @@ void ggb::BUS::setBitValue(uint16_t address, int bit, bool bitValue)
     write(address, value); 
 }
 
+void ggb::BUS::setBit(uint16_t address, int bit)
+{
+    auto value = read(address);
+    ggb::setBit(value, bit);
+    write(address, value);
+}
+
 void ggb::BUS::resetBit(uint16_t address, int bit)
 {
     auto value = read(address);

@@ -17,7 +17,7 @@ static constexpr int JOYPAD_BIT = 4;
 
 static void debugLog(const std::string& message) 
 {
-	bool debugLogEnabled = true;
+	bool debugLogEnabled = false;
 
 	if (debugLogEnabled)
 		ggb::logInfo(message);
