@@ -70,7 +70,7 @@ bool ggb::PixelProcessingUnit::isEnabled() const
 	return m_bus->checkBit(LCDCRegisterAddress, 7);
 }
 
-LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode()
+LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
 	const uint8_t buf = m_bus->read(LCDCRegisterAddress) & 0b11;
 	return LCDMode(buf);

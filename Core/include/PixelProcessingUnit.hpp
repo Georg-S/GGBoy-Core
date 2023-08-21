@@ -20,7 +20,7 @@ namespace ggb
 		PixelProcessingUnit(BUS* bus);
 		void step(int elapsedCycles);
 		bool isEnabled() const;
-		LCDMode getCurrentLCDMode(); // TODO make const
+		LCDMode getCurrentLCDMode() const; 
 		void setLCDMode(LCDMode mode);
 		void setDrawTileDataCallback(std::function<void(std::vector<Tile>)>);
 
