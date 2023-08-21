@@ -31,8 +31,8 @@ namespace ggb
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;
-		uint8_t* m_LCDControlRegister = nullptr;
-		uint8_t* m_currentLine = nullptr;
+		static constexpr uint16_t LCDCRegisterAddress = 0xFF40;
+		static constexpr uint16_t lineAddress = 0xFF44;
 		std::vector<Tile> m_tiles;
 		std::function<void(std::vector<Tile>)> m_drawTileDataCallback;
 	};

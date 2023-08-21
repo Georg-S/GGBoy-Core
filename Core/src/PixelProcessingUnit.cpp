@@ -8,10 +8,6 @@ using namespace ggb;
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	: m_bus(bus)
 {
-	constexpr uint16_t LCDCRegisterAddress = 0xFF40;
-	constexpr uint16_t lineAddress = 0xFF44;
-	m_LCDControlRegister = &bus->read(LCDCRegisterAddress);
-	m_currentLine = &bus->read(lineAddress);
 }
 
 void ggb::PixelProcessingUnit::step(int elapsedCycles)
@@ -71,19 +67,19 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 
 bool ggb::PixelProcessingUnit::isEnabled() const
 {
-	return isBitSet(*m_LCDControlRegister, 7);
+	return m_bus->checkBit(LCDCRegisterAddress, 7);
 }
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode()
 {
-	uint8_t buf = *m_LCDControlRegister & 0b11;
+	const uint8_t buf = m_bus->read(LCDCRegisterAddress) & 0b11;
 	return LCDMode(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	setBitToValue(*m_LCDControlRegister, 0, (static_cast<uint8_t>(mode) & 1));
-	setBitToValue(*m_LCDControlRegister, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
+	m_bus->setBitValue(LCDCRegisterAddress, 0, (static_cast<uint8_t>(mode) & 1));
+	m_bus->setBitValue(LCDCRegisterAddress, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
 }
 
 void ggb::PixelProcessingUnit::setDrawTileDataCallback(std::function<void(std::vector<Tile>)> func)
@@ -107,9 +103,11 @@ constexpr int ggb::PixelProcessingUnit::getModeDuration(LCDMode mode)
 
 uint8_t ggb::PixelProcessingUnit::incrementLine()
 {
-	++(*m_currentLine);
-	*m_currentLine %= 154;
-	return *m_currentLine;
+	auto newLinevalue = m_bus->read(lineAddress);
+	newLinevalue = (newLinevalue + 1) % 154;
+	m_bus->write(lineAddress, newLinevalue);
+
+	return newLinevalue;
 }
 
 ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()

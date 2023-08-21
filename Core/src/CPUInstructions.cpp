@@ -21,11 +21,6 @@ static uint8_t read(CPUState* cpu, BUS* bus)
 	return result;
 }
 
-static uint8_t& readReference(CPUState* cpu, BUS* bus)
-{
-	return bus->read(cpu->InstructionPointer()++);
-}
-
 static int8_t readSigned(CPUState* cpu, BUS* bus)
 {
 	return static_cast<int8_t>(read(cpu, bus));
@@ -603,19 +598,22 @@ static void incrementSP(CPUInstructionParameters)
 
 static void incrementAddressHL(CPUInstructionParameters)
 {
-	auto& val = bus->read(cpu->HL());
+	auto val = bus->read(cpu->HL());
 	increment(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void decrementAddressHL(CPUInstructionParameters)
 {
-	auto& val = bus->read(cpu->HL());
+	auto val = bus->read(cpu->HL());
 	decrement(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void loadValueIntoAddressHL(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = read(cpu, bus);
+	auto val = read(cpu, bus);
+	bus->write(cpu->HL(), val);
 }
 
 static void setCarryFlag(CPUInstructionParameters)
@@ -915,32 +913,32 @@ static void loadAIntoL(CPUInstructionParameters)
 
 static void loadBIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->B();
+	bus->write(cpu->HL(), cpu->B());
 }
 
 static void loadCIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->C();
+	bus->write(cpu->HL(), cpu->C());
 }
 
 static void loadDIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->D();
+	bus->write(cpu->HL(), cpu->D());
 }
 
 static void loadEIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->E();
+	bus->write(cpu->HL(), cpu->E());
 }
 
 static void loadHIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->H();
+	bus->write(cpu->HL(), cpu->H());
 }
 
 static void loadLIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->L();
+	bus->write(cpu->HL(), cpu->L());
 }
 
 static void halt(CPUInstructionParameters)
@@ -950,7 +948,7 @@ static void halt(CPUInstructionParameters)
 
 static void loadAIntoHLAddress(CPUInstructionParameters)
 {
-	bus->read(cpu->HL()) = cpu->A();
+	bus->write(cpu->HL(), cpu->A());
 }
 
 static void loadBIntoA(CPUInstructionParameters)
@@ -1679,7 +1677,9 @@ static void rotateLLeft(CPUInstructionParameters)
 
 static void rotateHLAddressLeft(CPUInstructionParameters)
 {
-	rotateLeftSetZero(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	rotateLeftSetZero(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void rotateALeftSetZero(CPUInstructionParameters)
@@ -1719,7 +1719,9 @@ static void rotateLRight(CPUInstructionParameters)
 
 static void rotateHLAddressRight(CPUInstructionParameters)
 {
-	rotateRightSetZero(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	rotateRightSetZero(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void rotateARightSetZero(CPUInstructionParameters)
@@ -1759,7 +1761,9 @@ static void rotateLRightThroughCarry(CPUInstructionParameters)
 
 static void rotateHLAddressRightThroughCarry(CPUInstructionParameters)
 {
-	rotateRightThroughCarrySetZero(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	rotateRightThroughCarrySetZero(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void rotateARightThroughCarrySetZero(CPUInstructionParameters)
@@ -1799,7 +1803,9 @@ static void rotateLLeftThroughCarry(CPUInstructionParameters)
 
 static void rotateHLAddressLeftThroughCarry(CPUInstructionParameters)
 {
-	rotateLeftThroughCarrySetZero(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	rotateLeftThroughCarrySetZero(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void rotateALeftThroughCarrySetZero(CPUInstructionParameters)
@@ -1839,7 +1845,9 @@ static void shiftLLeftArithmetically(CPUInstructionParameters)
 
 static void shiftHLAddressLeftArithmetically(CPUInstructionParameters)
 {
-	shiftLeftArithmetically(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	shiftLeftArithmetically(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void shiftALeftArithmetically(CPUInstructionParameters)
@@ -1879,7 +1887,9 @@ static void shiftLRightArithmetically(CPUInstructionParameters)
 
 static void shiftHLAddressRightArithmetically(CPUInstructionParameters)
 {
-	shiftRightArithmetically(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	shiftRightArithmetically(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void shiftARightArithmetically(CPUInstructionParameters)
@@ -1922,7 +1932,9 @@ static void swapL(CPUInstructionParameters)
 
 static void swapHLAddress(CPUInstructionParameters)
 {
-	swap(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	swap(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void swapA(CPUInstructionParameters)
@@ -1962,7 +1974,9 @@ static void shiftLRightLogically(CPUInstructionParameters)
 
 static void shiftHLAddressRightLogically(CPUInstructionParameters)
 {
-	shiftRightLogically(cpu, readReference(cpu, bus));
+	auto val = bus->read(cpu->HL());
+	shiftRightLogically(cpu, val);
+	bus->write(cpu->HL(), val);
 }
 
 static void shiftARightLogically(CPUInstructionParameters)
@@ -2574,42 +2588,58 @@ static void resetBit7L(CPUInstructionParameters)
 
 static void resetBit0HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 0);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 0);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit1HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 1);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 1);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit2HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 2);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 2);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit3HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 3);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 3);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit4HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 4);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 4);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit5HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 5);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 5);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit6HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 6);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 6);
+	bus->write(cpu->HL(), val);
 }
 
 static void resetBit7HLAddress(CPUInstructionParameters)
 {
-	clearBit(bus->read(cpu->HL()), 7);
+	auto val = bus->read(cpu->HL());
+	clearBit(val, 7);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit0A(CPUInstructionParameters)
@@ -2895,42 +2925,58 @@ static void setBit7L(CPUInstructionParameters)
 
 static void setBit0HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 0);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 0);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit1HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 1);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 1);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit2HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 2);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 2);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit3HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 3);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 3);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit4HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 4);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 4);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit5HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 5);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 5);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit6HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 6);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 6);
+	bus->write(cpu->HL(), val);
 }
 
 static void setBit7HLAddress(CPUInstructionParameters)
 {
-	setBit(bus->read(cpu->HL()), 7);
+	auto val = bus->read(cpu->HL());
+	setBit(val, 7);
+	bus->write(cpu->HL(), val);
 }
 
 

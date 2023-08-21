@@ -10,9 +10,11 @@ namespace ggb
 	public:
 		BUS() = default;
 		void setCartridge(Cartridge* cartridge);
-		uint8_t& read(uint16_t address);
+		uint8_t read(uint16_t address) const;
 		void write(uint16_t address, uint8_t value);
 		void write(uint16_t address, uint16_t value);
+		void setBitValue(uint16_t address, int bit, bool bitValue);
+		bool checkBit(uint16_t address, int bit) const;
 		void printVRAM();
 
 	private:

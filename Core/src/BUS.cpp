@@ -2,6 +2,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "Utility.hpp"
+
 constexpr static bool isVRAMAddress(uint16_t address) 
 {
     return (address >= 0x800 && address <= 0x9FFF);
@@ -23,7 +25,7 @@ void ggb::BUS::setCartridge(Cartridge* cartridge)
     m_cartridge = cartridge;
 }
 
-uint8_t& ggb::BUS::read(uint16_t address)
+uint8_t ggb::BUS::read(uint16_t address) const
 {
     if (isCartridgeROM(address))
         return m_cartridge->read(address);
@@ -31,7 +33,7 @@ uint8_t& ggb::BUS::read(uint16_t address)
         address -= 0x2000;
 
     //assert(!"Not implemented");
-    
+
     return m_memory[address];
 }
 
@@ -55,6 +57,18 @@ void ggb::BUS::write(uint16_t address, uint16_t value)
     //assert(address + 1 < m_memory.size());
     //m_memory[address] = high;
     //m_memory[address+1] = low;
+}
+
+void ggb::BUS::setBitValue(uint16_t address, int bit, bool bitValue)
+{
+    auto value = read(address);
+    setBitToValue(value, bit, value);
+    write(address, value); 
+}
+
+bool ggb::BUS::checkBit(uint16_t address, int bit) const
+{
+    return isBitSet(read(address), bit);
 }
 
 void ggb::BUS::printVRAM()

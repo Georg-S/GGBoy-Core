@@ -23,7 +23,7 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
     return true;
 }
 
-uint8_t& ggb::Cartridge::read(uint16_t address)
+uint8_t ggb::Cartridge::read(uint16_t address) const
 {
     return m_cartridgeData[address];
 }
