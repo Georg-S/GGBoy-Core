@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cassert>
+#include <cstdint>
 
 namespace ggb 
 {
+	uint16_t combineUpperAndLower(uint8_t upper, uint8_t lower);
+
 	template<typename T>
 	constexpr void setBit(T& number, int bit) 
 	{
@@ -40,4 +43,5 @@ namespace ggb
 		const T bitToCheck = 1 << bit;
 		return (number & bitToCheck) == bitToCheck;
 	}
+
 }

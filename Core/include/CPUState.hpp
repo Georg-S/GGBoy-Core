@@ -46,4 +46,29 @@ namespace ggb
 		uint16_t m_instructionPointer = 0;
 		bool m_interruptsEnabled = true;
 	};
+
+	void increment(CPUState* cpu, uint8_t& toIncrement);
+	void decrement(CPUState* cpu, uint8_t& toDecrement);
+	void add(CPUState* cpu, uint8_t& outNum, uint8_t num2);
+	void add(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag);
+	void add(CPUState* cpu, uint16_t& outNum, uint16_t num2);
+	void sub(CPUState* cpu, uint8_t& outNum, uint8_t num2);
+	void sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2, uint8_t carryFlag);
+	void compare(CPUState* cpu, uint8_t num, uint8_t num2);
+	void bitwiseAnd(CPUState* cpu, uint8_t& outReg, uint8_t reg2);
+	void bitwiseOR(CPUState* cpu, uint8_t& outReg, uint8_t reg2);
+	void bitwiseXOR(CPUState* cpu, uint8_t& outReg, uint8_t reg2);
+	void checkBit(CPUState* cpu, uint8_t num, int bit);
+	void swap(CPUState* cpu, uint8_t& out); // Swaps the two nibbles of the number
+	void rotateLeft(CPUState* cpu, uint8_t& out);
+	void rotateLeftThroughCarry(CPUState* cpu, uint8_t& out);
+	void rotateLeftSetZero(CPUState* cpu, uint8_t& out);
+	void rotateLeftThroughCarrySetZero(CPUState* cpu, uint8_t& out);
+	void shiftLeftArithmetically(CPUState* cpu, uint8_t& out);
+	void rotateRight(CPUState* cpu, uint8_t& out);
+	void rotateRightThroughCarry(CPUState* cpu, uint8_t& out);
+	void rotateRightSetZero(CPUState* cpu, uint8_t& out);
+	void rotateRightThroughCarrySetZero(CPUState* cpu, uint8_t& out);
+	void shiftRightArithmetically(CPUState* cpu, uint8_t& out);
+	void shiftRightLogically(CPUState* cpu, uint8_t& out);
 }

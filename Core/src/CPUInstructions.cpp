@@ -9,11 +9,6 @@
 
 using namespace ggb;
 
-static uint16_t combineUpperAndLower(uint8_t upper, uint8_t lower)
-{
-	return (static_cast<int>(upper) << 8) | lower;
-}
-
 static uint8_t read(CPUState* cpu, BUS* bus)
 {
 	auto result = bus->read(cpu->InstructionPointer());
@@ -48,12 +43,12 @@ static void writeTwoBytes(BUS* bus, uint16_t address, uint16_t num)
 	bus->write(address + 1, upper);
 }
 
-static void writeToStack(CPUState* cpu, BUS* bus, uint8_t num)
+static void pushOnStack(CPUState* cpu, BUS* bus, uint8_t num)
 {
 	assert(!"NOT implemented");
 }
 
-static void writeToStack(CPUState* cpu, BUS* bus, uint16_t num)
+static void pushOnStack(CPUState* cpu, BUS* bus, uint16_t num)
 {
 	uint8_t lower = static_cast<uint8_t>(num);
 	uint8_t upper = static_cast<uint8_t>(num >> 8);
@@ -61,247 +56,6 @@ static void writeToStack(CPUState* cpu, BUS* bus, uint16_t num)
 	bus->write(--cpu->StackPointer(), upper);
 	bus->write(--cpu->StackPointer(), lower);
 }
-
-static void increment(CPUState* cpu, uint8_t& toIncrement)
-{
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag((toIncrement & 0XF) == 0xF); // TODO double check if this is correct
-	toIncrement++;
-	cpu->setZeroFlag(toIncrement == 0);
-}
-
-static void decrement(CPUState* cpu, uint8_t& toDecrement)
-{
-	cpu->setSubtractionFlag(true);
-	cpu->setHalfCarryFlag((toDecrement & 0XF) == 0x00); // TODO double check if this is correct
-	--toDecrement;
-	cpu->setZeroFlag(toDecrement == 0);
-}
-
-static void rotateLeft(CPUState* cpu, uint8_t& out)
-{
-	// TODO double check
-	const bool carry = isBitSet(out, 7);
-	cpu->setZeroFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-	out = out << 1;
-	setBitToValue(out, 7, carry);
-}
-
-static void rotateLeftThroughCarry(CPUState* cpu, uint8_t& out)
-{
-	// TODO double check
-	const bool oldCarry = cpu->getCarryFlag();
-	const bool carry = isBitSet(out, 7);
-	cpu->setZeroFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(static_cast<bool>(carry));
-	out = out << 1;
-	setBitToValue(out, 0, oldCarry);
-}
-
-static void rotateLeftSetZero(CPUState* cpu, uint8_t& out)
-{
-	rotateLeft(cpu, out);
-	cpu->setZeroFlag(out == 0);
-}
-
-static void rotateLeftThroughCarrySetZero(CPUState* cpu, uint8_t& out)
-{
-	rotateLeftThroughCarry(cpu, out);
-	cpu->setZeroFlag(out == 0);
-}
-
-static void shiftLeftArithmetically(CPUState* cpu, uint8_t& out)
-{
-	const bool carry = isBitSet(out, 7);
-	out = out << 1;
-	cpu->setZeroFlag(out == 0);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-}
-
-static void rotateRight(CPUState* cpu, uint8_t& out)
-{
-	const bool carry = isBitSet(out, 0);
-	cpu->setZeroFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-	out = out >> 1;
-	setBitToValue(out, 7, carry);
-}
-
-static void rotateRightThroughCarry(CPUState* cpu, uint8_t& out)
-{
-	// TODO double check
-	const bool oldCarry = cpu->getCarryFlag();
-	const bool carry = isBitSet(out, 0);
-	cpu->setZeroFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-	out = out >> 1;
-	setBitToValue(out, 7, oldCarry);
-}
-
-static void rotateRightSetZero(CPUState* cpu, uint8_t& out)
-{
-	rotateRight(cpu, out);
-	cpu->setZeroFlag(out == 0);
-}
-
-static void rotateRightThroughCarrySetZero(CPUState* cpu, uint8_t& out)
-{
-	rotateRightThroughCarry(cpu, out);
-	cpu->setZeroFlag(out == 0);
-}
-
-static void shiftRightArithmetically(CPUState* cpu, uint8_t& out)
-{
-	const bool carry = isBitSet(out, 0);
-	const bool upperBit = isBitSet(out, 7);
-
-	out = out >> 1;
-	cpu->setZeroFlag(out == 0);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-	setBitToValue(out, 7, upperBit); // TODO check
-}
-
-static void shiftRightLogically(CPUState* cpu, uint8_t& out)
-{
-	const bool carry = isBitSet(out, 0);
-
-	out = out >> 1;
-	cpu->setZeroFlag(out == 0);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(carry);
-}
-
-// Swaps the two nibbles
-static void swap(CPUState* cpu, uint8_t& out)
-{
-	const uint8_t upper = out >> 4;
-	const uint8_t lower = out << 4;
-	out = lower | upper;
-	cpu->setZeroFlag(out == 0);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setCarryFlag(false);
-}
-
-static void checkBit(CPUState* cpu, uint8_t num, int bit)
-{
-	const bool isSet = isBitSet(num, bit);
-	cpu->setHalfCarryFlag(true);
-	cpu->setSubtractionFlag(false);
-	cpu->setZeroFlag(!isSet);
-}
-
-static void add(CPUState* cpu, uint16_t& outReg, uint16_t reg2)
-{
-	const uint32_t res = uint32_t(outReg) + reg2;
-	const bool halfCarry = (((outReg & 0xFFF) + (reg2 & 0xFFF)) & 0x1000) == 0x1000;
-	const bool carry = isBitSet(res, 16);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
-	outReg += reg2;
-}
-
-static void add(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
-{
-	// TODO double check
-	const uint16_t res = uint16_t(outReg) + reg2;
-	const bool halfCarry = (((outReg & 0xF) + (reg2 & 0xF)) & 0x10) == 0x10;
-	const bool carry = (res & (0x1 << 8)) == (0x1 << 8);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
-	outReg += reg2;
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void add(CPUState* cpu, uint8_t& outReg, uint8_t reg2, uint8_t carryFlag)
-{
-	// TODO double check
-	const uint16_t res = uint16_t(outReg) + reg2 + carryFlag;
-	const bool halfCarry = (((outReg & 0xF) + (reg2 & 0xF) + carryFlag) & 0x10) == 0x10;
-	const bool carry = (res & (0x1 << 8)) == (0x1 << 8);
-	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
-	outReg += reg2 + carryFlag;
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
-{
-	// TODO double check
-	const bool halfCarry = ((int(outReg) & 0xF) - (reg2 & 0xF)) < 0;
-	const bool carry = (int(outReg) - reg2) < 0;
-	cpu->setSubtractionFlag(true);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
-	outReg -= reg2;
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2, uint8_t carryFlag)
-{
-	// TODO double check
-	const bool halfCarry = ((int(outReg) & 0xF) - (reg2 & 0xF) - carryFlag) < 0;
-	const bool carry = (int(outReg) - reg2 - carryFlag) < 0;
-	cpu->setSubtractionFlag(true);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
-	outReg = outReg - reg2 - carryFlag;
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void bitwiseAnd(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
-{
-	outReg &= reg2;
-	cpu->setCarryFlag(false);
-	cpu->setHalfCarryFlag(true);
-	cpu->setSubtractionFlag(false);
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void bitwiseXOR(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
-{
-	outReg ^= reg2;
-	cpu->setCarryFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void bitwiseOR(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
-{
-	outReg |= reg2;
-	cpu->setCarryFlag(false);
-	cpu->setHalfCarryFlag(false);
-	cpu->setSubtractionFlag(false);
-	cpu->setZeroFlag(outReg == 0);
-}
-
-static void compare(CPUState* cpu, uint8_t outReg, uint8_t reg2)
-{
-	sub(cpu, outReg, reg2);
-}
-
-
-
-
-
 
 
 
@@ -1357,7 +1111,7 @@ static void callNotZeroNumber(CPUInstructionParameters)
 
 static void pushBC(CPUInstructionParameters)
 {
-	writeToStack(cpu, bus, cpu->BC());
+	pushOnStack(cpu, bus, cpu->BC());
 }
 
 static void addNumberToA(CPUInstructionParameters)
@@ -1368,7 +1122,7 @@ static void addNumberToA(CPUInstructionParameters)
 
 static void restart(CPUState* cpu, BUS* bus, uint16_t address)
 {
-	writeToStack(cpu, bus, cpu->InstructionPointer());
+	pushOnStack(cpu, bus, cpu->InstructionPointer());
 	cpu->InstructionPointer() = address;
 }
 
@@ -1459,7 +1213,7 @@ static void callNotCarryNumber(CPUInstructionParameters)
 
 static void pushDE(CPUInstructionParameters)
 {
-	writeToStack(cpu, bus, cpu->DE());
+	pushOnStack(cpu, bus, cpu->DE());
 }
 
 static void subNumberFromA(CPUInstructionParameters)
@@ -1537,7 +1291,7 @@ static void loadAIntoSpecialAddressPlusC(CPUInstructionParameters)
 
 static void pushHL(CPUInstructionParameters)
 {
-	writeToStack(cpu, bus, cpu->HL());
+	pushOnStack(cpu, bus, cpu->HL());
 }
 
 static void bitwiseAndAAndNumber(CPUInstructionParameters)
@@ -1602,7 +1356,7 @@ static void disableInterrupts(CPUInstructionParameters)
 
 static void pushAF(CPUInstructionParameters)
 {
-	writeToStack(cpu, bus, cpu->AF());
+	pushOnStack(cpu, bus, cpu->AF());
 }
 
 static void bitwiseOrAAndNumber(CPUInstructionParameters)
@@ -2985,7 +2739,7 @@ static void setBit7HLAddress(CPUInstructionParameters)
 
 void ggb::callAddress(CPUState* cpu, BUS* bus, uint16_t address)
 {
-	writeToStack(cpu, bus, cpu->InstructionPointer());
+	pushOnStack(cpu, bus, cpu->InstructionPointer());
 	cpu->InstructionPointer() = address;
 }
 
