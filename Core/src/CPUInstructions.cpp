@@ -21,31 +21,26 @@ static int8_t readSigned(CPUState* cpu, BUS* bus)
 	return static_cast<int8_t>(read(cpu, bus));
 }
 
-static uint16_t readTwoBytes(BUS* bus, uint16_t& address)
-{
-	uint8_t lower = bus->read(address++);
-	uint8_t upper = bus->read(address++);
-
-	return combineUpperAndLower(upper, lower);
-}
-
+// Reads two bytes from the bus (instruction pointer) and returns them combined (first byte = upper, second byte = lower)
 static uint16_t readTwoBytes(CPUState* cpu, BUS* bus)
 {
-	return readTwoBytes(bus, cpu->InstructionPointer());
-}
+	uint8_t lower = bus->read(cpu->InstructionPointer()++);
+	uint8_t upper = bus->read(cpu->InstructionPointer()++);
 
-static void writeTwoBytes(BUS* bus, uint16_t address, uint16_t num)
-{
-	// TODO double check
-	uint8_t lower = static_cast<uint8_t>(num);
-	uint8_t upper = static_cast<uint8_t>(num >> 8);
-	bus->write(address, lower);
-	bus->write(address + 1, upper);
+	return combineUpperAndLower(upper, lower);
 }
 
 static void pushOnStack(CPUState* cpu, BUS* bus, uint8_t num)
 {
 	assert(!"NOT implemented");
+}
+
+static uint16_t popFromStack(CPUState* cpu, BUS* bus) 
+{
+	uint8_t lower = bus->read(cpu->StackPointer()++);
+	uint8_t upper = bus->read(cpu->StackPointer()++);
+
+	return combineUpperAndLower(upper, lower);
 }
 
 static void pushOnStack(CPUState* cpu, BUS* bus, uint16_t num)
@@ -113,7 +108,10 @@ static void rotateALeft(CPUInstructionParameters)
 static void loadStackPointerIntoAddress(CPUInstructionParameters)
 {
 	auto address = readTwoBytes(cpu, bus);
-	writeTwoBytes(bus, address, cpu->StackPointer());
+	uint8_t lower = static_cast<uint8_t>(cpu->StackPointer());
+	uint8_t upper = static_cast<uint8_t>(cpu->StackPointer() >> 8);
+	bus->write(address, lower);
+	bus->write(address + 1, upper);
 }
 
 static void addBCToHL(CPUInstructionParameters)
@@ -1069,14 +1067,14 @@ static void returnNotZero(CPUInstructionParameters)
 {
 	if (!cpu->getZeroFlag()) 
 	{
-		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer()); // TODO refactor make a function popstack
+		cpu->InstructionPointer() = popFromStack(cpu, bus); 
 		*branchTaken = true;
 	}
 }
 
 static void popBC(CPUInstructionParameters)
 {
-	cpu->BC() = readTwoBytes(bus, cpu->StackPointer());
+	cpu->BC() = popFromStack(cpu, bus);
 }
 
 static void jumpNotZeroToNumber(CPUInstructionParameters)
@@ -1136,13 +1134,13 @@ static void returnZero(CPUInstructionParameters)
 	if (cpu->getZeroFlag()) 
 	{
 		*branchTaken = true;
-		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
+		cpu->InstructionPointer() = popFromStack(cpu, bus);
 	}
 }
 
 static void returnInstr(CPUInstructionParameters)
 {
-	cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
+	cpu->InstructionPointer() = popFromStack(cpu, bus);
 }
 
 static void jumpZeroToNumber(CPUInstructionParameters)
@@ -1186,13 +1184,13 @@ static void returnNotCarry(CPUInstructionParameters)
 	if (cpu->getCarryFlag()) 
 	{
 		*branchTaken = true;
-		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
+		cpu->InstructionPointer() = popFromStack(cpu, bus);
 	}
 }
 
 static void popDE(CPUInstructionParameters)
 {
-	cpu->DE() = readTwoBytes(bus, cpu->StackPointer());
+	cpu->DE() = popFromStack(cpu, bus);
 }
 
 static void jumpNotCarryToNumber(CPUInstructionParameters)
@@ -1232,7 +1230,7 @@ static void returnCarry(CPUInstructionParameters)
 	if (cpu->getCarryFlag()) 
 	{
 		*branchTaken = true;
-		cpu->InstructionPointer() = readTwoBytes(bus, cpu->StackPointer());
+		cpu->InstructionPointer() = popFromStack(cpu, bus);
 	}
 }
 
@@ -1281,7 +1279,7 @@ static void loadAIntoSpecialAddressPlusNumber(CPUInstructionParameters)
 
 static void POPHL(CPUInstructionParameters)
 {
-	cpu->HL() = readTwoBytes(bus, cpu->StackPointer());
+	cpu->HL() = popFromStack(cpu, bus);
 }
 
 static void loadAIntoSpecialAddressPlusC(CPUInstructionParameters)
@@ -1341,7 +1339,7 @@ static void loadSpecialAddressPlusNumberIntoA(CPUInstructionParameters)
 
 static void POPAF(CPUInstructionParameters)
 {
-	cpu->AF() = readTwoBytes(bus, cpu->StackPointer());
+	cpu->AF() = popFromStack(cpu, bus);
 }
 
 static void loadSpecialAddressPlusCIntoA(CPUInstructionParameters)
