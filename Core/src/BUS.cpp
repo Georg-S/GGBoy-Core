@@ -6,7 +6,7 @@
 
 constexpr static bool isVRAMAddress(uint16_t address) 
 {
-    return (address >= 0x800 && address <= 0x9FFF);
+    return (address >= 0x8000 && address <= 0x9FFF);
 }
 
 constexpr static bool isCartridgeROM(uint16_t address)
@@ -20,6 +20,16 @@ constexpr static bool isEchoMemory(uint16_t address)
     return (address >= 0xE000 && address <= 0xFDFF);
 }
 
+constexpr static bool isUnusedMemory(uint16_t address)
+{
+    return (address >= 0xFEA0 && address <= 0xFEFF);
+}
+
+constexpr static bool isCartridgeRAM(uint16_t address)
+{
+    return (address >= 0xA000 && address <= 0xBFFF);
+}
+
 void ggb::BUS::setCartridge(Cartridge* cartridge)
 {
     m_cartridge = cartridge;
@@ -27,10 +37,16 @@ void ggb::BUS::setCartridge(Cartridge* cartridge)
 
 uint8_t ggb::BUS::read(uint16_t address) const
 {
-    if (isCartridgeROM(address))
-        return m_cartridge->read(address);
     if (isEchoMemory(address))
         address -= 0x2000;
+    if (isCartridgeROM(address))
+        return m_cartridge->read(address);
+    if (isCartridgeRAM(address))
+        return m_cartridge->read(address);
+    if (isUnusedMemory(address))
+        int c = 3;
+    if (isCartridgeRAM(address))
+        int de = 3;
 
     //assert(!"Not implemented");
 
@@ -39,10 +55,25 @@ uint8_t ggb::BUS::read(uint16_t address) const
 
 void ggb::BUS::write(uint16_t address, uint8_t value)
 {
-    if (isVRAMAddress(address))
-        int b = 3;
     if (isEchoMemory(address))
         address -= 0x2000;
+
+    if (isCartridgeROM(address)) 
+    {
+        m_cartridge->write(address, value);
+        return;
+    }
+    if (isCartridgeRAM(address))
+    {
+        m_cartridge->write(address, value);
+        return;
+    }
+    if (isVRAMAddress(address))
+        int b = 3;
+
+    //if (isUnusedMemory(address))
+    //    assert(!"Unused memory used");
+
 
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;

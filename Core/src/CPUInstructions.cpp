@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <exception>
+#include <iostream>
 
 using namespace ggb;
 
@@ -155,7 +156,7 @@ static void stop(CPUInstructionParameters)
 	assert(!"Not implemented yet"); // Not really sure what to do here
 }
 
-static void loadTwoBytesIntoLD(CPUInstructionParameters)
+static void loadTwoBytesIntoDE(CPUInstructionParameters)
 {
 	cpu->DE() = readTwoBytes(cpu, bus);
 }
@@ -1181,7 +1182,7 @@ static void restart08(CPUInstructionParameters)
 
 static void returnNotCarry(CPUInstructionParameters)
 {
-	if (cpu->getCarryFlag()) 
+	if (!cpu->getCarryFlag()) 
 	{
 		*branchTaken = true;
 		cpu->InstructionPointer() = popFromStack(cpu, bus);
@@ -1241,7 +1242,7 @@ static void enableInterrupts(CPUInstructionParameters)
 
 static void returnFromInterruptHandler(CPUInstructionParameters)
 {
-	enableInterrupts(cpu, bus, branchTaken);
+	cpu->enableInterrupts();
 	returnInstr(cpu, bus, branchTaken);
 }
 
@@ -1360,7 +1361,7 @@ static void pushAF(CPUInstructionParameters)
 static void bitwiseOrAAndNumber(CPUInstructionParameters)
 {
 	auto num = read(cpu, bus);
-	cpu->A() |= num;
+	bitwiseOR(cpu, cpu->A(), num);
 }
 
 static void restart30(CPUInstructionParameters)
@@ -2811,7 +2812,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x0E,loadValueIntoC, 8, "LD C,u8" });
 	setOpcode({ 0x0F,rotateARight, 4, "RRCA" });
 	setOpcode({ 0x10,stop, 4, "STOP" });
-	setOpcode({ 0x11,loadTwoBytesIntoLD, 12, "LD DE,u16" });
+	setOpcode({ 0x11,loadTwoBytesIntoDE, 12, "LD DE,u16" });
 	setOpcode({ 0x12,writeAToAddressDE, 8, "LD (DE),A" });
 	setOpcode({ 0x13,incrementDE, 8, "INC DE" });
 	setOpcode({ 0x14,incrementD, 4, "INC D" });

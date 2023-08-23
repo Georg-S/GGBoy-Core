@@ -17,7 +17,7 @@ static constexpr int JOYPAD_BIT = 4;
 
 static void debugLog(const std::string& message) 
 {
-	bool debugLogEnabled = false;
+	bool debugLogEnabled = true;
 
 	if (debugLogEnabled)
 		ggb::logInfo(message);
@@ -104,10 +104,19 @@ int ggb::CPU::step()
 
 	const int instructionPointer = m_cpuState.InstructionPointer();
 	auto opCode = m_bus->read(instructionPointer);
-	debugLog(m_opcodes.getMnemonic(opCode) + "\t \t" + std::to_string(m_cpuState.B()));
+	//debugLog(m_opcodes.getMnemonic(opCode) + "\t \t" + std::to_string(m_cpuState.B()));
 	++m_cpuState.InstructionPointer();
 	int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
 	++m_instructionCounter;
+
+	auto test = m_bus->read(0xff02);
+	if (test == 0x81) 
+	{
+		char c = m_bus->read(0xff01);
+		printf("%c", c);
+		m_bus->write(0xFF02, uint8_t(0x0));
+
+	}
 
 	if (false)
 		m_bus->printVRAM();

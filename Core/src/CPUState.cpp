@@ -1,45 +1,46 @@
 #include "CPUState.hpp"
 
 #include "Utility.hpp"
+#include "Logging.hpp"
 
 uint8_t& ggb::CPUState::A()
-{
-	return afUnion.regs[0];
-}
-
-uint8_t& ggb::CPUState::F()
 {
 	return afUnion.regs[1];
 }
 
-uint8_t& ggb::CPUState::B()
+uint8_t& ggb::CPUState::F()
 {
-	return bcUnion.regs[0];
+	return afUnion.regs[0];
 }
 
-uint8_t& ggb::CPUState::C()
+uint8_t& ggb::CPUState::B()
 {
 	return bcUnion.regs[1];
 }
 
-uint8_t& ggb::CPUState::D()
+uint8_t& ggb::CPUState::C()
 {
-	return deUnion.regs[0];
+	return bcUnion.regs[0];
 }
 
-uint8_t& ggb::CPUState::E()
+uint8_t& ggb::CPUState::D()
 {
 	return deUnion.regs[1];
 }
 
+uint8_t& ggb::CPUState::E()
+{
+	return deUnion.regs[0];
+}
+
 uint8_t& ggb::CPUState::H()
 {
-	return hlUnion.regs[0];
+	return hlUnion.regs[1];
 }
 
 uint8_t& ggb::CPUState::L()
 {
-	return hlUnion.regs[1];
+	return hlUnion.regs[0];
 }
 
 uint16_t& ggb::CPUState::AF()
@@ -130,7 +131,7 @@ bool ggb::CPUState::interruptsEnabled() const
 
 uint8_t ggb::CPUState::F() const
 {
-	return afUnion.regs[1];
+	return afUnion.regs[0];
 }
 
 void ggb::increment(CPUState* cpu, uint8_t& toIncrement)
