@@ -163,11 +163,13 @@ void ggb::add(CPUState* cpu, uint8_t& outNum, uint8_t num2)
 
 void ggb::add(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag)
 {
-	// TODO probably correct but maybe check again
+	// Wanted to achieve correct behavior without using a bigger integer,
+	// however using a bigger integer would result in much much cleaner code
+	// Therefore this is as of now just for fun and will be refactored .... TODO :)
 	const uint8_t initialVal = outNum;
 	outNum += num2 + carryFlag;
-	const bool halfCarry = (((initialVal & 0xF) + (num2 & 0xF) + carryFlag) & 0x10) == 0x10;
-	const bool carry = ((initialVal + num2) < initialVal) || (outNum < initialVal);
+	bool halfCarry = (((initialVal & 0xF)+(num2 & 0xF) + carryFlag)) > 0xF;
+	const bool carry = ((initialVal + num2) < initialVal) || (outNum < initialVal) || (outNum == initialVal && num2 > 0);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(halfCarry);
 	cpu->setCarryFlag(carry);
@@ -215,11 +217,16 @@ void ggb::sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
 
 void ggb::sub(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag)
 {
-	// TODO probably correct but maybe check again
+	// Wanted to achieve correct behavior without using a bigger integer,
+	// however using a bigger integer would result in much much cleaner code
+	// Therefore this is as of now just for fun and will be refactored .... TODO :)
 	const uint8_t initialVal = outNum;
 	outNum = outNum - num2 - carryFlag;
-	const bool halfCarry = (((initialVal - num2) & 0xF ) > (initialVal & 0xF)) || ((outNum & 0xF) > (initialVal & 0xF));
-	const bool carry = ((initialVal - num2) > initialVal) || (outNum > initialVal);
+	const bool halfCarry = (((initialVal & 0xF) - (num2 & 0XF)) > (initialVal & 0xF))
+		|| ((outNum & 0xF) > (initialVal & 0xF))
+		|| ((outNum & 0xF) == (initialVal & 0xF) && (num2&0xF) == 0x0F);
+
+	const bool carry = ((initialVal - num2) > initialVal) || (outNum > initialVal) || (outNum == initialVal && num2 != 0);
 	cpu->setSubtractionFlag(true);
 	cpu->setHalfCarryFlag(halfCarry);
 	cpu->setCarryFlag(carry);

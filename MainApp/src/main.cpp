@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 			{
 				for (int y = 0; y < 8; y++)
 				{
-					auto color = tile.m_data[x][y];
+					const auto& color = tile.m_data[x][y];
 					SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 0);
 					SDL_RenderDrawPoint(renderer, (currX * margin) + x, (currY * margin) + y);
 				}

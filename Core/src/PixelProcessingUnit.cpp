@@ -41,8 +41,17 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	{
 		auto line = incrementLine();
 		if (line >= 144) 
+		{
 			setLCDMode(LCDMode::VBLank);
+			m_tiles.clear();
+			m_tiles.reserve(256);
+			auto colorPalette = getBackgroundColorPalette();
+			for (int i = 0; i < 256; i++)
+				m_tiles.emplace_back(m_bus, i, colorPalette);
 
+			if (m_drawTileDataCallback)
+				m_drawTileDataCallback(m_tiles);
+		}
 		return;
 	}
 	case ggb::LCDMode::VBLank: 
@@ -50,16 +59,6 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		auto line = incrementLine();
 		if (line == 0)
 			setLCDMode(LCDMode::OAMBlocked);
-
-		m_tiles.clear();
-		m_tiles.reserve(256);
-		auto colorPalette = getBackgroundColorPalette();
-		for (int i = 0; i < 256; i++)
-			m_tiles.emplace_back(m_bus, i, colorPalette);
-
-		if (m_drawTileDataCallback)
-			m_drawTileDataCallback(m_tiles);
-
 		return;
 	}
 	default:
