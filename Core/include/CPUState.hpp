@@ -52,6 +52,7 @@ namespace ggb
 	void add(CPUState* cpu, uint8_t& outNum, uint8_t num2);
 	void add(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag);
 	void add(CPUState* cpu, uint16_t& outNum, uint16_t num2);
+	void add(CPUState* cpu, uint16_t& outNum, int8_t num2);
 	void sub(CPUState* cpu, uint8_t& outNum, uint8_t num2);
 	void sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2, uint8_t carryFlag);
 	void compare(CPUState* cpu, uint8_t num, uint8_t num2);

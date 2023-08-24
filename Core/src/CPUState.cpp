@@ -185,6 +185,24 @@ void ggb::add(CPUState* cpu, uint16_t& outNum, uint16_t num2)
 	cpu->setCarryFlag(outNum < initialVal);
 }
 
+void ggb::add(CPUState* cpu, uint16_t& outNum, int8_t num2)
+{
+	const auto initialVal = outNum;
+	outNum += num2;
+	if (num2 >= 0) 
+	{
+		cpu->setCarryFlag(((initialVal & 0xFF) + num2) > 0xFF);
+		cpu->setHalfCarryFlag(((initialVal & 0x0F) + (num2 & 0xF) > 0x0F));
+	}
+	else if (num2 < 0) 
+	{
+		cpu->setCarryFlag((outNum & 0xFF) < (initialVal & 0xFF));
+		cpu->setHalfCarryFlag((outNum & 0x0F) < (initialVal & 0x0F));
+	}
+	cpu->setZeroFlag(false);
+	cpu->setSubtractionFlag(false);
+}
+
 void ggb::sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
 {
 	const uint8_t initialValue = outReg;
@@ -250,9 +268,7 @@ void ggb::checkBit(CPUState* cpu, uint8_t num, int bit)
 
 void ggb::swap(CPUState* cpu, uint8_t& out)
 {
-	const uint8_t upper = out >> 4;
-	const uint8_t lower = out << 4;
-	out = lower | upper;
+	swap(out);
 	cpu->setZeroFlag(out == 0);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);

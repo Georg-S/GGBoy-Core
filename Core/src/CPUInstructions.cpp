@@ -1306,8 +1306,7 @@ static void restart20(CPUInstructionParameters)
 
 static void addNumberToStackPointer(CPUInstructionParameters)
 {
-	// TODO implement
-	notImplementedInstruction();
+	add(cpu, cpu->StackPointer(), readSigned(cpu, bus));
 }
 
 static void jumpToHL(CPUInstructionParameters)
@@ -1341,6 +1340,7 @@ static void loadSpecialAddressPlusNumberIntoA(CPUInstructionParameters)
 static void POPAF(CPUInstructionParameters)
 {
 	cpu->AF() = popFromStack(cpu, bus);
+	cpu->F() &= 0xF0;
 }
 
 static void loadSpecialAddressPlusCIntoA(CPUInstructionParameters)
@@ -1371,7 +1371,10 @@ static void restart30(CPUInstructionParameters)
 
 static void loadStackPointerPlusNumberIntoHL(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	auto sp = cpu->StackPointer();
+	const auto signedVal = readSigned(cpu, bus);
+	add(cpu, sp, signedVal);
+	cpu->HL() = sp;
 }
 
 static void loadHLIntoStackPointer(CPUInstructionParameters)
