@@ -37,7 +37,8 @@ void ggb::Emulator::step()
     m_ppu->step(cycles);
 }
 
-void ggb::Emulator::setDrawTileDataCallback(std::function<void(std::vector<Tile>)> func)
+void ggb::Emulator::setDrawTileDataCallback(std::function<void(const FrameBuffer&)> func)
 {
     m_ppu->setDrawTileDataCallback(std::move(func));
+    m_ppu->setDrawTileData(true);
 }

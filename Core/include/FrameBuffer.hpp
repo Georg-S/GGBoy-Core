@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <array>
+#include <functional>
 
 #include "BUS.hpp"
 
@@ -37,20 +38,25 @@ namespace ggb
 
 	struct Tile 
 	{
-		Tile(BUS* bus, int tileIndex, const ColorPalette& palette);
-		void readTileDataFromBus(BUS* bus, int tileIndex, const ColorPalette& palette);
-
-		std::vector<std::vector<RGB>> m_data;
+		explicit Tile();
 		std::vector<TileRawData> m_rawData;
+		std::vector<std::vector<RGB>> m_data;
 	};
+
+	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile);
+	Tile getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette);
 
 	class FrameBuffer 
 	{
 	public:
-		FrameBuffer(BUS* bus);
-		void drawWholeScreen();
+		FrameBuffer(BUS* bus, int xSize, int ySize);
+		void setPixel(int x, int y, const RGB& pixelValue);
+		RGB getPixel(int x, int y) const;
+		void forEachPixel(const std::function<void(int x, int y, const RGB& rgb)>& func) const;
 
 	private:
+		const int m_xSize;
+		const int m_ySize;
 		BUS* m_bus;
 		std::vector<std::vector<RGB>> m_buffer;
 	};

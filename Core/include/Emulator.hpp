@@ -19,7 +19,7 @@ namespace ggb
 		bool loadCartridge(const std::filesystem::path& path);
 		void run();
 		void step();
-		void setDrawTileDataCallback(std::function<void(std::vector<Tile>)>);
+		void setDrawTileDataCallback(std::function<void(const FrameBuffer&)>);
 
 	private:
 		CPU m_CPU;

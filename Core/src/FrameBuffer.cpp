@@ -4,63 +4,47 @@
 
 using namespace ggb;
 
-ggb::FrameBuffer::FrameBuffer(BUS* bus)
-	: m_bus(bus)
+ggb::FrameBuffer::FrameBuffer(BUS* bus, int xSize, int ySize)
+	: m_xSize(xSize) 
+	, m_ySize(ySize)
+	, m_bus(bus)
 {
-	for (int i = 0; i < 256; i++)
+	for (size_t x = 0; x < m_xSize; x++) 
+		m_buffer.emplace_back(std::vector<RGB>(ySize, {0,0,0}));
+}
+
+void ggb::FrameBuffer::setPixel(int x, int y, const RGB& pixelValue)
+{
+	m_buffer[x][y] = pixelValue;
+}
+
+RGB ggb::FrameBuffer::getPixel(int x, int y) const
+{
+	return m_buffer[x][y];
+}
+
+void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const RGB& rgb)>& func) const 
+{
+	for (size_t x = 0; x < m_xSize; x++) 
 	{
-		m_buffer.emplace_back(std::vector<RGB>(256, { 0,0,0 }));
+		for (size_t y = 0; y < m_ySize; y++) 
+		{
+			func(x, y, m_buffer[x][y]);
+		}
 	}
 }
 
-void ggb::FrameBuffer::drawWholeScreen()
-{
-}
-
-ggb::Tile::Tile(BUS* bus, int tileIndex, const ColorPalette& palette)
-{
-	readTileDataFromBus(bus, tileIndex, palette);
-}
 
 static ggb::RGB getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
 {
 	return convertGBColorToRGB(palette.m_color[num]);
 }
 
-void ggb::Tile::readTileDataFromBus(BUS* bus, int tileIndex, const ColorPalette& palette)
+ggb::Tile::Tile()
 {
-	constexpr uint16_t tileDataStartAddress = 0x8000;
-	constexpr uint16_t tileSize = 16;
-	uint16_t address = tileDataStartAddress + (tileIndex * tileSize);
-	const uint16_t endAddress = tileDataStartAddress + ((tileIndex + 1) * tileSize);
-	int index = 0;
-
-	m_rawData.reserve(8);
-	while (address < endAddress)
-	{
-		auto low = bus->read(address++);
-		auto high = bus->read(address++);
-		if (low != 0 || high != 0)
-			int b = 3;
-
-		m_rawData.emplace_back(TileRawData{ low, high });
-	}
-
-	m_data.reserve(8);
-	for (const auto& rawData : m_rawData)
-	{
-		m_data.emplace_back();
-		m_data.back().reserve(8);
-		for (int x = 7; x >= 0; x--)
-		{
-			auto msb = isBitSet(rawData.msBits, x);
-			auto lsb = isBitSet(rawData.msBits, x);
-			auto num = getNumberFromBits(lsb, msb);
-
-			auto test = getRGBFromNumAndPalette(num, palette);
-			m_data.back().emplace_back(test);
-		}
-	}
+	m_rawData = std::vector<TileRawData>(8, {0,0});
+	for (size_t i = 0; i < 8; i++)
+		m_data.emplace_back(std::vector<RGB>(8, {0,0,0}));
 }
 
 RGB ggb::convertGBColorToRGB(GBColor color)
@@ -75,4 +59,43 @@ RGB ggb::convertGBColorToRGB(GBColor color)
 		assert(!"Invalid value entered");
 		return {};
 	}
+}
+
+void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile)
+{
+	constexpr uint16_t tileDataStartAddress = 0x8000;
+	constexpr uint16_t tileSize = 16;
+	uint16_t address = tileDataStartAddress + (tileIndex * tileSize);
+	const uint16_t endAddress = tileDataStartAddress + ((tileIndex + 1) * tileSize);
+
+
+	int index = 0;
+	while (address < endAddress)
+	{
+		auto low = bus->read(address++);
+		auto high = bus->read(address++);
+
+		outTile->m_rawData[index++] = TileRawData{ low, high };
+	}
+
+	for (size_t y = 0; y < outTile->m_rawData.size(); y++)
+	{
+		const auto& rawData = outTile->m_rawData[y];
+		for (int x = 7; x >= 0; x--)
+		{
+			auto msb = isBitSet(rawData.msBits, x);
+			auto lsb = isBitSet(rawData.msBits, x);
+			auto num = getNumberFromBits(lsb, msb);
+			auto rgb = getRGBFromNumAndPalette(num, palette);
+			
+			outTile->m_data[y][7 - x] = rgb;
+		}
+	}
+}
+
+Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette)
+{
+	Tile tile;
+	overWriteTileData(bus, tileIndex, palette, &tile);
+	return tile;
 }
