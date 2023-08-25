@@ -273,7 +273,26 @@ static void loadValueIntoH(CPUInstructionParameters)
 
 static void decimalAdjustAccumulator(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	if (cpu->getSubtractionFlag()) 
+	{
+		if (cpu->getCarryFlag())
+			cpu->A() -= 0x60;
+		if (cpu->getHalfCarryFlag())
+			cpu->A() -= 0x6;
+	}
+	else 
+	{
+		if (cpu->getCarryFlag() || cpu->A() > 0x99)
+		{
+			cpu->setCarryFlag(true);
+			cpu->A() += 0x60;
+		}
+
+		if (cpu->getHalfCarryFlag() || ((cpu->A() & 0x0F) > 0x09))
+			cpu->A() += 0x6;
+	}
+	cpu->setZeroFlag(cpu->A() == 0);
+	cpu->setHalfCarryFlag(false);
 }
 
 static void jumpRealativeZeroToValue(CPUInstructionParameters)
