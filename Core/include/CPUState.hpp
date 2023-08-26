@@ -34,6 +34,9 @@ namespace ggb
 		void disableInterrupts();
 		void enableInterrupts();
 		bool interruptsEnabled() const;
+		bool stop();
+		bool resume();
+		bool isStopped() const;
 
 	private:
 		uint8_t F() const;
@@ -45,6 +48,7 @@ namespace ggb
 		uint16_t m_stackPointer = 0;
 		uint16_t m_instructionPointer = 0;
 		bool m_interruptsEnabled = true;
+		bool m_stopped = false;
 	};
 
 	void increment(CPUState* cpu, uint8_t& toIncrement);

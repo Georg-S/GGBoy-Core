@@ -42,6 +42,7 @@ bool ggb::CPU::handleInterrupts()
 		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT);
 		callAddress(&m_cpuState, m_bus, VBLANK_INTERRUPT_ADDRESS);
 		debugLog("VBLANK INTERRUPT");
+		m_cpuState.resume();
 		return true;
 	}
 
@@ -52,6 +53,7 @@ bool ggb::CPU::handleInterrupts()
 		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_LCD_STAT_BIT);
 		callAddress(&m_cpuState, m_bus, LCD_STAT_INTERRUPT_ADDRESS);
 		debugLog("LCD STAT INTERRUPT");
+		m_cpuState.resume();
 		return true;
 	}
 
@@ -62,6 +64,7 @@ bool ggb::CPU::handleInterrupts()
 		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_TIMER_BIT);
 		callAddress(&m_cpuState, m_bus, TIMER_INTERRUPT_ADDRESS);
 		debugLog("TIMER INTERRUPT");
+		m_cpuState.resume();
 		return true;
 	}
 
@@ -72,6 +75,7 @@ bool ggb::CPU::handleInterrupts()
 		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_SERIAL_BIT);
 		callAddress(&m_cpuState, m_bus, SERIAL_INTERRUPT_ADDRESS);
 		debugLog("SERIAL INTERRUPT");
+		m_cpuState.resume();
 		return true;
 	}
 
@@ -82,6 +86,7 @@ bool ggb::CPU::handleInterrupts()
 		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_JOYPAD_BIT);
 		callAddress(&m_cpuState, m_bus, JOYPAD_INTERRUPT_ADDRESS);
 		debugLog("JOYPAD INTERRUPT");
+		m_cpuState.resume();
 		return true;
 	}
 
@@ -90,11 +95,14 @@ bool ggb::CPU::handleInterrupts()
 
 int ggb::CPU::step()
 {
-	if (m_cpuState.interruptsEnabled()) 
+	if (m_cpuState.interruptsEnabled() || m_cpuState.isStopped()) 
 	{
 		if (handleInterrupts())
 			return 5;
 	}
+
+	if (m_cpuState.isStopped())
+		return 4; // For now we just say 4 clocks have gone by (one machine cycle)
 
 	const int instructionPointer = m_cpuState.InstructionPointer();
 	auto opCode = m_bus->read(instructionPointer);

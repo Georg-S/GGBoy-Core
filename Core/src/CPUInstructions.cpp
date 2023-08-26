@@ -152,7 +152,9 @@ static void rotateARight(CPUInstructionParameters)
 
 static void stop(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	// TODO what is done at stop ???
+	//cpu->stop();
+	bus->resetTimerDivider();
 }
 
 static void loadTwoBytesIntoDE(CPUInstructionParameters)
@@ -714,7 +716,7 @@ static void loadLIntoHLAddress(CPUInstructionParameters)
 
 static void halt(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	cpu->stop();
 }
 
 static void loadAIntoHLAddress(CPUInstructionParameters)
@@ -1174,7 +1176,8 @@ static void jumpZeroToNumber(CPUInstructionParameters)
 
 static void prefixOPCode(CPUInstructionParameters)
 {
-	notImplementedInstruction();
+	assert(!"Should not be reachable");
+	// Will not be executed because we call the corresponding opcode of the extended opcodes
 }
 
 static void callZeroNumber(CPUInstructionParameters)

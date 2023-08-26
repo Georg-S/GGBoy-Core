@@ -129,6 +129,21 @@ bool ggb::CPUState::interruptsEnabled() const
 	return m_interruptsEnabled;
 }
 
+bool ggb::CPUState::stop()
+{
+	return m_stopped = true;
+}
+
+bool ggb::CPUState::resume()
+{
+	return m_stopped = false;
+}
+
+bool ggb::CPUState::isStopped() const
+{
+	return m_stopped;
+}
+
 uint8_t ggb::CPUState::F() const
 {
 	return afUnion.regs[0];
