@@ -59,12 +59,12 @@ int main(int argc, char* argv[])
 	auto tileDataDimensions = emulator.getTileDataDimensions();
 	auto sdlRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
 
-	//emulator.loadCartridge("Roms/Games/Tetris.gb");
+	emulator.loadCartridge("Roms/Games/Tetris.gb");
 	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
+	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
 	//emulator.loadCartridge("Roms/TestROMs/cpu_instrs.gb");
 	//emulator.loadCartridge("Roms/TestROMs/01-special.gb");
 	//emulator.loadCartridge("Roms/TestROMs/02-interrupts.gb");
-	emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
 	//emulator.loadCartridge("Roms/TestROMs/03-op sp,hl.gb");
 	//emulator.loadCartridge("Roms/TestROMs/04-op r,imm.gb");
 	//emulator.loadCartridge("Roms/TestROMs/05-op rp.gb");

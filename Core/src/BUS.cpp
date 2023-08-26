@@ -84,8 +84,11 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
     if (address == TIMER_DIVIDER_REGISTER_ADDRESS)
         resetTimerDivider();
 
-    if (isUnusedMemory(address))
+    if (isUnusedMemory(address)) 
+    {
+        return;
         assert(!"Unused memory used");
+    }
 
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;

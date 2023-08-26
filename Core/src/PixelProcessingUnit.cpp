@@ -15,6 +15,27 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	: m_bus(bus)
 {
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
+	m_LCDControl = m_bus->getPointerIntoMemory(LCD_CONTROL_REGISTER_ADDRESS);
+	m_LCDStatus = m_bus->getPointerIntoMemory(LCD_STATUS_REGISTER_ADDRESS);
+	m_LCDYCoordinate = m_bus->getPointerIntoMemory(LCD_Y_COORDINATE_ADDRESS);
+	m_LYCompare = m_bus->getPointerIntoMemory(LCD_Y_COMPARE_ADDRESS);
+	m_backgroundPalette = m_bus->getPointerIntoMemory(BACKGROUND_PALETTE_ADDRESS);
+	m_objectPalette0 = m_bus->getPointerIntoMemory(OBJECT_PALETTE_0_ADDRESS);
+	m_objectPalette1 = m_bus->getPointerIntoMemory(OBJECT_PALETTE_1_ADDRESS);
+	m_backgroundXPos = m_bus->getPointerIntoMemory(LCD_VIEWPORT_X_ADDRESS);
+	m_backgroundYPos = m_bus->getPointerIntoMemory(LCD_VIEWPORT_Y_ADDRESS);
+	m_windowXPos = m_bus->getPointerIntoMemory(LCD_WINDOW_X_ADDRESS);
+	m_windowYPos = m_bus->getPointerIntoMemory(LCD_WINDOW_Y_ADDRESS);
+
+	//static constexpr uint16_t LCD_VIEWPORT_Y_ADDRESS = 0xFF42;
+	//static constexpr uint16_t LCD_VIEWPORT_X_ADDRESS = 0xFF43;
+	//static constexpr uint16_t LCD_Y_COORDINATE_ADDRESS = 0xFF44;
+	//static constexpr uint16_t LCD_Y_COMPARE_ADDRESS = 0xFF45;
+	//static constexpr uint16_t BACKGROUND_PALETTE_ADDRESS = 0xFF47;
+	//static constexpr uint16_t OBJECT_PALETTE_0_ADDRESS = 0xFF48;
+	//static constexpr uint16_t OBJECT_PALETTE_1_ADDRESS = 0xFF49;
+	//static constexpr uint16_t LCD_WINDOW_Y_ADDRESS = 0xFF4A;
+	//static constexpr uint16_t LCD_WINDOW_X_ADDRESS = 0xFF4B;
 }
 
 void ggb::PixelProcessingUnit::step(int elapsedCycles)
@@ -29,7 +50,7 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	if (m_cycleCounter < currentModeDuration)
 		return;
 
-	m_cycleCounter %= currentModeDuration;
+	m_cycleCounter -= currentModeDuration;
 
 	switch (currentMode)
 	{
@@ -41,23 +62,34 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	case ggb::LCDMode::VRAMBlocked:
 	{
 		setLCDMode(LCDMode::HBLank);
+		handleModeTransitionInterrupt(LCDInterrupt::HBlank);
+		writeCurrentScanLineIntoFrameBuffer();
 		return;
 	}
-	case ggb::LCDMode::HBLank: 
+	case ggb::LCDMode::HBLank:
 	{
 		auto line = incrementLine();
-		if (line >= 144) 
+		if (line >= 144)
 		{
 			setLCDMode(LCDMode::VBLank);
+			handleModeTransitionInterrupt(LCDInterrupt::VBlank);
 			updateAndRenderTileData();
+		}
+		else 
+		{
+			setLCDMode(LCDMode::OAMBlocked);
+			handleModeTransitionInterrupt(LCDInterrupt::OAM);
 		}
 		return;
 	}
-	case ggb::LCDMode::VBLank: 
+	case ggb::LCDMode::VBLank:
 	{
 		auto line = incrementLine();
-		if (line == 0)
+		if (line == 0) 
+		{
 			setLCDMode(LCDMode::OAMBlocked);
+			handleModeTransitionInterrupt(LCDInterrupt::OAM);
+		}
 		return;
 	}
 	default:
@@ -67,19 +99,19 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 
 bool ggb::PixelProcessingUnit::isEnabled() const
 {
-	return m_bus->checkBit(LCD_CONTROL_REGISTER_ADDRESS, 7);
+	return isBitSet(*m_LCDControl, 7);
 }
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
-	const uint8_t buf = m_bus->read(LCD_CONTROL_REGISTER_ADDRESS) & 0b11;
+	const uint8_t buf = *m_LCDControl & 0b11;
 	return LCDMode(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	m_bus->setBitValue(LCD_CONTROL_REGISTER_ADDRESS, 0, (static_cast<uint8_t>(mode) & 1));
-	m_bus->setBitValue(LCD_CONTROL_REGISTER_ADDRESS, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
+	setBitToValue(*m_LCDControl, 0, static_cast<uint8_t>(mode) & 1);
+	setBitToValue(*m_LCDControl, 1, static_cast<uint8_t>(mode) & (1 << 1));
 }
 
 void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
@@ -102,6 +134,16 @@ void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
 	m_drawWholeBackground = enable;
 }
 
+void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
+{
+}
+
+void ggb::PixelProcessingUnit::handleModeTransitionInterrupt(LCDInterrupt type)
+{
+	if (isBitSet(*m_LCDStatus, static_cast<int>(type)))
+		m_bus->requestInterrupt(INTERRUPT_LCD_STAT_BIT);
+}
+
 constexpr int ggb::PixelProcessingUnit::getModeDuration(LCDMode mode)
 {
 	switch (mode)
@@ -118,36 +160,27 @@ constexpr int ggb::PixelProcessingUnit::getModeDuration(LCDMode mode)
 
 uint8_t ggb::PixelProcessingUnit::incrementLine()
 {
-	auto newLinevalue = m_bus->read(LCD_Y_COORDINATE_ADDRESS);
-	newLinevalue = (newLinevalue + 1) % 154;
-	m_bus->write(LCD_Y_COORDINATE_ADDRESS, newLinevalue);
+	*m_LCDYCoordinate = (*m_LCDYCoordinate + 1) % 154;
 
-	auto lycCompare = m_bus->read(LCD_Y_COMPARE_ADDRESS);
-	if (lycCompare == newLinevalue)
+	if (*m_LYCompare == *m_LCDYCoordinate)
 	{
-		m_bus->setBit(LCD_STATUS_REGISTER_ADDRESS, 2);
-
-		if (m_bus->checkBit(LCD_STATUS_REGISTER_ADDRESS, 6))
-			m_bus->setBit(0xFF0F, 1);
+		setBit(*m_LCDStatus, 2);
+		
+		if (isBitSet(*m_LCDStatus, 6))
+			m_bus->requestInterrupt(INTERRUPT_LCD_STAT_BIT);
 	}
 	else
 	{
-		m_bus->resetBit(LCD_STATUS_REGISTER_ADDRESS, 2);
+		clearBit(*m_LCDStatus, 2);
 	}
 
-	return newLinevalue;
-}
-
-uint8_t ggb::PixelProcessingUnit::getLine() const
-{
-	return m_bus->read(LCD_Y_COORDINATE_ADDRESS);
+	return *m_LCDYCoordinate;
 }
 
 ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()
 {
 	ColorPalette result = {};
-	constexpr uint16_t backGroundPaletteAddress = 0xFF47;
-	const auto res = m_bus->read(backGroundPaletteAddress);
+	const auto res = *m_backgroundPalette;
 
 	result.m_color[0] = GBColor(res & 0b11);
 	result.m_color[1] = GBColor((res >> 2) & 0b11);

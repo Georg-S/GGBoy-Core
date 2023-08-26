@@ -14,6 +14,14 @@ namespace ggb
 		VRAMBlocked = 3,
 	};
 
+	enum class LCDInterrupt
+	{
+		LYCEqualsLY = 6,
+		OAM = 5,
+		VBlank = 4,
+		HBlank = 3,
+	};
+
 	struct Dimensions 
 	{
 		int width = 0;
@@ -34,9 +42,10 @@ namespace ggb
 		void setDrawWholeBackground(bool enable);
 
 	private:
+		void writeCurrentScanLineIntoFrameBuffer();
+		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode);
 		uint8_t incrementLine();
-		uint8_t getLine() const;
 		ColorPalette getBackgroundColorPalette();
 		void updateAndRenderTileData();
 
@@ -46,5 +55,17 @@ namespace ggb
 		bool m_drawTileData = false;
 		std::vector<Tile> m_vramTiles;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
+		std::unique_ptr<FrameBuffer> m_gamePicture;
+		uint8_t* m_LCDControl = nullptr;
+		uint8_t* m_LCDYCoordinate = nullptr;
+		uint8_t* m_LYCompare = nullptr;
+		uint8_t* m_LCDStatus = nullptr;
+		uint8_t* m_backgroundPalette = nullptr;
+		uint8_t* m_objectPalette0 = nullptr;
+		uint8_t* m_objectPalette1 = nullptr;
+		uint8_t* m_backgroundXPos = nullptr;
+		uint8_t* m_backgroundYPos = nullptr;
+		uint8_t* m_windowXPos = nullptr;
+		uint8_t* m_windowYPos = nullptr;
 	};
 }
