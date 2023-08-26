@@ -21,7 +21,9 @@ namespace ggb
 		void run();
 		void step();
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
+		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		Dimensions getTileDataDimensions() const;
+		Dimensions getGameWindowDimensions() const;
 
 	private:
 		CPU m_CPU;

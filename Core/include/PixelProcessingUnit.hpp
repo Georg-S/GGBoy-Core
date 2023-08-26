@@ -37,24 +37,29 @@ namespace ggb
 		LCDMode getCurrentLCDMode() const; 
 		void setLCDMode(LCDMode mode);
 		void setTileDataRenderer(std::unique_ptr<Renderer> renderer);
+		void setGameRenderer(std::unique_ptr<Renderer> renderer);
 		Dimensions getTileDataDimensions() const;
 		void setDrawTileData(bool enable);
 		void setDrawWholeBackground(bool enable);
 
 	private:
 		void writeCurrentScanLineIntoFrameBuffer();
+		void writeCurrentBackgroundLineIntoFrameBuffer();
 		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode);
 		uint8_t incrementLine();
 		ColorPalette getBackgroundColorPalette();
 		void updateAndRenderTileData();
+		void renderGame();
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;
 		bool m_drawWholeBackground = false;
 		bool m_drawTileData = false;
 		std::vector<Tile> m_vramTiles;
+		std::vector<RGBA> m_currentRowBuffer;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
+		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gamePicture;
 		uint8_t* m_LCDControl = nullptr;
 		uint8_t* m_LCDYCoordinate = nullptr;
@@ -63,8 +68,8 @@ namespace ggb
 		uint8_t* m_backgroundPalette = nullptr;
 		uint8_t* m_objectPalette0 = nullptr;
 		uint8_t* m_objectPalette1 = nullptr;
-		uint8_t* m_backgroundXPos = nullptr;
-		uint8_t* m_backgroundYPos = nullptr;
+		uint8_t* m_viewPortXPos = nullptr;
+		uint8_t* m_viewPortYPos = nullptr;
 		uint8_t* m_windowXPos = nullptr;
 		uint8_t* m_windowYPos = nullptr;
 	};

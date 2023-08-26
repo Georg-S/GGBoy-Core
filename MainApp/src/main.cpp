@@ -57,7 +57,9 @@ int main(int argc, char* argv[])
 {
 	auto emulator = ggb::Emulator();
 	auto tileDataDimensions = emulator.getTileDataDimensions();
-	auto sdlRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
+	auto gameWindowDimensions = emulator.getGameWindowDimensions();
+	auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
+	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height);
 
 	emulator.loadCartridge("Roms/Games/Tetris.gb");
 	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
@@ -74,7 +76,8 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
-	emulator.setTileDataRenderer(std::move(sdlRenderer));
+	emulator.setTileDataRenderer(std::move(tileDataRenderer));
+	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.run();
 
 	return 0;

@@ -69,29 +69,8 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 	uint16_t address = tileDataStartAddress + (tileIndex * tileSize);
 	const uint16_t endAddress = tileDataStartAddress + ((tileIndex + 1) * tileSize);
 
-
-	int index = 0;
-	while (address < endAddress)
-	{
-		auto low = bus->read(address++);
-		auto high = bus->read(address++);
-
-		outTile->m_rawData[index++] = TileRawData{ low, high };
-	}
-
-	for (size_t y = 0; y < outTile->m_rawData.size(); y++)
-	{
-		const auto& rawData = outTile->m_rawData[y];
-		for (int x = 7; x >= 0; x--)
-		{
-			auto msb = isBitSet(rawData.msBits, x);
-			auto lsb = isBitSet(rawData.msBits, x);
-			auto num = getNumberFromBits(lsb, msb);
-			auto rgb = getRGBFromNumAndPalette(num, palette);
-			
-			outTile->m_data[y][7 - x] = rgb;
-		}
-	}
+	for (size_t y = 0; y < 8; y++)
+		getTileRowRGBData(bus, address,y, palette, outTile->m_data[y]);
 }
 
 Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette)
@@ -99,4 +78,21 @@ Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palet
 	Tile tile;
 	overWriteTileData(bus, tileIndex, palette, &tile);
 	return tile;
+}
+
+void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, std::vector<RGBA>& outVec)
+{
+	assert(outVec.size() >= 8);
+	auto low = bus->read(tileAddress + (tileRow * 2));
+	auto high = bus->read(tileAddress + (tileRow * 2) + 1);
+
+	for (int x = 7; x >= 0; x--)
+	{
+		auto lsb = isBitSet(low, x);
+		auto msb = isBitSet(high, x);
+		auto num = getNumberFromBits(lsb, msb);
+		auto rgb = getRGBFromNumAndPalette(num, palette);
+
+		outVec[7 - x] = std::move(rgb);
+	}
 }

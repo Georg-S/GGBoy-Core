@@ -65,6 +65,11 @@ uint8_t ggb::BUS::read(uint16_t address) const
     return m_memory[address];
 }
 
+int8_t ggb::BUS::readSigned(uint16_t address) const
+{
+    return static_cast<int8_t>(read(address));
+}
+
 void ggb::BUS::write(uint16_t address, uint8_t value)
 {
     if (isEchoMemory(address))

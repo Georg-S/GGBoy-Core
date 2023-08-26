@@ -1,5 +1,6 @@
 #include "Emulator.hpp"
 #include "Logging.hpp"
+#include "Constants.hpp"
 
 using namespace ggb;
 
@@ -48,7 +49,17 @@ void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
     m_ppu->setDrawTileData(true);
 }
 
+void ggb::Emulator::setGameRenderer(std::unique_ptr<ggb::Renderer> renderer)
+{
+    m_ppu->setGameRenderer(std::move(renderer));
+}
+
 Dimensions ggb::Emulator::getTileDataDimensions() const
 {
     return m_ppu->getTileDataDimensions();
+}
+
+Dimensions ggb::Emulator::getGameWindowDimensions() const
+{
+    return Dimensions{GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT};
 }

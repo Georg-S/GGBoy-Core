@@ -33,3 +33,5 @@ static constexpr uint16_t INTERRUPT_LCD_STAT_BIT = 1;
 static constexpr uint16_t INTERRUPT_TIMER_BIT = 2;
 static constexpr uint16_t INTERRUPT_SERIAL_BIT = 3;
 static constexpr uint16_t INTERRUPT_JOYPAD_BIT = 4;
+static constexpr uint16_t GAME_WINDOW_WIDTH = 160;
+static constexpr uint16_t GAME_WINDOW_HEIGHT = 144;
