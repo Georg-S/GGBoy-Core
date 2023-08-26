@@ -19,7 +19,8 @@ namespace ggb
 		bool loadCartridge(const std::filesystem::path& path);
 		void run();
 		void step();
-		void setDrawTileDataCallback(std::function<void(const FrameBuffer&)>);
+		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
+		Dimensions getTileDataDimensions() const;
 
 	private:
 		CPU m_CPU;

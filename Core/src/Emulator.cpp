@@ -7,6 +7,7 @@ ggb::Emulator::Emulator()
 {
     m_CPU = CPU();
     m_bus = std::make_unique<BUS>();
+    m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -21,7 +22,7 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
     m_bus->setCartridge(m_currentCartridge.get());
     m_CPU.setBus(m_bus.get());
     m_CPU.reset();
-    m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
+    m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get()); // TODO make a reset function instead of just recreating it
     return true;
 }
 
@@ -37,8 +38,13 @@ void ggb::Emulator::step()
     m_ppu->step(cycles);
 }
 
-void ggb::Emulator::setDrawTileDataCallback(std::function<void(const FrameBuffer&)> func)
+void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
 {
-    m_ppu->setDrawTileDataCallback(std::move(func));
+    m_ppu->setTileDataRenderer(std::move(renderer));
     m_ppu->setDrawTileData(true);
+}
+
+Dimensions ggb::Emulator::getTileDataDimensions() const
+{
+    return m_ppu->getTileDataDimensions();
 }

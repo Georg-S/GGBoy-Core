@@ -2792,7 +2792,7 @@ int OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
 	return toExecute->baseCycleCount;
 }
 
-std::string OPCodes::getMnemonic(uint16_t opCode) const
+const std::string& OPCodes::getMnemonic(uint16_t opCode) const
 {
 	return m_opcodes[opCode].mnemonic;
 }

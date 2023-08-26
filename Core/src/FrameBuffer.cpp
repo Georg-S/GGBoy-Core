@@ -10,20 +10,20 @@ ggb::FrameBuffer::FrameBuffer(BUS* bus, int xSize, int ySize)
 	, m_bus(bus)
 {
 	for (size_t x = 0; x < m_xSize; x++) 
-		m_buffer.emplace_back(std::vector<RGB>(ySize, {0,0,0}));
+		m_buffer.emplace_back(std::vector<RGBA>(ySize, {0,0,0}));
 }
 
-void ggb::FrameBuffer::setPixel(int x, int y, const RGB& pixelValue)
+void ggb::FrameBuffer::setPixel(int x, int y, const RGBA& pixelValue)
 {
 	m_buffer[x][y] = pixelValue;
 }
 
-RGB ggb::FrameBuffer::getPixel(int x, int y) const
+RGBA ggb::FrameBuffer::getPixel(int x, int y) const
 {
 	return m_buffer[x][y];
 }
 
-void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const RGB& rgb)>& func) const 
+void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const RGBA& rgb)>& func) const
 {
 	for (size_t x = 0; x < m_xSize; x++) 
 	{
@@ -35,7 +35,7 @@ void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const
 }
 
 
-static ggb::RGB getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
+static ggb::RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
 {
 	return convertGBColorToRGB(palette.m_color[num]);
 }
@@ -44,17 +44,18 @@ ggb::Tile::Tile()
 {
 	m_rawData = std::vector<TileRawData>(8, {0,0});
 	for (size_t i = 0; i < 8; i++)
-		m_data.emplace_back(std::vector<RGB>(8, {0,0,0}));
+		m_data.emplace_back(std::vector<RGBA>(8, {0,0,0}));
 }
 
-RGB ggb::convertGBColorToRGB(GBColor color)
+// TODO differentiate between background/window and sprites/obj
+RGBA ggb::convertGBColorToRGB(GBColor color)
 {
 	switch (color)
 	{
-	case ggb::GBColor::WHITE:		return { 0,0,0 };
-	case ggb::GBColor::LIGHT_GREY:	return { 85, 85, 85 };
-	case ggb::GBColor::DARK_GREY:	return { 170, 170, 170 };
-	case ggb::GBColor::BLACK:		return { 255, 255, 255 };
+	case ggb::GBColor::WHITE:		return { 0,0,0,0 };
+	case ggb::GBColor::LIGHT_GREY:	return { 85, 85, 85, 0 };
+	case ggb::GBColor::DARK_GREY:	return { 170, 170, 170, 0 };
+	case ggb::GBColor::BLACK:		return { 255, 255, 255, 0 };
 	default:
 		assert(!"Invalid value entered");
 		return {};

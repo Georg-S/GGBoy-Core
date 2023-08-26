@@ -27,7 +27,7 @@ namespace ggb
 		};
 		OPCodes();
 		int execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus);
-		std::string getMnemonic(uint16_t opCode)const;
+		const std::string& getMnemonic(uint16_t opCode)const;
 	private:
 		void setOpcode(OPCode&& opcode);
 		void setExtendedOpcode(OPCode&& opcode);

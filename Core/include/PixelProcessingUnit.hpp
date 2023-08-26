@@ -14,6 +14,12 @@ namespace ggb
 		VRAMBlocked = 3,
 	};
 
+	struct Dimensions 
+	{
+		int width = 0;
+		int height = 0;
+	};
+
 	class PixelProcessingUnit
 	{
 	public:
@@ -22,7 +28,8 @@ namespace ggb
 		bool isEnabled() const;
 		LCDMode getCurrentLCDMode() const; 
 		void setLCDMode(LCDMode mode);
-		void setDrawTileDataCallback(std::function<void(const FrameBuffer&)>);
+		void setTileDataRenderer(std::unique_ptr<Renderer> renderer);
+		Dimensions getTileDataDimensions() const;
 		void setDrawTileData(bool enable);
 		void setDrawWholeBackground(bool enable);
 
@@ -42,7 +49,6 @@ namespace ggb
 		static constexpr uint16_t lineAddress = 0xFF44;
 		static constexpr uint16_t lineCompareAddress = 0xFF45;
 		std::vector<Tile> m_vramTiles;
-		std::unique_ptr<FrameBuffer> m_tileData;
-		std::function<void(const FrameBuffer&)> m_drawTileDataCallback;
+		std::unique_ptr<Renderer> m_tileDataRenderer;
 	};
 }

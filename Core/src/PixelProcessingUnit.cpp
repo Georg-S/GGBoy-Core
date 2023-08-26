@@ -11,7 +11,6 @@ static constexpr int VRAM_TILE_COUNT = 256;
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	: m_bus(bus)
 {
-	m_tileData = std::make_unique<FrameBuffer>(m_bus, 300, 200);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
 }
 
@@ -80,9 +79,14 @@ void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 	m_bus->setBitValue(LCDControlRegisterAddress, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
 }
 
-void ggb::PixelProcessingUnit::setDrawTileDataCallback(std::function<void(const FrameBuffer&)> func)
+void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
 {
-	m_drawTileDataCallback = std::move(func);
+	m_tileDataRenderer = std::move(renderer);
+}
+
+Dimensions ggb::PixelProcessingUnit::getTileDataDimensions() const
+{
+	return Dimensions{ 300, 200 };
 }
 
 void ggb::PixelProcessingUnit::setDrawTileData(bool enable)
@@ -150,8 +154,9 @@ ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()
 	return result;
 }
 
-static void writeTileDataIntoFrameBuffer(const std::vector<Tile>& tiles, FrameBuffer* outBuffer) 
+static void renderTileData(const std::vector<Tile>& tiles, Renderer* renderer)
 {
+	renderer->startRendering();
 	int currX = 0;
 	int currY = 0;
 	constexpr int margin = 10;
@@ -163,7 +168,7 @@ static void writeTileDataIntoFrameBuffer(const std::vector<Tile>& tiles, FrameBu
 			for (int y = 0; y < 8; y++)
 			{
 				const auto& color = tile.m_data[x][y];
-				outBuffer->setPixel(currX * margin + x, currY * margin + y, color);
+				renderer->setPixel(currX * margin + x, currY * margin + y, color);
 			}
 		}
 		currX += 1;
@@ -174,19 +179,17 @@ static void writeTileDataIntoFrameBuffer(const std::vector<Tile>& tiles, FrameBu
 			currY += 1;
 		}
 	}
+	renderer->finishRendering();
 }
 
 void ggb::PixelProcessingUnit::updateAndRenderTileData()
 {
-	if (!m_drawTileData)
+	if (!m_drawTileData || !m_tileDataRenderer)
 		return; // We don't want to render the tile data -> therefore we don't update the data as well
 
 	const auto colorPalette = getBackgroundColorPalette();
 	for (uint16_t i = 0; i < VRAM_TILE_COUNT; i++)
 		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i]);
 
-	writeTileDataIntoFrameBuffer(m_vramTiles, m_tileData.get());
-
-	if (m_drawTileDataCallback)
-		m_drawTileDataCallback(*m_tileData);
+	renderTileData(m_vramTiles, m_tileDataRenderer.get());
 }
