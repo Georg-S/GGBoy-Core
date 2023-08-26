@@ -25,9 +25,9 @@ RGBA ggb::FrameBuffer::getPixel(int x, int y) const
 
 void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const RGBA& rgb)>& func) const
 {
-	for (size_t x = 0; x < m_xSize; x++) 
+	for (int x = 0; x < m_xSize; x++) 
 	{
-		for (size_t y = 0; y < m_ySize; y++) 
+		for (int y = 0; y < m_ySize; y++)
 		{
 			func(x, y, m_buffer[x][y]);
 		}

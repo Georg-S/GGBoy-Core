@@ -3,9 +3,10 @@
 
 #include <memory>
 
+#include "BUS.hpp"
 #include "CPU.hpp"
 #include "Cartridge.hpp"
-#include "BUS.hpp"
+#include "Timer.hpp"
 #include "PixelProcessingUnit.hpp"
 #include "FrameBuffer.hpp"
 
@@ -27,5 +28,6 @@ namespace ggb
 		std::unique_ptr<BUS> m_bus;
 		std::unique_ptr<Cartridge> m_currentCartridge;
 		std::unique_ptr<PixelProcessingUnit> m_ppu;
+		std::unique_ptr<Timer> m_timer;
 	};
 }

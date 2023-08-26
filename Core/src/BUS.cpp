@@ -4,6 +4,12 @@
 
 #include "Constants.hpp"
 #include "Utility.hpp"
+#include "Timer.hpp"
+
+constexpr static bool isIOAddress(uint16_t address) 
+{
+    return (address >= 0xFF00 && address <= 0xFFFF);
+}
 
 constexpr static bool isVRAMAddress(uint16_t address) 
 {
@@ -34,6 +40,11 @@ constexpr static bool isCartridgeRAM(uint16_t address)
 void ggb::BUS::setCartridge(Cartridge* cartridge)
 {
     m_cartridge = cartridge;
+}
+
+void ggb::BUS::setTimer(Timer* timer)
+{
+    m_timer = timer;
 }
 
 uint8_t ggb::BUS::read(uint16_t address) const
@@ -69,12 +80,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
         m_cartridge->write(address, value);
         return;
     }
-    if (isVRAMAddress(address))
-        int b = 3;
 
-    //if (isUnusedMemory(address))
-    //    assert(!"Unused memory used");
+    if (address == TIMER_DIVIDER_REGISTER_ADDRESS)
+        resetTimerDivider();
 
+    if (isUnusedMemory(address))
+        assert(!"Unused memory used");
 
     // TODO check if ok to always write into this RAM
     m_memory[address] = value;
@@ -117,6 +128,12 @@ bool ggb::BUS::checkBit(uint16_t address, int bit) const
     return isBitSet(read(address), bit);
 }
 
+uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
+{
+    assert(isIOAddress(address)); // As of know, this should be only used for memory mapped IO
+    return &m_memory[address];
+}
+
 void ggb::BUS::printVRAM()
 {
     //for (size_t i = 0x8000; i < 0x9FFF; i++) 
@@ -142,4 +159,14 @@ void ggb::BUS::printVRAM()
     }
     if (print)
         int d = 3;
+}
+
+void ggb::BUS::requestInterrupt(int interrupt)
+{
+    this->setBit(INTERRUPT_REQUEST_ADDRESS, interrupt);
+}
+
+void ggb::BUS::resetTimerDivider()
+{
+    m_timer->resetDividerRegister();
 }

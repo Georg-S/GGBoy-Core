@@ -8,6 +8,7 @@ ggb::Emulator::Emulator()
     m_CPU = CPU();
     m_bus = std::make_unique<BUS>();
     m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
+    m_timer = std::make_unique<Timer>(m_bus.get());
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -20,6 +21,7 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
     }
 
     m_bus->setCartridge(m_currentCartridge.get());
+    m_bus->setTimer(m_timer.get());
     m_CPU.setBus(m_bus.get());
     m_CPU.reset();
     m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get()); // TODO make a reset function instead of just recreating it
@@ -36,6 +38,8 @@ void ggb::Emulator::step()
 {
     int cycles = m_CPU.step();
     m_ppu->step(cycles);
+    m_timer->step(cycles);
+    
 }
 
 void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)

@@ -4,12 +4,6 @@
 #include "Logging.hpp"
 #include "Constants.hpp"
 
-static constexpr int VBLANK_BIT = 0;
-static constexpr int LCD_STAT_BIT = 1;
-static constexpr int TIMER_BIT = 2;
-static constexpr int SERIAL_BIT = 3;
-static constexpr int JOYPAD_BIT = 4;
-
 static void debugLog(const std::string& message) 
 {
 	bool debugLogEnabled = false;
@@ -41,46 +35,51 @@ void ggb::CPU::setBus(BUS* bus)
 bool ggb::CPU::handleInterrupts()
 {
 	// TODO maybe make a single lambda for the interrupts, however for now (debugging purposes) we leave it how it is
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, VBLANK_BIT) && m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, VBLANK_BIT))
+	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT) 
+		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_VBLANK_BIT))
 	{
 		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, VBLANK_BIT);
+		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT);
 		callAddress(&m_cpuState, m_bus, VBLANK_INTERRUPT_ADDRESS);
 		debugLog("VBLANK INTERRUPT");
 		return true;
 	}
 
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, LCD_STAT_BIT) && m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, LCD_STAT_BIT))
+	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_LCD_STAT_BIT) 
+		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_LCD_STAT_BIT))
 	{
 		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, LCD_STAT_BIT);
+		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_LCD_STAT_BIT);
 		callAddress(&m_cpuState, m_bus, LCD_STAT_INTERRUPT_ADDRESS);
 		debugLog("LCD STAT INTERRUPT");
 		return true;
 	}
 
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, TIMER_BIT) && m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, TIMER_BIT))
+	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_TIMER_BIT) 
+		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_TIMER_BIT))
 	{
 		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, TIMER_BIT);
+		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_TIMER_BIT);
 		callAddress(&m_cpuState, m_bus, TIMER_INTERRUPT_ADDRESS);
 		debugLog("TIMER INTERRUPT");
 		return true;
 	}
 
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, SERIAL_BIT) && m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, SERIAL_BIT))
+	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_SERIAL_BIT) 
+		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_SERIAL_BIT))
 	{
 		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, SERIAL_BIT);
+		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_SERIAL_BIT);
 		callAddress(&m_cpuState, m_bus, SERIAL_INTERRUPT_ADDRESS);
 		debugLog("SERIAL INTERRUPT");
 		return true;
 	}
 
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, JOYPAD_BIT) && m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, JOYPAD_BIT))
+	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_JOYPAD_BIT) 
+		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_JOYPAD_BIT))
 	{
 		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, JOYPAD_BIT);
+		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_JOYPAD_BIT);
 		callAddress(&m_cpuState, m_bus, JOYPAD_INTERRUPT_ADDRESS);
 		debugLog("JOYPAD INTERRUPT");
 		return true;

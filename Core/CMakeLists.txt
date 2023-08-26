@@ -14,6 +14,7 @@ set(HEADERS
 	"include/PixelProcessingUnit.hpp"
 	"include/FrameBuffer.hpp"
 	"include/Constants.hpp"
+	"include/Timer.hpp"
 	)
 
 set(SOURCES 
@@ -27,6 +28,7 @@ set(SOURCES
 	"src/PixelProcessingUnit.cpp"
 	"src/FrameBuffer.cpp"
 	"src/Utility.cpp"
+	"src/Timer.cpp"
 	)
 
 
