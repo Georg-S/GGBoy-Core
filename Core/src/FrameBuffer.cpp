@@ -52,10 +52,10 @@ RGBA ggb::convertGBColorToRGB(GBColor color)
 {
 	switch (color)
 	{
-	case ggb::GBColor::WHITE:		return { 0,0,0,0 };
-	case ggb::GBColor::LIGHT_GREY:	return { 85, 85, 85, 0 };
-	case ggb::GBColor::DARK_GREY:	return { 170, 170, 170, 0 };
-	case ggb::GBColor::BLACK:		return { 255, 255, 255, 0 };
+	case ggb::GBColor::BLACK:		return { 0,0,0,0 };
+	case ggb::GBColor::DARK_GREY:	return { 85, 85, 85, 0 };
+	case ggb::GBColor::LIGHT_GREY:	return { 170, 170, 170, 0 };
+	case ggb::GBColor::WHITE:		return { 255, 255, 255, 0 };
 	default:
 		assert(!"Invalid value entered");
 		return {};
@@ -69,7 +69,7 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 	uint16_t address = tileDataStartAddress + (tileIndex * tileSize);
 	const uint16_t endAddress = tileDataStartAddress + ((tileIndex + 1) * tileSize);
 
-	for (size_t y = 0; y < 8; y++)
+	for (uint8_t y = 0; y < 8; y++)
 		getTileRowRGBData(bus, address,y, palette, outTile->m_data[y]);
 }
 

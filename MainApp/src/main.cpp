@@ -7,17 +7,18 @@
 #undef main
 
 // TODO: maybe this can be made more performant by writing the pixels to a texture instead of using "SDL_RenderDrawPoint"
-class SDLRenderer : public ggb::Renderer 
+class SDLRenderer : public ggb::Renderer
 {
 public:
-	SDLRenderer(int width, int height) 
-		: m_width(width)
-		, m_height(height)
+	SDLRenderer(int width, int height, int scalingFactor = 1)
+		: m_width(width * scalingFactor)
+		, m_height(height * scalingFactor)
+		, m_scaling(scalingFactor)
 	{
-		SDL_CreateWindowAndRenderer(width, height, 0, &m_window, &m_renderer);
+		SDL_CreateWindowAndRenderer(m_width, m_height, 0, &m_window, &m_renderer);
 	}
 
-	~SDLRenderer() 
+	~SDLRenderer()
 	{
 		SDL_DestroyRenderer(m_renderer);
 		SDL_DestroyWindow(m_window);
@@ -29,16 +30,22 @@ public:
 		SDL_RenderClear(m_renderer);
 	};
 
-	virtual void setPixel(int x, int y, const ggb::RGBA& rgba) 
+	virtual void setPixel(int x, int y, const ggb::RGBA& rgba)
 	{
 		assert(x < m_width);
 		assert(y < m_height);
-
+		
 		SDL_SetRenderDrawColor(m_renderer, rgba.r, rgba.g, rgba.b, rgba.a);
-		SDL_RenderDrawPoint(m_renderer, x, y);
+		for (int xPos = 0; xPos < m_scaling; xPos++) 
+		{
+			for (int yPos = 0; yPos < m_scaling; yPos++) 
+			{
+				SDL_RenderDrawPoint(m_renderer, (x*m_scaling) + xPos, (y*m_scaling) + yPos);
+			}
+		}
 	};
 
-	virtual void finishRendering() 
+	virtual void finishRendering()
 	{
 		SDL_RenderPresent(m_renderer);
 		SDL_PollEvent(nullptr);
@@ -49,6 +56,7 @@ private:
 	SDL_Renderer* m_renderer = nullptr;
 	int m_width;
 	int m_height;
+	int m_scaling;
 };
 
 
@@ -59,8 +67,9 @@ int main(int argc, char* argv[])
 	auto tileDataDimensions = emulator.getTileDataDimensions();
 	auto gameWindowDimensions = emulator.getGameWindowDimensions();
 	auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
-	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height);
+	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
 
+	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	emulator.loadCartridge("Roms/Games/Tetris.gb");
 	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
 	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");

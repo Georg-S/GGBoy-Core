@@ -36,7 +36,7 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		return;
 
 	const auto currentMode = getCurrentLCDMode();
-	if (*m_LCDYCoordinate >= 144)
+	if (*m_LCDYCoordinate >= 144 && currentMode != LCDMode::VBLank)
 		setLCDMode(LCDMode::VBLank); // TODO is this needed or do I have a bug elsewhere?
 	const auto currentModeDuration = getModeDuration(currentMode);
 	m_cycleCounter += elapsedCycles;
@@ -143,17 +143,15 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 
 void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 {
-	//int32_t xShift = (*m_backgroundXPos / 8);
-	//int32_t yShift = (*m_backgroundYPos - *m_LCDYCoordinate) / 8;
-	//auto index = yShift - xShift;
-
-	//auto res = m_bus->read(backgroundTileMap + index * 32);
 	const auto palette = getBackgroundColorPalette();
 	const uint16_t backgroundTileMap = isBitSet(*m_LCDControl, 3) ? 0x9C00 : 0x9800;
 	const bool readSigned = !isBitSet(*m_LCDControl, 4);
 
 	const auto yPosInBackground = *m_LCDYCoordinate + *m_viewPortYPos;
 	auto lineShift = ((yPosInBackground / 8) * 32) % 1024;
+
+	auto test = *m_windowXPos;
+	auto test2 = *m_windowYPos;
 
 	const auto tileRow = yPosInBackground % 8;
 	auto tileColumn = *m_viewPortXPos % 8;
@@ -169,8 +167,8 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 		uint16_t tileAddress = 0;
 		if (readSigned) 
 		{
-			int8_t tileIndex = m_bus->readSigned(tileIndexAddress);
-			tileAddress = 0x8800 + tileIndex * 16;
+			int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
+			tileAddress = 0x9000 + (tileIndex * 16);
 		}
 		else 
 		{
@@ -187,9 +185,6 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 		}
 		tileColumn = 0;
 	}
-
-	//auto res = m_bus->read(backgroundTileMap + index * 32);
-
 }
 
 void ggb::PixelProcessingUnit::handleModeTransitionInterrupt(LCDInterrupt type)
@@ -286,6 +281,9 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 
 void ggb::PixelProcessingUnit::renderGame()
 {
+	if (!m_gameRenderer)
+		return;
+
 	m_gameRenderer->startRendering();
 	m_gamePicture->forEachPixel([this](int x, int y, const RGBA& rgb)
 		{
