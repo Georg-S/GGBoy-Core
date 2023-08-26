@@ -13,6 +13,7 @@ set(HEADERS
 	"include/Utility.hpp"
 	"include/PixelProcessingUnit.hpp"
 	"include/FrameBuffer.hpp"
+	"include/Constants.hpp"
 	)
 
 set(SOURCES 
@@ -25,6 +26,7 @@ set(SOURCES
 	"src/CPUState.cpp"
 	"src/PixelProcessingUnit.cpp"
 	"src/FrameBuffer.cpp"
+	"src/Utility.cpp"
 	)
 
 

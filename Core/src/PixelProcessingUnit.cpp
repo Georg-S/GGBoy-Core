@@ -1,8 +1,11 @@
 #include "PixelProcessingUnit.hpp"
 
+#include <iostream>
+
 #include "Utility.hpp"
 #include "Logging.hpp"
-#include <iostream>
+#include "Constants.hpp"
+
 
 using namespace ggb;
 
@@ -64,19 +67,19 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 
 bool ggb::PixelProcessingUnit::isEnabled() const
 {
-	return m_bus->checkBit(LCDControlRegisterAddress, 7);
+	return m_bus->checkBit(LCD_CONTROL_REGISTER_ADDRESS, 7);
 }
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
-	const uint8_t buf = m_bus->read(LCDControlRegisterAddress) & 0b11;
+	const uint8_t buf = m_bus->read(LCD_CONTROL_REGISTER_ADDRESS) & 0b11;
 	return LCDMode(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	m_bus->setBitValue(LCDControlRegisterAddress, 0, (static_cast<uint8_t>(mode) & 1));
-	m_bus->setBitValue(LCDControlRegisterAddress, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
+	m_bus->setBitValue(LCD_CONTROL_REGISTER_ADDRESS, 0, (static_cast<uint8_t>(mode) & 1));
+	m_bus->setBitValue(LCD_CONTROL_REGISTER_ADDRESS, 1, (static_cast<uint8_t>(mode) & (1 << 1)));
 }
 
 void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
@@ -115,21 +118,21 @@ constexpr int ggb::PixelProcessingUnit::getModeDuration(LCDMode mode)
 
 uint8_t ggb::PixelProcessingUnit::incrementLine()
 {
-	auto newLinevalue = m_bus->read(lineAddress);
+	auto newLinevalue = m_bus->read(LCD_Y_COORDINATE_ADDRESS);
 	newLinevalue = (newLinevalue + 1) % 154;
-	m_bus->write(lineAddress, newLinevalue);
+	m_bus->write(LCD_Y_COORDINATE_ADDRESS, newLinevalue);
 
-	auto lycCompare = m_bus->read(lineCompareAddress);
+	auto lycCompare = m_bus->read(LCD_Y_COMPARE_ADDRESS);
 	if (lycCompare == newLinevalue)
 	{
-		m_bus->setBit(LCDStatusRegisterAddress, 2);
+		m_bus->setBit(LCD_STATUS_REGISTER_ADDRESS, 2);
 
-		if (m_bus->checkBit(LCDStatusRegisterAddress, 6))
+		if (m_bus->checkBit(LCD_STATUS_REGISTER_ADDRESS, 6))
 			m_bus->setBit(0xFF0F, 1);
 	}
 	else
 	{
-		m_bus->resetBit(LCDStatusRegisterAddress, 2);
+		m_bus->resetBit(LCD_STATUS_REGISTER_ADDRESS, 2);
 	}
 
 	return newLinevalue;
@@ -137,7 +140,7 @@ uint8_t ggb::PixelProcessingUnit::incrementLine()
 
 uint8_t ggb::PixelProcessingUnit::getLine() const
 {
-	return m_bus->read(lineAddress);
+	return m_bus->read(LCD_Y_COORDINATE_ADDRESS);
 }
 
 ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()

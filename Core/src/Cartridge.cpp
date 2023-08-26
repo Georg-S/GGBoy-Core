@@ -1,12 +1,12 @@
 #include "Cartridge.hpp"
 
-#include "Logging.hpp"
-
 #include <fstream>
+
+#include "Logging.hpp"
+#include "Constants.hpp"
 
 using namespace ggb;
 
-static constexpr uint16_t mbcTypeAddress = 0x0147;
 
 static constexpr bool isRAMEnableAddress(uint16_t address)
 {
@@ -83,7 +83,7 @@ uint8_t ggb::Cartridge::read(uint16_t address) const
 
 MBCTYPE ggb::Cartridge::getMBCType() const
 {
-	auto val = m_cartridgeData[mbcTypeAddress];
+	auto val = m_cartridgeData[MBC_TYPE_ADDRESS];
 	logNumBinary(val);
 
 	return MBCTYPE(val);

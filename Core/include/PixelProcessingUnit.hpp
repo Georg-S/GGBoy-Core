@@ -44,10 +44,6 @@ namespace ggb
 		int m_cycleCounter = 0;
 		bool m_drawWholeBackground = false;
 		bool m_drawTileData = false;
-		static constexpr uint16_t LCDControlRegisterAddress = 0xFF40;
-		static constexpr uint16_t LCDStatusRegisterAddress = 0xFF41;
-		static constexpr uint16_t lineAddress = 0xFF44;
-		static constexpr uint16_t lineCompareAddress = 0xFF45;
 		std::vector<Tile> m_vramTiles;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 	};

@@ -1,12 +1,12 @@
 #include "CPUInstructions.hpp"
 
-#include "CPU.hpp"
-#include "Logging.hpp"
-#include "Utility.hpp"
-
 #include <cassert>
 #include <exception>
 #include <iostream>
+
+#include "CPU.hpp"
+#include "Logging.hpp"
+#include "Utility.hpp"
 
 using namespace ggb;
 

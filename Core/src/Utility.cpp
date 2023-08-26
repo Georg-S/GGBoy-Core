@@ -2,7 +2,7 @@
 
 uint16_t ggb::combineUpperAndLower(uint8_t upper, uint8_t lower)
 {
-	return (static_cast<int>(upper) << 8) | lower;
+	return (static_cast<uint16_t>(upper) << 8) | lower;
 }
 
 void ggb::swap(uint16_t& num)

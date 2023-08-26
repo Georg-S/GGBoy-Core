@@ -20,7 +20,5 @@ namespace ggb
 		CPUState m_cpuState;
 		BUS* m_bus = nullptr;
 		uint64_t m_instructionCounter = 0;
-		static constexpr uint16_t enabledInterruptAddress = 0xFFFF;
-		static constexpr uint16_t interruptRequestAddress = 0xFF0F;
 	};
 }

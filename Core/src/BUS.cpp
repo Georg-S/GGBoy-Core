@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "Constants.hpp"
 #include "Utility.hpp"
 
 constexpr static bool isVRAMAddress(uint16_t address) 

@@ -6,6 +6,7 @@
 
 #undef main
 
+// TODO: maybe this can be made more performant by writing the pixels to a texture instead of using "SDL_RenderDrawPoint"
 class SDLRenderer : public ggb::Renderer 
 {
 public:
