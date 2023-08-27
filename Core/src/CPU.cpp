@@ -25,6 +25,7 @@ void ggb::CPU::reset()
 	m_cpuState.L() = 0x4D;
 	m_cpuState.InstructionPointer() = 0x100;
 	m_cpuState.StackPointer() = 0xFFFE;
+
 }
 
 void ggb::CPU::setBus(BUS* bus)
@@ -114,6 +115,10 @@ int ggb::CPU::step()
 	int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
 	++m_instructionCounter;
 
+	// TODO remove, this is only done because no input handling is implemented yet,
+	// but without input handling Tetris won't even get into the main screen
+	m_bus->write(static_cast<uint16_t>(0xFF00), static_cast<uint8_t>(0xCF));
+
 	auto test = m_bus->read(0xff02);
 	if (test == 0x81) 
 	{
@@ -122,9 +127,6 @@ int ggb::CPU::step()
 		m_bus->write(0xFF02, uint8_t(0x0));
 
 	}
-
-	if (false)
-		m_bus->printVRAM();
 
 	return duration;
 }

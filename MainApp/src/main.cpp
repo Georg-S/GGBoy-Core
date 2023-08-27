@@ -16,6 +16,7 @@ public:
 		, m_scaling(scalingFactor)
 	{
 		SDL_CreateWindowAndRenderer(m_width, m_height, 0, &m_window, &m_renderer);
+		SDL_SetWindowTitle(m_window, "GGBoy");
 	}
 
 	~SDLRenderer()

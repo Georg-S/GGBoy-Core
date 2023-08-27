@@ -18,6 +18,7 @@ static constexpr uint16_t LCD_VIEWPORT_Y_ADDRESS =					0xFF42;
 static constexpr uint16_t LCD_VIEWPORT_X_ADDRESS =					0xFF43;
 static constexpr uint16_t LCD_Y_COORDINATE_ADDRESS =				0xFF44;
 static constexpr uint16_t LCD_Y_COMPARE_ADDRESS =					0xFF45;
+static constexpr uint16_t START_DIRECT_MEMORY_ACCESS_ADDRESS =		0xFF46;
 static constexpr uint16_t BACKGROUND_PALETTE_ADDRESS =				0xFF47;
 static constexpr uint16_t OBJECT_PALETTE_0_ADDRESS =				0xFF48;
 static constexpr uint16_t OBJECT_PALETTE_1_ADDRESS =				0xFF49;

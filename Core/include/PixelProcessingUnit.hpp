@@ -45,10 +45,11 @@ namespace ggb
 	private:
 		void writeCurrentScanLineIntoFrameBuffer();
 		void writeCurrentBackgroundLineIntoFrameBuffer();
+		void writeCurrentWindowLineIntoBuffer();
 		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode);
 		uint8_t incrementLine();
-		ColorPalette getBackgroundColorPalette();
+		ColorPalette getBackgroundAndWindowColorPalette();
 		void updateAndRenderTileData();
 		void renderGame();
 

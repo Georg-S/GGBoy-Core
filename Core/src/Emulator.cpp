@@ -21,11 +21,12 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
         return false;
     }
 
+    m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get()); // TODO make a reset function instead of just recreating it
     m_bus->setCartridge(m_currentCartridge.get());
     m_bus->setTimer(m_timer.get());
+    m_bus->setPixelProcessingUnit(m_ppu.get());
     m_CPU.setBus(m_bus.get());
     m_CPU.reset();
-    m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get()); // TODO make a reset function instead of just recreating it
     return true;
 }
 

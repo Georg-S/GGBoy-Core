@@ -1,6 +1,7 @@
 #include "Cartridge.hpp"
 
 #include <fstream>
+#include <cassert>
 
 #include "Logging.hpp"
 #include "Constants.hpp"
@@ -70,12 +71,11 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 			m_romBankNumber = std::max(num, 1);
 		}
 		if (isRAMBankingAddress(address))
-			int e = 5;
+			int e = 5; // TODO
 		if (isBankingModeAddress(address))
-			int f = 5;
-
+			int f = 5; // TODO
 		if (isCartridgeRAM(address))
-			int g = 3;
+			int g = 3; // TODO
 	}
 }
 
@@ -91,7 +91,7 @@ uint8_t ggb::Cartridge::read(uint16_t address) const
 	}
 
 	if (isCartridgeRAM(address))
-		int c = 3;
+		assert(!"not implemented yet");
 	return m_cartridgeData[address];
 }
 

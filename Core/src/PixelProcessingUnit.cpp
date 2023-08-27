@@ -140,19 +140,18 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 {
 	// TODO implement enabl / disable background/window
 	writeCurrentBackgroundLineIntoFrameBuffer();
+	if (isBitSet(*m_LCDControl,5))
+		writeCurrentWindowLineIntoBuffer();
 }
 
 void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 {
-	const auto palette = getBackgroundColorPalette();
+	const auto palette = getBackgroundAndWindowColorPalette();
 	const uint16_t backgroundTileMap = isBitSet(*m_LCDControl, 3) ? 0x9C00 : 0x9800;
 	const bool readSigned = !isBitSet(*m_LCDControl, 4);
 
 	const auto yPosInBackground = *m_LCDYCoordinate + *m_viewPortYPos;
 	auto lineShift = ((yPosInBackground / 8) * 32) % 1024;
-
-	auto test = *m_windowXPos;
-	auto test2 = *m_windowYPos;
 
 	const auto tileRow = yPosInBackground % 8;
 	auto tileColumn = *m_viewPortXPos % 8;
@@ -179,6 +178,53 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 		
 		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
 		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH) 
+		{
+			m_gamePicture->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+			++tileColumn;
+			++i;
+		}
+		tileColumn = 0;
+	}
+}
+
+void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
+{
+	// TODO probably not correct yet
+	// TODO Refactor it into the same method as the background
+	const auto palette = getBackgroundAndWindowColorPalette();
+	const uint16_t windowTileMap = isBitSet(*m_LCDControl, 6) ? 0x9C00 : 0x9800;
+	const bool readSigned = !isBitSet(*m_LCDControl, 4);
+
+	if (*m_LCDYCoordinate < *m_windowYPos)
+		return;
+
+	const auto yPos = (*m_LCDYCoordinate - *m_windowYPos);
+	const auto yTileOffset = (yPos / 8) * 32;
+	assert(yTileOffset < 1024);
+	const auto xOffset = *m_windowXPos;
+	const auto tileRow = yTileOffset % 8;
+	auto tileColumn = xOffset % 8;
+
+
+	for (int i = 0; i < GAME_WINDOW_WIDTH;)
+	{
+		auto xBuff = xOffset + i;
+		auto tileIndexAddress = (xBuff / 8) + yTileOffset;
+	
+		uint16_t tileAddress = 0;
+		if (readSigned)
+		{
+			int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
+			tileAddress = 0x9000 + (tileIndex * 16);
+		}
+		else
+		{
+			auto tileIndex = m_bus->read(tileIndexAddress);
+			tileAddress = 0x8000 + (tileIndex * 16);
+		}
+
+		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
+		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH)
 		{
 			m_gamePicture->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
@@ -227,7 +273,7 @@ uint8_t ggb::PixelProcessingUnit::incrementLine()
 	return *m_LCDYCoordinate;
 }
 
-ColorPalette ggb::PixelProcessingUnit::getBackgroundColorPalette()
+ColorPalette ggb::PixelProcessingUnit::getBackgroundAndWindowColorPalette()
 {
 	ColorPalette result = {};
 	const auto res = *m_backgroundPalette;
@@ -273,7 +319,7 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 	if (!m_drawTileData || !m_tileDataRenderer)
 		return; // We don't want to render the tile data -> therefore we don't update the data as well
 
-	const auto colorPalette = getBackgroundColorPalette();
+	const auto colorPalette = getBackgroundAndWindowColorPalette();
 	for (uint16_t i = 0; i < VRAM_TILE_COUNT; i++)
 		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i]);
 
