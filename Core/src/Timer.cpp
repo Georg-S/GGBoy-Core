@@ -8,7 +8,7 @@
 static uint32_t getTimerControlDivisor(uint8_t num) 
 {
 	assert(num < 4);
-	if (num == 0)		return 1024;
+	if (num == 0b00)	return 1024;
 	if (num == 0b01)	return 16;
 	if (num == 0b10)	return 64;
 	if (num == 0b11)	return 256;
@@ -34,13 +34,12 @@ void ggb::Timer::step(int elapsedCycles)
 		return;
 
 	const auto timerControlDividerBits = *m_timerControl & 0b11;
-	const auto divisor = getTimerControlDivisor(timerControlDividerBits);
-	const auto incrementer = cpu_clock / divisor;
-	// TODO double check, probably wrong
+	const auto timerControl = getTimerControlDivisor(timerControlDividerBits);
+
 	m_counterForTimerCounter += elapsedCycles;
-	if (m_counterForTimerCounter >= incrementer)
+	if (m_counterForTimerCounter >= timerControl)
 	{
-		m_counterForTimerCounter %= incrementer;
+		m_counterForTimerCounter %= timerControl;
 		++(*m_timerCounter);
 		if (*m_timerCounter == 0) 
 		{
@@ -57,7 +56,6 @@ void ggb::Timer::resetDividerRegister()
 
 void ggb::Timer::updateTimerDivider(int elapsedCycles)
 {
-	// TODO double check
 	m_dividerCounter += elapsedCycles;
 	if (m_dividerCounter >= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT)
 	{

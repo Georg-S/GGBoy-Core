@@ -34,6 +34,12 @@ void ggb::CPU::setBus(BUS* bus)
 
 bool ggb::CPU::handleInterrupts()
 {
+	if (m_cpuState.isStopped() && m_bus->read(INTERRUPT_REQUEST_ADDRESS) != 0)
+		m_cpuState.resume(); // TODO: handle "halting bug" maybe
+
+	if (!m_cpuState.interruptsEnabled())
+		return false;
+
 	// TODO maybe make a single lambda for the interrupts, however for now (debugging purposes) we leave it how it is
 	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT) 
 		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_VBLANK_BIT))
@@ -95,11 +101,8 @@ bool ggb::CPU::handleInterrupts()
 
 int ggb::CPU::step()
 {
-	if (m_cpuState.interruptsEnabled() || m_cpuState.isStopped()) 
-	{
-		if (handleInterrupts())
-			return 5;
-	}
+	if (handleInterrupts())
+		return 20; // 5 Machine cycles
 
 	if (m_cpuState.isStopped())
 		return 4; // For now we just say 4 clocks have gone by (one machine cycle)

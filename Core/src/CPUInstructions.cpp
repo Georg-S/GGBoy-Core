@@ -3021,7 +3021,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xC7,restart00, 16, "RST 00h" });
 	setOpcode({ 0xC8,returnZero, 8, "RET Z", 20 });
 	setOpcode({ 0xC9,returnInstr, 16, "RET" });
-	setOpcode({ 0xCA,jumpZeroToNumber, 12, "RET", 16 });
+	setOpcode({ 0xCA,jumpZeroToNumber, 12, "JP Z,u16", 16 });
 	setOpcode({ 0xCB,prefixOPCode, 4, "PREFIX CB" });
 	setOpcode({ 0xCC,callZeroNumber, 12, "CALL Z,u16", 24 });
 	setOpcode({ 0xCD,callInstr, 24, "CALL u16" });
