@@ -34,7 +34,7 @@ namespace ggb
 		std::vector<uint8_t> m_cartridgeData;
 		MBCTYPE m_mbcType;
 		bool m_ramEnabled = false;
-		int romBankNumber = 1;
+		uint16_t m_romBankNumber = 1;
 	};
 
 	std::unique_ptr<Cartridge> loadCartridge(const std::filesystem::path& path);

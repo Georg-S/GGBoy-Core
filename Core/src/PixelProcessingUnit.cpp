@@ -67,6 +67,7 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		if (line >= 144)
 		{
 			setLCDMode(LCDMode::VBLank);
+			m_bus->requestInterrupt(INTERRUPT_VBLANK_BIT);
 			handleModeTransitionInterrupt(LCDInterrupt::VBlank);
 			updateAndRenderTileData();
 			renderGame();

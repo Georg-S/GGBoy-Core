@@ -27,7 +27,7 @@ static constexpr uint16_t INTERRUPT_REQUEST_ADDRESS =				0xFF0F;
 static constexpr uint16_t ENABLED_INTERRUPT_ADDRESS =				0xFFFF;
 
 
-static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = 16384;
+static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT =	256;	// CPU clock 4194304 divided by 16384
 static constexpr uint16_t INTERRUPT_VBLANK_BIT = 0;
 static constexpr uint16_t INTERRUPT_LCD_STAT_BIT = 1;
 static constexpr uint16_t INTERRUPT_TIMER_BIT = 2;
@@ -35,3 +35,4 @@ static constexpr uint16_t INTERRUPT_SERIAL_BIT = 3;
 static constexpr uint16_t INTERRUPT_JOYPAD_BIT = 4;
 static constexpr uint16_t GAME_WINDOW_WIDTH = 160;
 static constexpr uint16_t GAME_WINDOW_HEIGHT = 144;
+static constexpr uint16_t ROM_BANK_SIZE = 0x4000;

@@ -36,7 +36,7 @@ void ggb::Timer::step(int elapsedCycles)
 	const auto timerControlDividerBits = *m_timerControl & 0b11;
 	const auto divisor = getTimerControlDivisor(timerControlDividerBits);
 	const auto incrementer = cpu_clock / divisor;
-
+	// TODO double check, probably wrong
 	m_counterForTimerCounter += elapsedCycles;
 	if (m_counterForTimerCounter >= incrementer)
 	{

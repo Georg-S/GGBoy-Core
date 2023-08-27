@@ -23,6 +23,11 @@ static constexpr bool isRAMBankingAddress(uint16_t address)
 	return address >= 0x4000 && address <= 0x5FFF;
 }
 
+static constexpr bool isRAMBankAddress(uint16_t address)
+{
+	return address >= 0x4000 && address <= 0x7FFF;
+}
+
 static constexpr bool isBankingModeAddress(uint16_t address)
 {
 	return address >= 0x6000 && address <= 0x7FFF;
@@ -62,7 +67,7 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 		if (isROMBankingAddress(address)) 
 		{
 			auto num = value & 0x1F;
-			int d = 3;
+			m_romBankNumber = std::max(num, 1);
 		}
 		if (isRAMBankingAddress(address))
 			int e = 5;
@@ -76,6 +81,15 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 
 uint8_t ggb::Cartridge::read(uint16_t address) const
 {
+	if (isRAMBankAddress(address)) 
+	{
+		auto startAddress = m_romBankNumber * ROM_BANK_SIZE;
+		auto newAddress = address - 0x4000;
+		newAddress = startAddress + newAddress;
+
+		return m_cartridgeData[newAddress];
+	}
+
 	if (isCartridgeRAM(address))
 		int c = 3;
 	return m_cartridgeData[address];
