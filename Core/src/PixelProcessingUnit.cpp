@@ -36,12 +36,6 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		return;
 
 	auto currentMode = getCurrentLCDMode();
-	if (*m_LCDYCoordinate >= 144) 
-	{
-		// TODO is this needed or do I have a bug elsewhere?
-		setLCDMode(LCDMode::VBLank); 
-		currentMode = LCDMode::VBLank;
-	}
 	const auto currentModeDuration = getModeDuration(currentMode);
 	m_cycleCounter += elapsedCycles;
 
@@ -105,14 +99,14 @@ bool ggb::PixelProcessingUnit::isEnabled() const
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
-	const uint8_t buf = *m_LCDControl & 0b11;
+	const uint8_t buf = *m_LCDStatus & 0b11;
 	return LCDMode(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	setBitToValue(*m_LCDControl, 0, static_cast<uint8_t>(mode) & 1);
-	setBitToValue(*m_LCDControl, 1, static_cast<uint8_t>(mode) & (1 << 1));
+	setBitToValue(*m_LCDStatus, 0, static_cast<uint8_t>(mode) & 1);
+	setBitToValue(*m_LCDStatus, 1, static_cast<uint8_t>(mode) & (1 << 1));
 }
 
 void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
