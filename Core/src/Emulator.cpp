@@ -41,7 +41,7 @@ void ggb::Emulator::step()
     int cycles = m_CPU.step();
     m_ppu->step(cycles);
     m_timer->step(cycles);
-    
+    m_input->update();
 }
 
 void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
@@ -53,6 +53,12 @@ void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
 void ggb::Emulator::setGameRenderer(std::unique_ptr<ggb::Renderer> renderer)
 {
     m_ppu->setGameRenderer(std::move(renderer));
+}
+
+void ggb::Emulator::setInput(std::unique_ptr<Input> input)
+{
+    m_input = std::move(input);
+    m_input->setBus(m_bus.get());
 }
 
 Dimensions ggb::Emulator::getTileDataDimensions() const

@@ -35,9 +35,13 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	if (!isEnabled())
 		return;
 
-	const auto currentMode = getCurrentLCDMode();
-	if (*m_LCDYCoordinate >= 144 && currentMode != LCDMode::VBLank)
-		setLCDMode(LCDMode::VBLank); // TODO is this needed or do I have a bug elsewhere?
+	auto currentMode = getCurrentLCDMode();
+	if (*m_LCDYCoordinate >= 144) 
+	{
+		// TODO is this needed or do I have a bug elsewhere?
+		setLCDMode(LCDMode::VBLank); 
+		currentMode = LCDMode::VBLank;
+	}
 	const auto currentModeDuration = getModeDuration(currentMode);
 	m_cycleCounter += elapsedCycles;
 

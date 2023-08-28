@@ -15,6 +15,7 @@ set(HEADERS
 	"include/FrameBuffer.hpp"
 	"include/Constants.hpp"
 	"include/Timer.hpp"
+	"include/Input.hpp"
 	)
 
 set(SOURCES 
@@ -29,6 +30,7 @@ set(SOURCES
 	"src/FrameBuffer.cpp"
 	"src/Utility.cpp"
 	"src/Timer.cpp"
+	"src/Input.cpp"
 	)
 
 

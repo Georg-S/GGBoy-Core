@@ -115,12 +115,8 @@ int ggb::CPU::step()
 	int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
 	++m_instructionCounter;
 
-	// TODO remove, this is only done because no input handling is implemented yet,
-	// but without input handling Tetris won't even get into the main screen
-	m_bus->write(static_cast<uint16_t>(0xFF00), static_cast<uint8_t>(0xCF));
-
-	auto test = m_bus->read(0xff02);
-	if (test == 0x81) 
+	auto serial = m_bus->read(0xff02);
+	if (serial == 0x81) 
 	{
 		char c = m_bus->read(0xff01);
 		printf("%c", c);
