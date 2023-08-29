@@ -32,13 +32,25 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 
 void ggb::PixelProcessingUnit::step(int elapsedCycles)
 {
-	if (!isEnabled())
-		return;
+	const auto currentMode = getCurrentLCDMode();
+	if (!isEnabled()) 
+	{
+		if (currentMode == LCDMode::HBLank)
+			return;
 
-	auto currentMode = getCurrentLCDMode();
+		if (currentMode == LCDMode::VBLank) 
+		{
+			// This is probably the "correct" way of handling the disabling of the screen
+			setLCDMode(LCDMode::HBLank);
+			*m_LCDYCoordinate = 0;
+			m_cycleCounter = 0;
+			return;
+		}
+		assert(!"If this is reached, there is a \"bug\" either in the emulator or the cartridge");
+	}
+
 	const auto currentModeDuration = getModeDuration(currentMode);
 	m_cycleCounter += elapsedCycles;
-
 
 	if (m_cycleCounter < currentModeDuration)
 		return;

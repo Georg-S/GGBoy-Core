@@ -115,9 +115,9 @@ int main(int argc, char* argv[])
 	auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
 	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
 
-	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
+	emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	//emulator.loadCartridge("Roms/Games/Tetris.gb");
-	emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
+	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
 	//emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
 	//emulator.loadCartridge("Roms/Games/Pokemon_Yellow.gb");
 	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
-	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
+	emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.setInput(std::move(appInputHandling));
 
