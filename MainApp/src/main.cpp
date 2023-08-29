@@ -20,14 +20,14 @@ public:
 	{
 		SDL_CreateWindowAndRenderer(m_width, m_height, 0, &m_window, &m_renderer);
 		SDL_SetWindowTitle(m_window, "GGBoy");
-		m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, m_width, m_height);
-		SDL_QueryTexture(m_texture, &m_format, nullptr, &m_width, &m_height);
+		m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, m_width, m_height);
 	}
 
 	~SDLRenderer()
 	{
 		SDL_DestroyRenderer(m_renderer);
 		SDL_DestroyWindow(m_window);
+		SDL_DestroyTexture(m_texture);
 	}
 
 	void startRendering() override
@@ -44,13 +44,6 @@ public:
 		assert(x < m_width);
 		assert(y < m_height);
 
-		SDL_PixelFormat pixelFormat;
-		pixelFormat.format = m_format;
-
-		// TODO refactor
-		// This is ok for a grey scale screen, because where r g or b is, doesnt matter -> all have the same value
-		uint32_t color = rgba.r << 16 | rgba.g << 8 | rgba.b;
-
 		for (int xPos = 0; xPos < m_scaling; xPos++)
 		{
 			for (int yPos = 0; yPos < m_scaling; yPos++)
@@ -58,8 +51,10 @@ public:
 				int xPixel = (x * m_scaling) + xPos;
 				int yPixel = (y * m_scaling) + yPos;
 
-				uint32_t pixelPosition = (yPixel * m_width) + xPixel;
-				m_lockedPixels[pixelPosition] = color;
+				const uint32_t pixelPosition = (yPixel * m_pitch) + xPixel * 3;
+				m_lockedPixels[pixelPosition] = rgba.r;
+				m_lockedPixels[pixelPosition+1] = rgba.g;
+				m_lockedPixels[pixelPosition+2] = rgba.b;
 			}
 		}
 	};
@@ -75,13 +70,12 @@ private:
 	SDL_Window* m_window = nullptr;
 	SDL_Renderer* m_renderer = nullptr;
 	SDL_Texture* m_texture = nullptr;
-	uint32_t* m_lockedPixels = nullptr;
-	uint32_t m_format = 0;
+	uint8_t* m_lockedPixels = nullptr;
 
 	int m_pitch = 0;
-	int m_width;
-	int m_height;
-	int m_scaling;
+	int m_width = 0;
+	int m_height = 0;
+	int m_scaling = 1;
 };
 
 
