@@ -148,7 +148,9 @@ void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
 
 void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 {
-	// TODO implement enabl / disable background/window
+	if (!isBitSet(*m_LCDControl, 0))
+		return;
+
 	writeCurrentBackgroundLineIntoFrameBuffer();
 	if (isBitSet(*m_LCDControl,5))
 		writeCurrentWindowLineIntoBuffer();
