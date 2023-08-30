@@ -38,5 +38,7 @@ namespace ggb
 	static constexpr uint16_t INTERRUPT_JOYPAD_BIT = 4;
 	static constexpr uint16_t GAME_WINDOW_WIDTH = 160;
 	static constexpr uint16_t GAME_WINDOW_HEIGHT = 144;
+	static constexpr uint16_t TILE_DATA_WIDTH = 300;
+	static constexpr uint16_t TILE_DATA_HEIGHT = 200;
 	static constexpr uint16_t ROM_BANK_SIZE = 0x4000;
 }

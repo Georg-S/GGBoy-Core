@@ -23,18 +23,6 @@ RGBA ggb::FrameBuffer::getPixel(int x, int y) const
 	return m_buffer[x][y];
 }
 
-void ggb::FrameBuffer::forEachPixel(const std::function<void(int x, int y, const RGBA& rgb)>& func) const
-{
-	for (int x = 0; x < m_xSize; x++) 
-	{
-		for (int y = 0; y < m_ySize; y++)
-		{
-			func(x, y, m_buffer[x][y]);
-		}
-	}
-}
-
-
 static ggb::RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
 {
 	return convertGBColorToRGB(palette.m_color[num]);

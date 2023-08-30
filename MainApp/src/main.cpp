@@ -30,7 +30,35 @@ public:
 		SDL_DestroyTexture(m_texture);
 	}
 
-	void startRendering() override
+	virtual void renderNewFrame(const ggb::FrameBuffer& framebuffer) 
+	{
+		startRendering();
+
+		for (int x = 0; x < framebuffer.m_buffer.size(); x++) 
+		{
+			for (int y = 0; y < framebuffer.m_buffer[0].size(); y++) 
+			{
+				const auto rgba = framebuffer.m_buffer[x][y];
+
+				for (int xPos = 0; xPos < m_scaling; xPos++)
+				{
+					for (int yPos = 0; yPos < m_scaling; yPos++)
+					{
+						int xPixel = (x * m_scaling) + xPos;
+						int yPixel = (y * m_scaling) + yPos;
+
+						const uint32_t pixelPosition = (yPixel * m_pitch) + xPixel * 3;
+						m_lockedPixels[pixelPosition] = rgba.r;
+						m_lockedPixels[pixelPosition + 1] = rgba.g;
+						m_lockedPixels[pixelPosition + 2] = rgba.b;
+					}
+				}
+			}
+		}
+		finishRendering();
+	}
+
+	void startRendering()
 	{
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
 		SDL_RenderClear(m_renderer);
@@ -39,27 +67,7 @@ public:
 		SDL_LockTexture(m_texture, nullptr, reinterpret_cast<void**>(&m_lockedPixels), &m_pitch);
 	};
 
-	virtual void setPixel(int x, int y, const ggb::RGBA& rgba)
-	{
-		assert(x < m_width);
-		assert(y < m_height);
-
-		for (int xPos = 0; xPos < m_scaling; xPos++)
-		{
-			for (int yPos = 0; yPos < m_scaling; yPos++)
-			{
-				int xPixel = (x * m_scaling) + xPos;
-				int yPixel = (y * m_scaling) + yPos;
-
-				const uint32_t pixelPosition = (yPixel * m_pitch) + xPixel * 3;
-				m_lockedPixels[pixelPosition] = rgba.r;
-				m_lockedPixels[pixelPosition+1] = rgba.g;
-				m_lockedPixels[pixelPosition+2] = rgba.b;
-			}
-		}
-	};
-
-	virtual void finishRendering()
+	void finishRendering()
 	{
 		SDL_UnlockTexture(m_texture);
 		SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
@@ -150,7 +158,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
-	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
+	emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.setInput(std::move(appInputHandling));
 

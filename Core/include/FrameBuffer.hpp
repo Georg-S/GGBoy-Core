@@ -49,27 +49,24 @@ namespace ggb
 	Tile getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette);
 	void getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, std::vector<RGBA>& outVec);
 
-	class Renderer 
-	{
-	public:
-		virtual ~Renderer() = default;
-		virtual void startRendering() = 0;
-		virtual void setPixel(int x, int y, const RGBA& rgba) = 0;
-		virtual void finishRendering() = 0;
-	};
-
-	class FrameBuffer 
+	class FrameBuffer
 	{
 	public:
 		FrameBuffer(BUS* bus, int xSize, int ySize);
 		void setPixel(int x, int y, const RGBA& pixelValue);
 		RGBA getPixel(int x, int y) const;
-		void forEachPixel(const std::function<void(int x, int y, const RGBA& rgb)>& func) const;
 
+		std::vector<std::vector<RGBA>> m_buffer;
 	private:
 		const int m_xSize;
 		const int m_ySize;
 		BUS* m_bus;
-		std::vector<std::vector<RGBA>> m_buffer;
+	};
+
+	class Renderer 
+	{
+	public:
+		virtual ~Renderer() = default;
+		virtual void renderNewFrame(const FrameBuffer& frameBuffer) = 0;
 	};
 }

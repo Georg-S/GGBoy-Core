@@ -15,7 +15,8 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	: m_bus(bus)
 {
 	m_currentRowBuffer = std::vector<RGBA>(8, {0,0,0,0});
-	m_gamePicture = std::make_unique<FrameBuffer>(m_bus, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
+	m_gameFrameBuffer = std::make_unique<FrameBuffer>(m_bus, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
+	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(m_bus, TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
 	m_LCDControl = m_bus->getPointerIntoMemory(LCD_CONTROL_REGISTER_ADDRESS);
 	m_LCDStatus = m_bus->getPointerIntoMemory(LCD_STATUS_REGISTER_ADDRESS);
@@ -133,7 +134,7 @@ void ggb::PixelProcessingUnit::setGameRenderer(std::unique_ptr<Renderer> rendere
 
 Dimensions ggb::PixelProcessingUnit::getTileDataDimensions() const
 {
-	return Dimensions{ 300, 200 };
+	return Dimensions{ TILE_DATA_WIDTH, TILE_DATA_HEIGHT };
 }
 
 void ggb::PixelProcessingUnit::setDrawTileData(bool enable)
@@ -191,7 +192,7 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
 		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH) 
 		{
-			m_gamePicture->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+			m_gameFrameBuffer->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
 			++i;
 		}
@@ -238,7 +239,7 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
 		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH)
 		{
-			m_gamePicture->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+			m_gameFrameBuffer->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
 			++i;
 		}
@@ -298,9 +299,8 @@ ColorPalette ggb::PixelProcessingUnit::getBackgroundAndWindowColorPalette()
 	return result;
 }
 
-static void renderTileData(const std::vector<Tile>& tiles, Renderer* renderer)
+static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuffer, Renderer* renderer)
 {
-	renderer->startRendering();
 	int currX = 0;
 	int currY = 0;
 	constexpr int margin = 10;
@@ -312,7 +312,7 @@ static void renderTileData(const std::vector<Tile>& tiles, Renderer* renderer)
 			for (int y = 0; y < 8; y++)
 			{
 				const auto& color = tile.m_data[x][y];
-				renderer->setPixel(currX * margin + x, currY * margin + y, color);
+				frameBuffer->m_buffer[currX * margin + x][currY * margin + y] = color;
 			}
 		}
 		currX += 1;
@@ -323,7 +323,7 @@ static void renderTileData(const std::vector<Tile>& tiles, Renderer* renderer)
 			currY += 1;
 		}
 	}
-	renderer->finishRendering();
+	renderer->renderNewFrame(*frameBuffer);
 }
 
 void ggb::PixelProcessingUnit::updateAndRenderTileData()
@@ -335,7 +335,7 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 	for (uint16_t i = 0; i < VRAM_TILE_COUNT; i++)
 		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i]);
 
-	renderTileData(m_vramTiles, m_tileDataRenderer.get());
+	renderTileData(m_vramTiles, m_tileDataFrameBuffer.get(), m_tileDataRenderer.get());
 }
 
 void ggb::PixelProcessingUnit::renderGame()
@@ -343,10 +343,5 @@ void ggb::PixelProcessingUnit::renderGame()
 	if (!m_gameRenderer)
 		return;
 
-	m_gameRenderer->startRendering();
-	m_gamePicture->forEachPixel([this](int x, int y, const RGBA& rgb)
-		{
-			m_gameRenderer->setPixel(x, y, rgb);
-		});
-	m_gameRenderer->finishRendering();
+	m_gameRenderer->renderNewFrame(*m_gameFrameBuffer);
 }

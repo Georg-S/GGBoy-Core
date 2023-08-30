@@ -61,7 +61,8 @@ namespace ggb
 		std::vector<RGBA> m_currentRowBuffer;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 		std::unique_ptr<Renderer> m_gameRenderer;
-		std::unique_ptr<FrameBuffer> m_gamePicture;
+		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;
+		std::unique_ptr<FrameBuffer> m_tileDataFrameBuffer;
 		uint8_t* m_LCDControl = nullptr;
 		uint8_t* m_LCDYCoordinate = nullptr;
 		uint8_t* m_LYCompare = nullptr;
