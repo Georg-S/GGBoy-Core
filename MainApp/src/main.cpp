@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 	auto appInputHandling = std::make_unique<InputHandler>();
 	auto tileDataDimensions = emulator.getTileDataDimensions();
 	auto gameWindowDimensions = emulator.getGameWindowDimensions();
-	auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height);
+	//auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height, 4);
 	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
 
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
-	emulator.setTileDataRenderer(std::move(tileDataRenderer));
+	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.setInput(std::move(appInputHandling));
 

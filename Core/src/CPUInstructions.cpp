@@ -3070,7 +3070,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xF8,loadStackPointerPlusNumberIntoHL, 12, "LD HL,SP+i8" });
 	setOpcode({ 0xF9,loadHLIntoStackPointer, 8, "LD SP,HL" });
 	setOpcode({ 0xFA,loadAddressIntoA, 16, "LD A,(u16)" });
-	setOpcode({ 0xFB,enableInterrupts, 0, "EI" });
+	setOpcode({ 0xFB,enableInterrupts, 4, "EI" });
 	setOpcode({ 0xFC,invalidInstruction, 0, "FC=INVALID" });
 	setOpcode({ 0xFD,invalidInstruction, 0, "FD=INVALID" });
 	setOpcode({ 0xFE,compareAWithNumber, 8, "CP A,u8" });

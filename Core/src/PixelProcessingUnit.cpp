@@ -176,7 +176,6 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 		assert(tileMapIndex < 1024);
 		const auto tileIndexAddress = backgroundTileMap + tileMapIndex;
 
-
 		uint16_t tileAddress = 0;
 		if (readSigned) 
 		{
@@ -202,6 +201,15 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 
 void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 {
+	const auto mapScreenCoordinateToWindow = [&](int screenCoord)
+	{
+		return (screenCoord + 7) - *m_windowXPos;
+	};
+	const auto mapWindowCoordinateToScreen = [](int windowCoord)
+	{
+		return windowCoord - 7;
+	};
+
 	// TODO probably not correct yet
 	// TODO Refactor it into the same method as the background
 	const auto palette = getBackgroundAndWindowColorPalette();
@@ -211,18 +219,17 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	if (*m_LCDYCoordinate < *m_windowYPos)
 		return;
 
-	const auto yPos = (*m_LCDYCoordinate - *m_windowYPos);
+	const auto yPos = *m_LCDYCoordinate - *m_windowYPos;
 	const auto yTileOffset = (yPos / 8) * 32;
 	assert(yTileOffset < 1024);
-	const auto xOffset = *m_windowXPos;
-	const auto tileRow = yTileOffset % 8;
-	auto tileColumn = xOffset % 8;
+	const auto screenX = mapWindowCoordinateToScreen(*m_windowXPos);
+	const auto tileRow = yPos % 8;
+	auto tileColumn = *m_windowXPos % 8;
 
-
-	for (int i = 0; i < GAME_WINDOW_WIDTH;)
+	for (int xCoord = screenX; xCoord < GAME_WINDOW_WIDTH;)
 	{
-		auto xBuff = xOffset + i;
-		auto tileIndexAddress = (xBuff / 8) + yTileOffset;
+		auto tileIndexAddress = (mapScreenCoordinateToWindow(xCoord) / 8) + yTileOffset;
+		tileIndexAddress = windowTileMap + tileIndexAddress;
 	
 		uint16_t tileAddress = 0;
 		if (readSigned)
@@ -237,11 +244,11 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 		}
 
 		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
-		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH)
-		{
-			m_gameFrameBuffer->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+		while (tileColumn < 8 && xCoord < GAME_WINDOW_WIDTH)
+		{ 
+			m_gameFrameBuffer->setPixel(xCoord, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
-			++i;
+			++xCoord;
 		}
 		tileColumn = 0;
 	}
