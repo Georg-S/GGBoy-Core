@@ -2835,7 +2835,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x0D,decrementC, 4, "DEC C" });
 	setOpcode({ 0x0E,loadValueIntoC, 8, "LD C,u8" });
 	setOpcode({ 0x0F,rotateARight, 4, "RRCA" });
-	setOpcode({ 0x10,stop, 4, "STOP" });
+	setOpcode({ 0x10,stop, 0, "STOP" });
 	setOpcode({ 0x11,loadTwoBytesIntoDE, 12, "LD DE,u16" });
 	setOpcode({ 0x12,writeAToAddressDE, 8, "LD (DE),A" });
 	setOpcode({ 0x13,incrementDE, 8, "INC DE" });
@@ -2888,7 +2888,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x42,loadDIntoB, 4, "LD B,D" });
 	setOpcode({ 0x43,loadEIntoB, 4, "LD B,E" });
 	setOpcode({ 0x44,loadHIntoB, 4, "LD B,H" });
-	setOpcode({ 0x45,loadLIntoB, 0, "LD B,L" });
+	setOpcode({ 0x45,loadLIntoB, 4, "LD B,L" });
 	setOpcode({ 0x46,loadAddressHLIntoB, 8, "LD B,(HL)" });
 	setOpcode({ 0x47,loadAIntoB, 4, "LD B,A" });
 	setOpcode({ 0x48,loadBIntoC, 4, "LD C,B" });
@@ -2937,7 +2937,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0x73,loadEIntoHLAddress, 8, "LD (HL),E" });
 	setOpcode({ 0x74,loadHIntoHLAddress, 8, "LD (HL),H" });
 	setOpcode({ 0x75,loadLIntoHLAddress, 8, "LD (HL),L" });
-	setOpcode({ 0x76,halt, 4, "HALT" });
+	setOpcode({ 0x76,halt, 0, "HALT" });
 	setOpcode({ 0x77,loadAIntoHLAddress, 8, "LD (HL),A" });
 	setOpcode({ 0x78,loadBIntoA, 4, "LD A,B" });
 	setOpcode({ 0x79,loadCIntoA, 4, "LD A,C" });
@@ -3022,7 +3022,7 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xC8,returnZero, 8, "RET Z", 20 });
 	setOpcode({ 0xC9,returnInstr, 16, "RET" });
 	setOpcode({ 0xCA,jumpZeroToNumber, 12, "JP Z,u16", 16 });
-	setOpcode({ 0xCB,prefixOPCode, 4, "PREFIX CB" });
+	setOpcode({ 0xCB,prefixOPCode, 0, "PREFIX CB" });
 	setOpcode({ 0xCC,callZeroNumber, 12, "CALL Z,u16", 24 });
 	setOpcode({ 0xCD,callInstr, 24, "CALL u16" });
 	setOpcode({ 0xCE,addNumberAndCarryToA, 8, "ADC A,u8" });

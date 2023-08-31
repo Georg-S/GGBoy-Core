@@ -33,8 +33,7 @@ namespace ggb
 	constexpr void setBitToValue(T& out, int bit, bool value)
 	{
 		assert(bit < (sizeof(T) * 8));
-		// TODO double check if this is correct
-		out = (out & ~(1 << bit)) | (value << bit);
+		out = (out & ~(1 << bit)) | (value << bit); // Clear the bit first and then bitwise or it with the bit value
 	}
 
 	template<typename T>

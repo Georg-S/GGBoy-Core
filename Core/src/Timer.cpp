@@ -26,7 +26,6 @@ ggb::Timer::Timer(BUS* bus)
 
 void ggb::Timer::step(int elapsedCycles)
 {
-	constexpr uint32_t cpu_clock = 4194304;
 	updateTimerDivider(elapsedCycles);
 
 	const bool enabled = isBitSet(*m_timerControl, 2);

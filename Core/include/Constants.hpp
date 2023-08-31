@@ -30,7 +30,8 @@ namespace ggb
 	static constexpr uint16_t INTERRUPT_REQUEST_ADDRESS = 0xFF0F;
 	static constexpr uint16_t ENABLED_INTERRUPT_ADDRESS = 0xFFFF;
 
-	static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = 256;	// CPU clock 4194304 divided by 16384
+	static constexpr uint32_t CPU_BASE_CLOCK = 4194304;
+	static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = CPU_BASE_CLOCK / 16384;
 	static constexpr uint16_t INTERRUPT_VBLANK_BIT = 0;
 	static constexpr uint16_t INTERRUPT_LCD_STAT_BIT = 1;
 	static constexpr uint16_t INTERRUPT_TIMER_BIT = 2;
