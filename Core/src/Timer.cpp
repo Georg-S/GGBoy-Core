@@ -36,9 +36,9 @@ void ggb::Timer::step(int elapsedCycles)
 	const auto timerControl = getTimerControlDivisor(timerControlDividerBits);
 
 	m_counterForTimerCounter += elapsedCycles;
-	if (m_counterForTimerCounter >= timerControl)
+	while (m_counterForTimerCounter >= timerControl)
 	{
-		m_counterForTimerCounter %= timerControl;
+		m_counterForTimerCounter -= timerControl;
 		++(*m_timerCounter);
 		if (*m_timerCounter == 0) 
 		{
