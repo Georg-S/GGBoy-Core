@@ -12,12 +12,22 @@ using namespace ggb;
 static constexpr int VRAM_TILE_COUNT = 384;
 
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
-	: m_bus(bus)
 {
+	setBus(bus);
 	m_currentRowBuffer = std::vector<RGBA>(8, {0,0,0,0});
 	m_gameFrameBuffer = std::make_unique<FrameBuffer>(m_bus, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(m_bus, TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
+}
+
+void ggb::PixelProcessingUnit::reset()
+{
+	m_cycleCounter = 0;
+}
+
+void ggb::PixelProcessingUnit::setBus(BUS* bus)
+{
+	m_bus = bus;
 	m_LCDControl = m_bus->getPointerIntoMemory(LCD_CONTROL_REGISTER_ADDRESS);
 	m_LCDStatus = m_bus->getPointerIntoMemory(LCD_STATUS_REGISTER_ADDRESS);
 	m_LCDYCoordinate = m_bus->getPointerIntoMemory(LCD_Y_COORDINATE_ADDRESS);

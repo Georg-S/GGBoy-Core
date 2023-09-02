@@ -4,7 +4,6 @@
 #include "Constants.hpp"
 #include "Logging.hpp"
 
-
 static constexpr int ACTION_BUTTONS_BIT = 5;
 static constexpr int DIRECTION_BUTTONS_BIT = 4;
 static constexpr int DOWN_START_BIT = 3;
@@ -41,7 +40,6 @@ void ggb::Input::update()
 	setInputBitAndHandleInterrupt(isBPressed(), isLeftPressed(), LEFT_B_BIT);
 	setInputBitAndHandleInterrupt(isSelectPressed(), isUpPressed(), UP_SELECT_BIT);
 	setInputBitAndHandleInterrupt(isStartPressed(), isDownPressed(), DOWN_START_BIT);
-	//logNumBinary(*m_inputRegister);
 }
 
 

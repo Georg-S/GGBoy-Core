@@ -16,8 +16,19 @@ static uint32_t getTimerControlDivisor(uint8_t num)
 }
 
 ggb::Timer::Timer(BUS* bus)
-	: m_bus(bus)
 {
+	setBus(bus);
+}
+
+void ggb::Timer::reset()
+{
+	m_dividerCounter = 0;
+	m_counterForTimerCounter = 0;
+}
+
+void ggb::Timer::setBus(BUS* bus)
+{
+	m_bus = bus;
 	m_dividerRegister = m_bus->getPointerIntoMemory(TIMER_DIVIDER_REGISTER_ADDRESS);
 	m_timerCounter = m_bus->getPointerIntoMemory(TIMER_COUNTER_ADDRESS);
 	m_timerModulo = m_bus->getPointerIntoMemory(TIMER_MODULO_ADDRESS);

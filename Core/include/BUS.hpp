@@ -12,6 +12,7 @@ namespace ggb
 	{
 	public:
 		BUS() = default;
+		void reset();
 		void setCartridge(Cartridge* cartridge);
 		void setTimer(Timer* cartridge);
 		void setPixelProcessingUnit(PixelProcessingUnit* ppu);
@@ -30,8 +31,7 @@ namespace ggb
 	private:
 		Cartridge* m_cartridge = nullptr;
 		Timer* m_timer = nullptr;
-		PixelProcessingUnit* m_ppu;
-		
+		PixelProcessingUnit* m_ppu = nullptr;
 		std::vector<uint8_t> m_memory = std::vector<uint8_t>(uint16_t(0xFFFF)+1, 0);
 	};
 }

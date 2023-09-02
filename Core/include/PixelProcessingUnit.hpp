@@ -32,6 +32,8 @@ namespace ggb
 	{
 	public:
 		PixelProcessingUnit(BUS* bus);
+		void reset();
+		void setBus(BUS* bus);
 		void step(int elapsedCycles);
 		bool isEnabled() const;
 		LCDMode getCurrentLCDMode() const; 

@@ -21,6 +21,7 @@ namespace ggb
 		bool loadCartridge(const std::filesystem::path& path);
 		void run();
 		void step();
+		void reset();
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setInput(std::unique_ptr<Input> input);
@@ -28,7 +29,9 @@ namespace ggb
 		Dimensions getGameWindowDimensions() const;
 
 	private:
-		CPU m_CPU;
+		void rewire();
+
+		std::unique_ptr<CPU> m_cpu;
 		std::unique_ptr<BUS> m_bus;
 		std::unique_ptr<Cartridge> m_currentCartridge;
 		std::unique_ptr<PixelProcessingUnit> m_ppu;

@@ -42,6 +42,11 @@ constexpr static bool isObjectAttributeMemory(uint16_t address)
     return (address >= 0xFE00 && address <= 0xFE9F);
 }
 
+void ggb::BUS::reset()
+{
+    m_memory = std::vector<uint8_t>(uint16_t(0xFFFF) + 1, 0);
+}
+
 void ggb::BUS::setCartridge(Cartridge* cartridge)
 {
     m_cartridge = cartridge;

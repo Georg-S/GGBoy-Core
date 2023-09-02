@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
 	auto gameWindowDimensions = emulator.getGameWindowDimensions();
 	//auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height, 4);
 	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
+	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
 
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	//emulator.loadCartridge("Roms/Games/Tetris.gb");
@@ -146,6 +147,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
 	//emulator.loadCartridge("Roms/Games/Pokemon_Yellow.gb");
 	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
+	//emulator.loadCartridge("Roms/TestROMs/instr_timing.gb");
 	//emulator.loadCartridge("Roms/TestROMs/cpu_instrs.gb");
 	//emulator.loadCartridge("Roms/TestROMs/01-special.gb");
 	//emulator.loadCartridge("Roms/TestROMs/02-interrupts.gb");
@@ -170,6 +172,9 @@ int main(int argc, char* argv[])
 		{
 			counter -= 10;
 			SDL_PumpEvents(); // Don't pump events on every step -> not really needed and improves performance
+
+			if (keyStates[SDL_SCANCODE_R])
+				emulator.reset();
 		}
 	}
 

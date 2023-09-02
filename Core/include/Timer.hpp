@@ -7,6 +7,8 @@ namespace ggb
 	{
 	public:
 		Timer(BUS* bus);
+		void reset();
+		void setBus(BUS* bus);
 		void step(int elapsedCycles);
 		void resetDividerRegister();
 		void updateTimerDivider(int elapsedCycles);

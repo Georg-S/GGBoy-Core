@@ -25,7 +25,8 @@ void ggb::CPU::reset()
 	m_cpuState.L() = 0x4D;
 	m_cpuState.InstructionPointer() = 0x100;
 	m_cpuState.StackPointer() = 0xFFFE;
-
+	m_cpuState.disableInterrupts();
+	m_cpuState.resume();
 }
 
 void ggb::CPU::setBus(BUS* bus)
