@@ -79,14 +79,22 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 	}
 }
 
+void ggb::Cartridge::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam)
+{
+	auto convertedAddress = convertRawAddressToBankAddress(startAddress);
+
+	for (size_t i = 0; i < OAM_SIZE; i++)
+	{
+		// TODO maybe use memcpy instead
+		oam[i] = m_cartridgeData[convertedAddress + i];
+	}
+}
+
 uint8_t ggb::Cartridge::read(uint16_t address) const
 {
 	if (isRAMBankAddress(address)) 
 	{
-		auto startAddress = m_romBankNumber * ROM_BANK_SIZE;
-		auto newAddress = address - 0x4000;
-		newAddress = startAddress + newAddress;
-
+		const auto newAddress = convertRawAddressToBankAddress(address);
 		return m_cartridgeData[newAddress];
 	}
 
@@ -101,6 +109,13 @@ MBCTYPE ggb::Cartridge::getMBCType() const
 	logNumBinary(val);
 
 	return MBCTYPE(val);
+}
+
+uint16_t ggb::Cartridge::convertRawAddressToBankAddress(uint16_t address) const
+{
+	auto startAddress = m_romBankNumber * ROM_BANK_SIZE;
+	auto newAddress = address - 0x4000;
+	return startAddress + newAddress;
 }
 
 std::unique_ptr<Cartridge> ggb::loadCartridge(const std::filesystem::path& path)

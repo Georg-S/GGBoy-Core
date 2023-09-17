@@ -109,7 +109,7 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
     }
 
     if (address == START_DIRECT_MEMORY_ACCESS_ADDRESS)
-        int a = 3; // TODO implement DMA
+        directMemoryAccess(value);
 
     if (isUnusedMemory(address)) 
     {
@@ -153,7 +153,6 @@ bool ggb::BUS::checkBit(uint16_t address, int bit) const
 
 uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
 {
-    assert(isIOAddress(address)); // As of now, this should be only used for memory mapped IO
     return &m_memory[address];
 }
 
@@ -165,4 +164,25 @@ void ggb::BUS::requestInterrupt(int interrupt)
 void ggb::BUS::resetTimerDivider()
 {
     m_timer->resetDividerRegister();
+}
+
+void ggb::BUS::directMemoryAccess(uint8_t value)
+{
+    // TODO maybe not do this in every function call, move into contructor
+    // TODO if this project gets switched over to C++20 it would probably be better to use ranges instead of pointer fiddling
+    auto oamStart = getPointerIntoMemory(OAM_ADDRESS);
+    uint16_t sourceStartAddress = value << 8;
+    assert(sourceStartAddress <= 0xDF00);
+
+    if (isCartridgeROM(sourceStartAddress) || isCartridgeRAM(sourceStartAddress)) 
+    {
+        m_cartridge->executeOAMDMATransfer(sourceStartAddress, oamStart);
+        return;
+    }
+
+    for (size_t i = 0; i < OAM_SIZE; i++)
+    {
+        // TODO does this get optimized by the compiler? if not should probably use memcpy
+        oamStart[i] = m_memory[sourceStartAddress + i];
+    }
 }

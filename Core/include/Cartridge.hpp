@@ -27,10 +27,13 @@ namespace ggb
 		Cartridge() = default;
 		bool load(const std::filesystem::path& romPath);
 		void write(uint16_t address, uint8_t value);
+		void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam);
 		uint8_t read(uint16_t address) const;
 		MBCTYPE getMBCType() const;
 
 	private:
+		uint16_t convertRawAddressToBankAddress(uint16_t address) const;
+
 		std::vector<uint8_t> m_cartridgeData;
 		MBCTYPE m_mbcType;
 		bool m_ramEnabled = false;

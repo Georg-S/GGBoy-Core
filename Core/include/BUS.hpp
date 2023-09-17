@@ -29,6 +29,8 @@ namespace ggb
 		void resetTimerDivider();
 
 	private:
+		void directMemoryAccess(uint8_t value);
+
 		Cartridge* m_cartridge = nullptr;
 		Timer* m_timer = nullptr;
 		PixelProcessingUnit* m_ppu = nullptr;

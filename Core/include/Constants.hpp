@@ -10,6 +10,7 @@ namespace ggb
 	static constexpr uint16_t SERIAL_INTERRUPT_ADDRESS = 0x58;
 	static constexpr uint16_t JOYPAD_INTERRUPT_ADDRESS = 0x60;
 	static constexpr uint16_t MBC_TYPE_ADDRESS = 0x0147;
+	static constexpr uint16_t OAM_ADDRESS = 0xFE00; // OAM = object attribute memory
 	static constexpr uint16_t INPUT_REGISTER_ADDRESS = 0xFF00;
 	static constexpr uint16_t TIMER_DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	static constexpr uint16_t TIMER_COUNTER_ADDRESS = 0xFF05;
@@ -42,4 +43,5 @@ namespace ggb
 	static constexpr uint16_t TILE_DATA_WIDTH = 300;
 	static constexpr uint16_t TILE_DATA_HEIGHT = 200;
 	static constexpr uint16_t ROM_BANK_SIZE = 0x4000;
+	static constexpr uint16_t OAM_SIZE = 0xA0;
 }
