@@ -44,4 +44,8 @@ namespace ggb
 	static constexpr uint16_t TILE_DATA_HEIGHT = 200;
 	static constexpr uint16_t ROM_BANK_SIZE = 0x4000;
 	static constexpr uint16_t OAM_SIZE = 0xA0;
+	static constexpr uint16_t OBJECT_COUNT = 40;
+	static constexpr uint16_t MAX_ALLOWED_OBJS_PER_SCANLINE = 40;
+	static constexpr uint16_t TILE_SIZE = 16; // in bytes
+
 }
