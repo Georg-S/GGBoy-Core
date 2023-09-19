@@ -338,7 +338,6 @@ static void loadValueIntoL(CPUInstructionParameters)
 
 static void complementAccumulator(CPUInstructionParameters)
 {
-	// TODO check if this is the correct behavior
 	cpu->A() = ~cpu->A();
 	cpu->setSubtractionFlag(true);
 	cpu->setHalfCarryFlag(true);
@@ -413,7 +412,6 @@ static void addSPToHL(CPUInstructionParameters)
 
 static void loadHLAddressIntoADecrementHL(CPUInstructionParameters)
 {
-	// TODO double check
 	cpu->A() = bus->read(cpu->HL()--);
 }
 

@@ -158,7 +158,7 @@ uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
 
 void ggb::BUS::requestInterrupt(int interrupt)
 {
-    setBit(INTERRUPT_REQUEST_ADDRESS, interrupt);
+    ggb::setBit(m_memory[INTERRUPT_REQUEST_ADDRESS], interrupt);
 }
 
 void ggb::BUS::resetTimerDivider()

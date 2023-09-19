@@ -8,19 +8,20 @@
 // Needed because of SDL
 #undef main
 
-
-// TODO: improve even more e.g. by just memcopying the framebuffer
 class SDLRenderer : public ggb::Renderer
 {
 public:
 	SDLRenderer(int width, int height, int scalingFactor = 1)
-		: m_width(width* scalingFactor)
-		, m_height(height* scalingFactor)
+		: m_textureWidth(width)
+		, m_textureHeight(height)
+		, m_windowWidth(width* scalingFactor)
+		, m_windowHeight(height* scalingFactor)
 		, m_scaling(scalingFactor)
 	{
-		SDL_CreateWindowAndRenderer(m_width, m_height, 0, &m_window, &m_renderer);
+		SDL_CreateWindowAndRenderer(m_windowWidth, m_windowHeight, 0, &m_window, &m_renderer);
 		SDL_SetWindowTitle(m_window, "GGBoy");
-		m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, m_width, m_height);
+		m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, m_textureWidth, m_textureHeight);
+		m_textureTransform = { 0,0, m_windowWidth, m_windowHeight };
 	}
 
 	~SDLRenderer()
@@ -40,19 +41,10 @@ public:
 			{
 				const auto rgba = framebuffer.m_buffer[x][y];
 
-				for (int xPos = 0; xPos < m_scaling; xPos++)
-				{
-					for (int yPos = 0; yPos < m_scaling; yPos++)
-					{
-						int xPixel = (x * m_scaling) + xPos;
-						int yPixel = (y * m_scaling) + yPos;
-
-						const uint32_t pixelPosition = (yPixel * m_pitch) + xPixel * 3;
-						m_lockedPixels[pixelPosition] = rgba.r;
-						m_lockedPixels[pixelPosition + 1] = rgba.g;
-						m_lockedPixels[pixelPosition + 2] = rgba.b;
-					}
-				}
+				const uint32_t pixelPosition = (y * m_pitch) + x * 3;
+				m_lockedPixels[pixelPosition] = rgba.r;
+				m_lockedPixels[pixelPosition + 1] = rgba.g;
+				m_lockedPixels[pixelPosition + 2] = rgba.b;
 			}
 		}
 		finishRendering();
@@ -70,7 +62,7 @@ public:
 	void finishRendering()
 	{
 		SDL_UnlockTexture(m_texture);
-		SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
+		SDL_RenderCopy(m_renderer, m_texture, NULL, &m_textureTransform);
 		SDL_RenderPresent(m_renderer);
 	};
 
@@ -78,11 +70,14 @@ private:
 	SDL_Window* m_window = nullptr;
 	SDL_Renderer* m_renderer = nullptr;
 	SDL_Texture* m_texture = nullptr;
+	SDL_Rect m_textureTransform = {};
 	uint8_t* m_lockedPixels = nullptr;
 
+	int m_textureWidth = 0;
+	int m_textureHeight = 0;
+	int m_windowWidth = 0;
+	int m_windowHeight = 0;
 	int m_pitch = 0;
-	int m_width = 0;
-	int m_height = 0;
 	int m_scaling = 1;
 };
 

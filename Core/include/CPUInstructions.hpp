@@ -6,18 +6,16 @@
 
 namespace ggb
 {
-	// TODO: Is this really cleaner than having it in every method???
 #define CPUInstructionParameters CPUState* cpu, BUS* bus, bool* branchTaken
 	// It is possible to use std::function here, however debugging is easier with plain C function pointers (and no performance overhead)
 	using InstructionFunction = void (*)(CPUInstructionParameters);
 
-
 	void callAddress(CPUState* cpu, BUS* bus, uint16_t address);
 
-	class OPCodes 
+	class OPCodes
 	{
 	public:
-		struct OPCode 
+		struct OPCode
 		{
 			int id = -1;
 			InstructionFunction func = nullptr;
@@ -27,7 +25,7 @@ namespace ggb
 		};
 		OPCodes();
 		int execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus);
-		const std::string& getMnemonic(uint16_t opCode)const;
+		const std::string& getMnemonic(uint16_t opCode) const;
 	private:
 		void setOpcode(OPCode&& opcode);
 		void setExtendedOpcode(OPCode&& opcode);
