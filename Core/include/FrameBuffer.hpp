@@ -48,6 +48,8 @@ namespace ggb
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile);
 	Tile getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette);
 	void getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, std::vector<RGBA>& outVec);
+	void getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
+	RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette);
 
 	class FrameBuffer
 	{

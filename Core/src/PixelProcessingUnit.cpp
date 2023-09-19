@@ -15,6 +15,9 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 {
 	setBus(bus);
 	m_currentRowBuffer = std::vector<RGBA>(8, { 0,0,0,0 });
+	m_objColorBuffer = std::vector<uint8_t>(8, 0);
+	m_currentObjRowBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
+	m_pixelBuffer = std::vector<PixelStru>(GAME_WINDOW_WIDTH, { {} });
 	m_gameFrameBuffer = std::make_unique<FrameBuffer>(m_bus, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(m_bus, TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
@@ -179,6 +182,20 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 		writeCurrentWindowLineIntoBuffer();
 	if (isBitSet(*m_LCDControl, 1))
 		writeCurrentObjectLineIntoBuffer();
+
+	for (int x = 0; x < GAME_WINDOW_WIDTH; x++) 
+	{
+		const auto& backgroundAndWindowPixel = m_pixelBuffer[x];
+		const auto& objectPixel = m_currentObjRowBuffer[x];
+
+		m_gameFrameBuffer->setPixel(x, *m_LCDYCoordinate, backgroundAndWindowPixel.rgb);
+		if (objectPixel.pixelSet) 
+		{
+			if (objectPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0))
+				continue;
+			m_gameFrameBuffer->setPixel(x, *m_LCDYCoordinate, objectPixel.rgb);
+		}
+	}
 }
 
 void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
@@ -212,10 +229,13 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 			tileAddress = 0x8000 + (tileIndex * TILE_SIZE);
 		}
 
-		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
+		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
 		while (tileColumn < 8 && i < GAME_WINDOW_WIDTH)
 		{
-			m_gameFrameBuffer->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+			const auto colorValue = m_objColorBuffer[tileColumn];
+			const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
+			m_pixelBuffer[i] = { rgb, colorValue};
+			//m_gameFrameBuffer->setPixel(i, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
 			++i;
 		}
@@ -267,10 +287,14 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 			tileAddress = 0x8000 + (tileIndex * TILE_SIZE);
 		}
 
-		getTileRowRGBData(m_bus, tileAddress, tileRow, palette, m_currentRowBuffer);
+		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
 		while (tileColumn < 8 && xCoord < GAME_WINDOW_WIDTH)
 		{
-			m_gameFrameBuffer->setPixel(xCoord, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
+			const auto colorValue = m_objColorBuffer[tileColumn];
+			const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
+			m_pixelBuffer[xCoord] = { rgb, colorValue };
+
+			//m_gameFrameBuffer->setPixel(xCoord, *m_LCDYCoordinate, m_currentRowBuffer[tileColumn]);
 			++tileColumn;
 			++xCoord;
 		}
@@ -280,7 +304,12 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 
 void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 {
-	const int flipXBit = 5;
+	constexpr int FLIP_X_BIT = 5;
+	constexpr int BACKGROUND_OVER_OBJ_BIT = 7; // background and window
+	constexpr int TRANSPARENT_PIXEL_VALUE = 0;
+
+	for (auto& obj : m_currentObjRowBuffer)
+		obj.pixelSet = false;
 
 	for (const auto& obj : m_currentScanlineObjects)
 	{
@@ -288,30 +317,32 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 		if (*obj.yPosition + 7 < *m_LCDYCoordinate)
 			++tileAddress; // TODO: Is this correct for y flipped 8 x 16 ???
 
-		auto objConvertedYPos = *obj.yPosition - 16;
-		auto objTileLine = *m_LCDYCoordinate - objConvertedYPos;
-		auto colorPalette = getObjectColorPalette(obj);
+		const auto objConvertedYPos = *obj.yPosition - 16;
+		const auto objTileLine = *m_LCDYCoordinate - objConvertedYPos;
+		const auto colorPalette = getObjectColorPalette(obj);
+		const bool backgroundOverObj = isBitSet(*obj.attributes, BACKGROUND_OVER_OBJ_BIT);
 
-		getTileRowRGBData(m_bus, tileAddress, objTileLine, colorPalette, m_currentRowBuffer);
-		if (isBitSet(*obj.attributes, flipXBit))
-			std::reverse(m_currentRowBuffer.begin(), m_currentRowBuffer.end());
+		getTileRowData(m_bus, tileAddress, objTileLine, m_objColorBuffer);
+		if (isBitSet(*obj.attributes, FLIP_X_BIT))
+			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
-		int x = *obj.xPosition - 8;
-		int objX = 0;
-		while (objX < 8 && x < GAME_WINDOW_WIDTH) 
+		for (int x = *obj.xPosition - 8, objX = 0; objX < 8 && x < GAME_WINDOW_WIDTH; ++x, ++objX)
 		{
 			if (x < 0) 
-			{
-				++x;
-				++objX;
 				continue;
-			}
 
-			m_gameFrameBuffer->setPixel(x, *m_LCDYCoordinate, m_currentRowBuffer[objX]);
+			const auto currentColorValue = m_objColorBuffer[objX];
+			if (currentColorValue == TRANSPARENT_PIXEL_VALUE)
+				continue;
 
-			++x;
-			++objX;
+			m_currentObjRowBuffer[x] = { getRGBFromNumAndPalette(currentColorValue, colorPalette), backgroundOverObj, true };
 		}
+	}
+
+	for (int x = 0; x < GAME_WINDOW_WIDTH; x++) 
+	{
+		if (m_currentObjRowBuffer[x].pixelSet)
+			m_gameFrameBuffer->setPixel(x, *m_LCDYCoordinate, m_currentObjRowBuffer[x].rgb);
 	}
 }
 
@@ -438,12 +469,14 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 			break;
 	}
 
-	std::sort(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end(), [](const Object& lhs, const Object& rhs)
+	// If obj1.x == obj2.x the obj which is first in memory should overlap the one coming after it -> therefore use stable_sort
+	std::stable_sort(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end(), [](const Object& lhs, const Object& rhs)
 		{
-			// Sort in reverse order, so that a obj with lower x coordinate
-			// will overlap the one with a higher x coordinate
-			return *lhs.xPosition > *rhs.xPosition; 
+			return *lhs.xPosition < *rhs.xPosition; 
 		});
+	// Use reverse order, so that a obj with lower x coordinate
+	// will overlap the one with a higher x coordinate
+	std::reverse(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end());
 }
 
 void ggb::PixelProcessingUnit::renderGame()

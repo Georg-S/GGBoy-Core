@@ -36,6 +36,19 @@ namespace ggb
 		uint8_t* attributes = nullptr;
 	};
 
+	struct PixelStru 
+	{
+		RGBA rgb = {};
+		uint8_t rawColorValue = 0;
+	};
+
+	struct ObjectPixel 
+	{
+		RGBA rgb = {};
+		bool backgroundOverObj = false;
+		bool pixelSet = false;
+	};
+
 	class PixelProcessingUnit
 	{
 	public:
@@ -74,6 +87,9 @@ namespace ggb
 		std::vector<Object> m_currentScanlineObjects;
 		std::vector<Tile> m_vramTiles;
 		std::vector<RGBA> m_currentRowBuffer;
+		std::vector<uint8_t> m_objColorBuffer;
+		std::vector<PixelStru> m_pixelBuffer;
+		std::vector<ObjectPixel> m_currentObjRowBuffer;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;
