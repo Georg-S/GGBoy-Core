@@ -1,7 +1,7 @@
 #pragma once
 #include <cassert>
 #include <Emulator.hpp>
-#include <FrameBuffer.hpp>
+#include <RenderingUtility.hpp>
 #include <Input.hpp>
 #include "SDL.h"
 

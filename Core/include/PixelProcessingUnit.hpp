@@ -1,6 +1,6 @@
 #pragma once
 #include "BUS.hpp"
-#include "FrameBuffer.hpp"
+#include "RenderingUtility.hpp"
 
 #include <functional>
 
@@ -36,7 +36,7 @@ namespace ggb
 		uint8_t* attributes = nullptr;
 	};
 
-	struct PixelStru 
+	struct BackgroundAndWindowPixel 
 	{
 		RGBA rgb = {};
 		uint8_t rawColorValue = 0;
@@ -66,18 +66,19 @@ namespace ggb
 		void setDrawWholeBackground(bool enable);
 
 	private:
+		void renderGame();
 		void writeCurrentScanLineIntoFrameBuffer();
+		void updateCurrentScanlineObjects();
 		void writeCurrentBackgroundLineIntoFrameBuffer();
 		void writeCurrentWindowLineIntoBuffer();
 		void writeCurrentObjectLineIntoBuffer();
 		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode) const;
-		uint8_t incrementLine();
+		uint8_t scanLine() const;
+		uint8_t incrementScanline();
 		ColorPalette getBackgroundAndWindowColorPalette() const;
 		ColorPalette getObjectColorPalette(const Object& obj) const;
 		void updateAndRenderTileData();
-		void updateCurrentScanlineObjects();
-		void renderGame();
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;
@@ -88,8 +89,8 @@ namespace ggb
 		std::vector<Tile> m_vramTiles;
 		std::vector<RGBA> m_currentRowBuffer;
 		std::vector<uint8_t> m_objColorBuffer;
-		std::vector<PixelStru> m_pixelBuffer;
-		std::vector<ObjectPixel> m_currentObjRowBuffer;
+		std::vector<BackgroundAndWindowPixel> m_pixelBuffer;
+		std::vector<ObjectPixel> m_currentObjectRowPixelBuffer;
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;

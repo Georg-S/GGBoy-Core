@@ -16,6 +16,26 @@ namespace ggb
 		uint8_t a;
 	};
 
+	class FrameBuffer
+	{
+	public:
+		FrameBuffer(BUS* bus, int xSize, int ySize);
+		void setPixel(int x, int y, const RGBA& pixelValue);
+		RGBA getPixel(int x, int y) const;
+
+		std::vector<std::vector<RGBA>> m_buffer;
+	private:
+		const int m_xSize;
+		const int m_ySize;
+		BUS* m_bus;
+	};
+
+	class Renderer
+	{
+	public:
+		virtual ~Renderer() = default;
+		virtual void renderNewFrame(const FrameBuffer& frameBuffer) = 0;
+	};
 
 	struct TileRawData 
 	{
@@ -36,8 +56,6 @@ namespace ggb
 		std::array<GBColor, 4> m_color = {};
 	};
 
-	RGBA convertGBColorToRGB(GBColor color);
-
 	struct Tile 
 	{
 		explicit Tile();
@@ -45,30 +63,10 @@ namespace ggb
 		std::vector<std::vector<RGBA>> m_data;
 	};
 
+	RGBA convertGBColorToRGB(GBColor color);
+	RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette);
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile);
 	Tile getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette);
 	void getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, std::vector<RGBA>& outVec);
 	void getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
-	RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette);
-
-	class FrameBuffer
-	{
-	public:
-		FrameBuffer(BUS* bus, int xSize, int ySize);
-		void setPixel(int x, int y, const RGBA& pixelValue);
-		RGBA getPixel(int x, int y) const;
-
-		std::vector<std::vector<RGBA>> m_buffer;
-	private:
-		const int m_xSize;
-		const int m_ySize;
-		BUS* m_bus;
-	};
-
-	class Renderer 
-	{
-	public:
-		virtual ~Renderer() = default;
-		virtual void renderNewFrame(const FrameBuffer& frameBuffer) = 0;
-	};
 }

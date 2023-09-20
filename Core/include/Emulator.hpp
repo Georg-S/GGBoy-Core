@@ -9,7 +9,7 @@
 #include "Timer.hpp"
 #include "Input.hpp"
 #include "PixelProcessingUnit.hpp"
-#include "FrameBuffer.hpp"
+#include "RenderingUtility.hpp"
 
 
 namespace ggb

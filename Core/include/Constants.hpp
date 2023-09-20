@@ -46,6 +46,11 @@ namespace ggb
 	static constexpr uint16_t OAM_SIZE = 0xA0;
 	static constexpr uint16_t OBJECT_COUNT = 40;
 	static constexpr uint16_t MAX_ALLOWED_OBJS_PER_SCANLINE = 40;
-	static constexpr uint16_t TILE_SIZE = 16; // in bytes
+	static constexpr uint16_t TILE_MEMORY_SIZE = 16; // in bytes
+	static constexpr uint16_t TILE_WIDTH = 8; // in pixel
+	static constexpr uint16_t TILE_HEIGHT = 8; // in pixel
+	static constexpr uint16_t TILE_MAP_WIDTH = 32;
+	static constexpr uint16_t TILE_MAP_HEIGHT = 32;
+	static constexpr uint16_t TILE_MAP_SIZE = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
 
 }

@@ -1,4 +1,4 @@
-#include "FrameBuffer.hpp"
+#include "RenderingUtility.hpp"
 
 #include "Utility.hpp"
 
@@ -23,11 +23,6 @@ RGBA ggb::FrameBuffer::getPixel(int x, int y) const
 	return m_buffer[x][y];
 }
 
-RGBA ggb::getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
-{
-	return convertGBColorToRGB(palette.m_color[num]);
-}
-
 ggb::Tile::Tile()
 {
 	m_rawData = std::vector<TileRawData>(8, {0,0});
@@ -50,6 +45,11 @@ RGBA ggb::convertGBColorToRGB(GBColor color)
 	}
 }
 
+RGBA ggb::getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
+{
+	return convertGBColorToRGB(palette.m_color[num]);
+}
+
 void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile)
 {
 	constexpr uint16_t tileDataStartAddress = 0x8000;
@@ -63,7 +63,7 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 
 Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette)
 {
-	Tile tile;
+	auto tile = Tile();
 	overWriteTileData(bus, tileIndex, palette, &tile);
 	return tile;
 }
