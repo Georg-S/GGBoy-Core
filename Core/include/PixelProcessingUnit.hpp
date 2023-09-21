@@ -72,6 +72,7 @@ namespace ggb
 		void writeCurrentBackgroundLineIntoFrameBuffer();
 		void writeCurrentWindowLineIntoBuffer();
 		void writeCurrentObjectLineIntoBuffer();
+		uint16_t getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing);
 		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode) const;
 		uint8_t scanLine() const;

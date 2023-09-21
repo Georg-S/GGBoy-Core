@@ -246,32 +246,22 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 	const bool signedAddressingMode = !isBitSet(*m_LCDControl, 4);
 
 	const auto yPosInBackground = scanLine() + *m_viewPortYPos;
-	auto lineShift = ((yPosInBackground / 8) * 32) % 1024;
+	auto lineShift = ((yPosInBackground / TILE_HEIGHT) * TILE_MAP_WIDTH);
+	assert(lineShift < TILE_MAP_SIZE);
 
-	const auto tileRow = yPosInBackground % 8;
-	auto tileColumn = *m_viewPortXPos % 8;
+	const auto tileRow = yPosInBackground % TILE_HEIGHT;
+	auto tileColumn = *m_viewPortXPos % TILE_WIDTH;
 
 	for (int xWindow = 0; xWindow < GAME_WINDOW_WIDTH;)
 	{
-		auto xBuf = ((*m_viewPortXPos + xWindow) / 8) & 0x1F;
+		auto xBuf = ((*m_viewPortXPos + xWindow) / TILE_WIDTH) & 0x1F;
 		auto tileMapIndex = xBuf + lineShift;
-		assert(tileMapIndex < 1024);
+		assert(tileMapIndex < TILE_MAP_SIZE);
 		const auto tileIndexAddress = backgroundTileMap + tileMapIndex;
-
-		uint16_t tileAddress = 0;
-		if (signedAddressingMode)
-		{
-			int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
-			tileAddress = 0x9000 + (tileIndex * TILE_MEMORY_SIZE);
-		}
-		else
-		{
-			auto tileIndex = m_bus->read(tileIndexAddress);
-			tileAddress = 0x8000 + (tileIndex * TILE_MEMORY_SIZE);
-		}
+		const auto tileAddress = getTileAddress(tileIndexAddress, signedAddressingMode);
 
 		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
-		while (tileColumn < 8 && xWindow < GAME_WINDOW_WIDTH)
+		while (tileColumn < TILE_WIDTH && xWindow < GAME_WINDOW_WIDTH)
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
 			const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
@@ -313,21 +303,10 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	{
 		auto tileIndexAddress = (convertScreenCoordinateToWindow(xCoord) / TILE_WIDTH) + yTileOffset;
 		tileIndexAddress = windowTileMap + tileIndexAddress;
-
-		uint16_t tileAddress = 0;
-		if (readSigned)
-		{
-			int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
-			tileAddress = 0x9000 + (tileIndex * TILE_MEMORY_SIZE);
-		}
-		else
-		{
-			auto tileIndex = m_bus->read(tileIndexAddress);
-			tileAddress = 0x8000 + (tileIndex * TILE_MEMORY_SIZE);
-		}
+		const uint16_t tileAddress = getTileAddress(tileIndexAddress, readSigned);
 
 		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
-		while (tileColumn < 8 && xCoord < GAME_WINDOW_WIDTH)
+		while (tileColumn < TILE_WIDTH && xCoord < GAME_WINDOW_WIDTH)
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
 			const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
@@ -364,7 +343,7 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 		if (isBitSet(*obj.attributes, FLIP_X_BIT))
 			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
-		for (int x = *obj.xPosition - 8, objX = 0; objX < 8 && x < GAME_WINDOW_WIDTH; ++x, ++objX)
+		for (int x = *obj.xPosition - 8, objX = 0; objX < TILE_WIDTH && x < GAME_WINDOW_WIDTH; ++x, ++objX)
 		{
 			if (x < 0) 
 				continue;
@@ -382,6 +361,18 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 		if (m_currentObjectRowPixelBuffer[x].pixelSet)
 			m_gameFrameBuffer->setPixel(x, scanLine(), m_currentObjectRowPixelBuffer[x].rgb);
 	}
+}
+
+uint16_t ggb::PixelProcessingUnit::getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing)
+{
+	if (useSignedAddressing)
+	{
+		int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
+		return 0x9000 + (tileIndex * TILE_MEMORY_SIZE);
+	}
+
+	auto tileIndex = m_bus->read(tileIndexAddress);
+	return 0x8000 + (tileIndex * TILE_MEMORY_SIZE);
 }
 
 void ggb::PixelProcessingUnit::handleModeTransitionInterrupt(LCDInterrupt type)
