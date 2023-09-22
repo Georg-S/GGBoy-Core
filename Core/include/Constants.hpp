@@ -10,6 +10,8 @@ namespace ggb
 	static constexpr uint16_t SERIAL_INTERRUPT_ADDRESS = 0x58;
 	static constexpr uint16_t JOYPAD_INTERRUPT_ADDRESS = 0x60;
 	static constexpr uint16_t MBC_TYPE_ADDRESS = 0x0147;
+	static constexpr uint16_t TILE_MAP_1_ADDRESS = 0x8000;
+	static constexpr uint16_t TILE_MAP_2_ADDRESS = 0x9000;
 	static constexpr uint16_t OAM_ADDRESS = 0xFE00; // OAM = object attribute memory
 	static constexpr uint16_t INPUT_REGISTER_ADDRESS = 0xFF00;
 	static constexpr uint16_t TIMER_DIVIDER_REGISTER_ADDRESS = 0xFF04;

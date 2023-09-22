@@ -210,16 +210,16 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 {
 	// Offset needed to convert object coordinates to screen coordinates
 	static const int screenOffset = 16;
-	int tileHeight = 8;
+	int objectHeight = TILE_HEIGHT;
 	if (isBitSet(*m_LCDControl, 2))
-		tileHeight = 16;
+		objectHeight = TILE_HEIGHT * 2;
 
 	m_currentScanlineObjects.clear();
 	m_currentScanlineObjects.reserve(10);
 	for (const auto& obj : m_objects)
 	{
 		int yObjStart = static_cast<int>(*obj.yPosition) - screenOffset;
-		int yObjEnd = static_cast<int>(*obj.yPosition) + tileHeight - screenOffset - 1;
+		int yObjEnd = static_cast<int>(*obj.yPosition) + objectHeight - screenOffset - 1;
 
 		if (*m_LCDYCoordinate < yObjStart || *m_LCDYCoordinate > yObjEnd)
 			continue;
@@ -321,8 +321,6 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 
 void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 {
-	constexpr int FLIP_X_BIT = 5;
-	constexpr int BACKGROUND_OVER_OBJ_BIT = 7; // background and window
 	constexpr int TRANSPARENT_PIXEL_VALUE = 0;
 
 	for (auto& obj : m_currentObjectRowPixelBuffer)
@@ -330,17 +328,17 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 
 	for (const auto& obj : m_currentScanlineObjects)
 	{
-		uint16_t tileAddress = 0x8000 + (*obj.tileIndex * TILE_MEMORY_SIZE);
+		uint16_t tileAddress = TILE_MAP_1_ADDRESS + (*obj.tileIndex * TILE_MEMORY_SIZE);
 		if (*obj.yPosition + 7 < scanLine())
 			++tileAddress; // TODO: Is this correct for y flipped 8 x 16 ???
 
 		const auto objConvertedYPos = *obj.yPosition - 16;
 		const auto objTileLine = scanLine() - objConvertedYPos;
 		const auto colorPalette = getObjectColorPalette(obj);
-		const bool backgroundOverObj = isBitSet(*obj.attributes, BACKGROUND_OVER_OBJ_BIT);
+		const bool backgroundOverObj = obj.drawBackgroundOverObject();
 
 		getTileRowData(m_bus, tileAddress, objTileLine, m_objColorBuffer);
-		if (isBitSet(*obj.attributes, FLIP_X_BIT))
+		if (obj.isFlipXSet())
 			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
 		for (int x = *obj.xPosition - 8, objX = 0; objX < TILE_WIDTH && x < GAME_WINDOW_WIDTH; ++x, ++objX)
@@ -368,11 +366,11 @@ uint16_t ggb::PixelProcessingUnit::getTileAddress(uint16_t tileIndexAddress, boo
 	if (useSignedAddressing)
 	{
 		int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
-		return 0x9000 + (tileIndex * TILE_MEMORY_SIZE);
+		return TILE_MAP_2_ADDRESS + (tileIndex * TILE_MEMORY_SIZE);
 	}
 
 	auto tileIndex = m_bus->read(tileIndexAddress);
-	return 0x8000 + (tileIndex * TILE_MEMORY_SIZE);
+	return TILE_MAP_1_ADDRESS + (tileIndex * TILE_MEMORY_SIZE);
 }
 
 void ggb::PixelProcessingUnit::handleModeTransitionInterrupt(LCDInterrupt type)
@@ -444,9 +442,9 @@ static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuf
 
 	for (const auto& tile : tiles)
 	{
-		for (int x = 0; x < 8; x++)
+		for (int x = 0; x < TILE_WIDTH; x++)
 		{
-			for (int y = 0; y < 8; y++)
+			for (int y = 0; y < TILE_HEIGHT; y++)
 			{
 				const auto& color = tile.m_data[x][y];
 				frameBuffer->m_buffer[currX * margin + x][currY * margin + y] = color;
@@ -465,10 +463,9 @@ static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuf
 
 ColorPalette ggb::PixelProcessingUnit::getObjectColorPalette(const Object& obj) const
 {
-	if (isBitSet(*obj.attributes, 4))
+	if (obj.usePalette1())
 		return getPalette(*m_objectPalette1);
-	else
-		return getPalette(*m_objectPalette0);
+	return getPalette(*m_objectPalette0);
 }
 
 void ggb::PixelProcessingUnit::updateAndRenderTileData()

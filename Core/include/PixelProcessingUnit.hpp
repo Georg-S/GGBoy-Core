@@ -1,6 +1,7 @@
 #pragma once
 #include "BUS.hpp"
 #include "RenderingUtility.hpp"
+#include "Utility.hpp"
 
 #include <functional>
 
@@ -30,6 +31,21 @@ namespace ggb
 
 	struct Object 
 	{
+		bool isFlipXSet() const
+		{
+			return isBitSet(*attributes, 5);
+		}
+
+		bool drawBackgroundOverObject() const 
+		{
+			return isBitSet(*attributes, 7); // background and window
+		}
+
+		bool usePalette1() const
+		{
+			return isBitSet(*attributes, 4);
+		}
+
 		uint8_t* yPosition = nullptr;
 		uint8_t* xPosition = nullptr;
 		uint8_t* tileIndex = nullptr;
