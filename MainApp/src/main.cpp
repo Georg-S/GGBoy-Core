@@ -62,7 +62,7 @@ public:
 	void finishRendering()
 	{
 		SDL_UnlockTexture(m_texture);
-		SDL_RenderCopy(m_renderer, m_texture, NULL, &m_textureTransform);
+		SDL_RenderCopy(m_renderer, m_texture, nullptr, &m_textureTransform);
 		SDL_RenderPresent(m_renderer);
 	};
 
@@ -122,9 +122,8 @@ public:
 		return m_keyStates[SDL_SCANCODE_D];
 	}
 private:
-	const Uint8* m_keyStates = SDL_GetKeyboardState(NULL);
+	const Uint8* m_keyStates = SDL_GetKeyboardState(nullptr);
 };
-
 
 int main(int argc, char* argv[])
 {
@@ -134,7 +133,7 @@ int main(int argc, char* argv[])
 	auto gameWindowDimensions = emulator.getGameWindowDimensions();
 	//auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height, 4);
 	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
-	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+	const Uint8* keyStates = SDL_GetKeyboardState(nullptr);
 
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	//emulator.loadCartridge("Roms/Games/Tetris.gb");

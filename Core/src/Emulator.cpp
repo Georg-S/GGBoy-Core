@@ -10,6 +10,7 @@ ggb::Emulator::Emulator()
 	m_bus = std::make_unique<BUS>();
 	m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
 	m_timer = std::make_unique<Timer>(m_bus.get());
+	m_audio = std::make_unique<Audio>(m_bus.get());
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -37,6 +38,7 @@ void ggb::Emulator::step()
 	m_ppu->step(cycles);
 	m_timer->step(cycles);
 	m_input->update();
+	m_audio->step(cycles);
 }
 
 void ggb::Emulator::reset()
@@ -83,6 +85,7 @@ void ggb::Emulator::rewire()
 	m_ppu->setBus(m_bus.get());
 	m_cpu->setBus(m_bus.get());
 	m_timer->setBus(m_bus.get());
+	m_audio->setBus(m_bus.get());
 	if (m_input)
 		m_input->setBus(m_bus.get());
 }

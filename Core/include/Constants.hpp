@@ -18,6 +18,13 @@ namespace ggb
 	static constexpr uint16_t TIMER_COUNTER_ADDRESS = 0xFF05;
 	static constexpr uint16_t TIMER_MODULO_ADDRESS = 0xFF06;
 	static constexpr uint16_t TIMER_CONTROL_ADDRESS = 0xFF07;
+	static constexpr uint16_t AUDIO_CHANNEL_1_START_ADDRESS = 0xFF10;
+	static constexpr uint16_t AUDIO_CHANNEL_2_START_ADDRESS = 0xFF15;
+	static constexpr uint16_t AUDIO_CHANNEL_3_START_ADDRESS = 0xFF1A;
+	static constexpr uint16_t AUDIO_CHANNEL_4_START_ADDRESS = 0xFF1F;
+	static constexpr uint16_t AUDIO_MASTER_VOLUME_ADDRESS = 0xFF24;
+	static constexpr uint16_t AUDIO_PANNING_ADDRESS = 0xFF25;
+	static constexpr uint16_t AUDIO_MAIN_STATE_ADDRESS = 0xFF26;
 	static constexpr uint16_t LCD_CONTROL_REGISTER_ADDRESS = 0xFF40;
 	static constexpr uint16_t LCD_STATUS_REGISTER_ADDRESS = 0xFF41;
 	static constexpr uint16_t LCD_VIEWPORT_Y_ADDRESS = 0xFF42;

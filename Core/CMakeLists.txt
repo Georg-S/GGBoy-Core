@@ -16,6 +16,7 @@ set(HEADERS
 	"include/Constants.hpp"
 	"include/Timer.hpp"
 	"include/Input.hpp"
+	"include/Audio.hpp"
 	)
 
 set(SOURCES 
@@ -31,6 +32,7 @@ set(SOURCES
 	"src/Utility.cpp"
 	"src/Timer.cpp"
 	"src/Input.cpp"
+	"src/Audio.cpp"
 	)
 
 
