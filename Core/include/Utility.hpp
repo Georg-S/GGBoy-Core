@@ -7,6 +7,7 @@ namespace ggb
 	uint16_t combineUpperAndLower(uint8_t upper, uint8_t lower);
 	void swap(uint16_t& num);
 	void swap(uint8_t& num);
+	long long getCurrentTimeInNanoSeconds();
 
 	template<typename T>
 	constexpr void setBit(T& number, int bit) 
@@ -43,4 +44,5 @@ namespace ggb
 		const T bitToCheck = 1 << bit;
 		return (number & bitToCheck) == bitToCheck;
 	}
+
 }

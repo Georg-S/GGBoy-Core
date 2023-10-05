@@ -31,6 +31,7 @@ namespace ggb
 
 	private:
 		void rewire();
+		void synchronizeEmulatorMasterClock(int elapsedCycles);
 
 		std::unique_ptr<CPU> m_cpu;
 		std::unique_ptr<BUS> m_bus;
@@ -39,5 +40,8 @@ namespace ggb
 		std::unique_ptr<Timer> m_timer;
 		std::unique_ptr<Input> m_input;
 		std::unique_ptr<Audio> m_audio;
+		int m_syncCounter = 0;
+		long long m_previousTimeStamp = 0;
+		double m_emulationSpeed = 1.0;
 	};
 }

@@ -11,6 +11,7 @@ ggb::Emulator::Emulator()
 	m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
 	m_timer = std::make_unique<Timer>(m_bus.get());
 	m_audio = std::make_unique<Audio>(m_bus.get());
+	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -39,6 +40,7 @@ void ggb::Emulator::step()
 	m_timer->step(cycles);
 	m_input->update();
 	m_audio->step(cycles);
+	synchronizeEmulatorMasterClock(cycles);
 }
 
 void ggb::Emulator::reset()
@@ -47,6 +49,8 @@ void ggb::Emulator::reset()
 	m_cpu->reset();
 	m_ppu->reset();
 	m_timer->reset();
+	m_syncCounter = 0;
+	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
 	rewire();
 }
 
@@ -88,4 +92,25 @@ void ggb::Emulator::rewire()
 	m_audio->setBus(m_bus.get());
 	if (m_input)
 		m_input->setBus(m_bus.get());
+}
+
+void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
+{
+	static constexpr auto masterSynchronizationAfterCycles = 4000; // Roughly 100 times a second
+
+	m_syncCounter += elapsedCycles;
+	if (m_syncCounter >= masterSynchronizationAfterCycles)
+	{
+		long long nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
+		long long timeDiff = 0;
+
+		do
+		{
+			auto currentTime = getCurrentTimeInNanoSeconds();
+			timeDiff = currentTime - m_previousTimeStamp;
+		} while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed));
+
+		m_previousTimeStamp = getCurrentTimeInNanoSeconds();
+		m_syncCounter = 0;
+	}
 }
