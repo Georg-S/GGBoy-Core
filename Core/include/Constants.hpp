@@ -42,6 +42,7 @@ namespace ggb
 
 	static constexpr uint32_t CPU_BASE_CLOCK = 4194304;
 	static constexpr double NANO_SECONDS_PER_CYCLE = 1000000000.0 / CPU_BASE_CLOCK;
+	static constexpr uint32_t STANDARD_SAMPLE_RATE = 44100; // In hertz
 	static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = CPU_BASE_CLOCK / 16384;
 	static constexpr uint16_t INTERRUPT_VBLANK_BIT = 0;
 	static constexpr uint16_t INTERRUPT_LCD_STAT_BIT = 1;

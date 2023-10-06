@@ -6,6 +6,7 @@
 namespace ggb 
 {
 	class Timer;
+	class Audio;
 	class PixelProcessingUnit;
 
 	class BUS 
@@ -15,6 +16,7 @@ namespace ggb
 		void reset();
 		void setCartridge(Cartridge* cartridge);
 		void setTimer(Timer* cartridge);
+		void setAudio(Audio* audio);
 		void setPixelProcessingUnit(PixelProcessingUnit* ppu);
 		uint8_t read(uint16_t address) const;
 		int8_t readSigned(uint16_t address) const;
@@ -33,6 +35,7 @@ namespace ggb
 
 		Cartridge* m_cartridge = nullptr;
 		Timer* m_timer = nullptr;
+		Audio* m_audio = nullptr;
 		PixelProcessingUnit* m_ppu = nullptr;
 		std::vector<uint8_t> m_memory = std::vector<uint8_t>(uint16_t(0xFFFF)+1, 0);
 	};

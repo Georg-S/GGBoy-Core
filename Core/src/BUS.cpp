@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "Audio.hpp"
 #include "Constants.hpp"
 #include "Utility.hpp"
 #include "Timer.hpp"
@@ -42,6 +43,11 @@ constexpr static bool isObjectAttributeMemory(uint16_t address)
     return (address >= 0xFE00 && address <= 0xFE9F);
 }
 
+constexpr static bool isAudioMemory(uint16_t address) 
+{
+    return (address >= 0xFF10 && address <= 0xFF3F);
+}
+
 void ggb::BUS::reset()
 {
     m_memory = std::vector<uint8_t>(uint16_t(0xFFFF) + 1, 0);
@@ -55,6 +61,11 @@ void ggb::BUS::setCartridge(Cartridge* cartridge)
 void ggb::BUS::setTimer(Timer* timer)
 {
     m_timer = timer;
+}
+
+void ggb::BUS::setAudio(Audio* audio)
+{
+    m_audio = audio;
 }
 
 void ggb::BUS::setPixelProcessingUnit(PixelProcessingUnit* ppu)
@@ -110,6 +121,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 
     if (address == START_DIRECT_MEMORY_ACCESS_ADDRESS)
         directMemoryAccess(value);
+
+    if (isAudioMemory(address)) 
+    {
+        m_audio->write(address, value);
+        return;
+    }
 
     if (isUnusedMemory(address)) 
     {

@@ -86,6 +86,7 @@ void ggb::Emulator::rewire()
 	m_bus->setCartridge(m_currentCartridge.get());
 	m_bus->setTimer(m_timer.get());
 	m_bus->setPixelProcessingUnit(m_ppu.get());
+	m_bus->setAudio(m_audio.get());
 	m_ppu->setBus(m_bus.get());
 	m_cpu->setBus(m_bus.get());
 	m_timer->setBus(m_bus.get());
@@ -96,7 +97,7 @@ void ggb::Emulator::rewire()
 
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
-	static constexpr auto masterSynchronizationAfterCycles = 4000; // Roughly 100 times a second
+	static constexpr double masterSynchronizationAfterCycles = static_cast<double>(CPU_BASE_CLOCK) / 100.0; 
 
 	m_syncCounter += elapsedCycles;
 	if (m_syncCounter >= masterSynchronizationAfterCycles)
