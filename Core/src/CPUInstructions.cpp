@@ -1002,32 +1002,32 @@ static void bitwiseXORAAndA(CPUInstructionParameters)
 	bitwiseXOR(cpu, cpu->A(), cpu->A());
 }
 
-static void bitwiseORAndB(CPUInstructionParameters)
+static void bitwiseORAAndB(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->B());
 }
 
-static void bitwiseORAndC(CPUInstructionParameters)
+static void bitwiseORAAndC(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->C());
 }
 
-static void bitwiseORAndD(CPUInstructionParameters)
+static void bitwiseORAAndD(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->D());
 }
 
-static void bitwiseORAndE(CPUInstructionParameters)
+static void bitwiseORAAndE(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->E());
 }
 
-static void bitwiseORAndH(CPUInstructionParameters)
+static void bitwiseORAAndH(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->H());
 }
 
-static void bitwiseORAndL(CPUInstructionParameters)
+static void bitwiseORAAndL(CPUInstructionParameters)
 {
 	bitwiseOR(cpu, cpu->A(), cpu->L());
 }
@@ -2993,12 +2993,12 @@ void ggb::OPCodes::initOpcodesArray()
 	setOpcode({ 0xAD,bitwiseXORAAndL, 4, "XOR A,L" });
 	setOpcode({ 0xAE,bitwiseXORAAndHLAddress, 8, "XOR A,(HL)" });
 	setOpcode({ 0xAF,bitwiseXORAAndA, 4, "XOR A,A" });
-	setOpcode({ 0xB0,bitwiseORAndB, 4, "OR A,B" }); // TODO RENAME
-	setOpcode({ 0xB1,bitwiseORAndC, 4, "OR A,C" });
-	setOpcode({ 0xB2,bitwiseORAndD, 4, "OR A,D" });
-	setOpcode({ 0xB3,bitwiseORAndE, 4, "OR A,E" });
-	setOpcode({ 0xB4,bitwiseORAndH, 4, "OR A,H" });
-	setOpcode({ 0xB5,bitwiseORAndL, 4, "OR A,L" });
+	setOpcode({ 0xB0,bitwiseORAAndB, 4, "OR A,B" });
+	setOpcode({ 0xB1,bitwiseORAAndC, 4, "OR A,C" });
+	setOpcode({ 0xB2,bitwiseORAAndD, 4, "OR A,D" });
+	setOpcode({ 0xB3,bitwiseORAAndE, 4, "OR A,E" });
+	setOpcode({ 0xB4,bitwiseORAAndH, 4, "OR A,H" });
+	setOpcode({ 0xB5,bitwiseORAAndL, 4, "OR A,L" });
 	setOpcode({ 0xB6,bitwiseORAAndHLAddress, 8, "OR A,(HL)" });
 	setOpcode({ 0xB7,bitwiseORAAndA, 4, "OR A,A" });
 	setOpcode({ 0xB8,compareAAndB, 4, "CP A,B" });
