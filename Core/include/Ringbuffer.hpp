@@ -43,7 +43,7 @@ namespace ggb
 
 			readIndex = ((readIndex + 1) % MAX_SIZE);
 			const auto& result = m_buffer[readIndex];
-			m_lastReadIndex.store(writeIndex);
+			m_lastReadIndex.store(readIndex);
 
 			*outValue = result;
 			return true;

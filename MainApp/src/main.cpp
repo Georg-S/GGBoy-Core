@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <iostream>
 #include <Emulator.hpp>
 #include <RenderingUtility.hpp>
 #include <Input.hpp>
@@ -125,6 +126,119 @@ private:
 	const Uint8* m_keyStates = SDL_GetKeyboardState(nullptr);
 };
 
+//static void audio_callback(void* userdata, uint8_t* stream, int len)
+//{
+//	uint64_t* samples_played = (uint64_t*)userdata;
+//	float* fstream = (float*)(stream);
+//
+//	static const float volume = 0.05;
+//	static float frequency = 200;
+//	static float sign = -1;
+//
+//	//if (frequency <= 100.f || frequency >= 10000.f)
+//	//	sign *= -1;
+//	//frequency += sign * 0.1;
+//	//frequency = std::clamp(frequency, 100.f, 10000.f);
+//
+//	for (int sid = 0; sid < (len / 8); ++sid)
+//	{
+//		double time = (*samples_played + sid) / 44100.0;
+//		double x = 2.0 * M_PI * time * frequency;
+//		double signal = sin(x);
+//		if (signal < 0.5)
+//			signal = 0.0;
+//		else
+//			signal = 1.0;
+//		double outputValue = signal * volume;
+//
+//		fstream[2 * sid + 0] = outputValue; /* L */
+//		fstream[2 * sid + 1] = outputValue; /* R */
+//	}
+//
+//	*samples_played += (len / 8);
+//}
+
+static void test_audio_callback(void* userdata, uint8_t* stream, int len)
+{
+	static int counter = 0;
+	float* fstream = reinterpret_cast<float*>(stream);
+	counter++;
+	int sample = 0;
+	if (counter == 3) 
+	{
+		counter = 0;
+		sample = 1;
+	}
+
+	const auto count = len / 8;
+	for (int sid = 0; sid < count; ++sid)
+	{
+		fstream[2 * sid + 0] = sample; /* L */
+		fstream[2 * sid + 1] = sample; /* R */
+	}
+}
+
+static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
+{
+	ggb::SampleBuffer* sampleBuffer = reinterpret_cast<ggb::SampleBuffer*>(userdata);
+	float* fstream = reinterpret_cast<float*>(stream);
+
+	static const int volume = 1;
+	const auto count = len / 8;
+
+	for (int sid = 0; sid < count; ++sid)
+	{
+		int16_t sample = 0;
+		sampleBuffer->pop(&sample);
+
+ 		fstream[2 * sid + 0] = sample * volume; /* L */
+		fstream[2 * sid + 1] = sample * volume; /* R */
+	}
+}
+
+bool intializeAudio(ggb::Emulator* emu) 
+{
+	uint64_t samples_played = 0;
+
+	if (SDL_Init(SDL_INIT_AUDIO) < 0)
+	{
+		fprintf(stderr,
+			"Error initializing SDL. SDL_Error: %s\n",
+			SDL_GetError()
+		);
+		return false;
+	}
+
+	SDL_AudioSpec audio_spec_want = {};
+	SDL_AudioSpec audio_spec = {};
+
+	audio_spec_want.freq = ggb::STANDARD_SAMPLE_RATE;
+	audio_spec_want.format = AUDIO_F32;
+	audio_spec_want.channels = 2;
+	audio_spec_want.samples = 256;
+	audio_spec_want.callback = emulator_audio_callback;
+	audio_spec_want.userdata = static_cast<void*>(emu->getSampleBuffer());
+
+	SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(
+		NULL, 0,
+		&audio_spec_want, &audio_spec,
+		SDL_AUDIO_ALLOW_FORMAT_CHANGE
+	);
+
+	if (!audio_device_id)
+	{
+		fprintf(stderr,
+			"Error creating SDL audio device. SDL_Error: %s\n",
+			SDL_GetError()
+		);
+		SDL_Quit();
+		return false;
+	}
+	SDL_PauseAudioDevice(audio_device_id, 0);
+
+	return true;
+}
+
 int main(int argc, char* argv[])
 {
 	auto emulator = ggb::Emulator();
@@ -157,6 +271,7 @@ int main(int argc, char* argv[])
 	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.setInput(std::move(appInputHandling));
+	intializeAudio(&emulator);
 
 	int counter = 0;
 	while (true)

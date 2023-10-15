@@ -6,7 +6,7 @@
 
 namespace ggb
 {
-	using SampleBuffer = SingleProducerSingleConsumerRingbuffer<int16_t, 1024>;
+	using SampleBuffer = SingleProducerSingleConsumerRingbuffer<int16_t, ggb::STANDARD_SAMPLE_RATE /4 >;
 	static constexpr int DUTY_CYCLE_COUNT = 4;
 	static constexpr int DUTY_CYCLE_LENGTH = 8;
 	static constexpr int LENGTH_FREQUENCY = 256; // In hz
@@ -26,7 +26,7 @@ namespace ggb
 		void setBus(BUS* bus);
 		void write(uint16_t memory, uint8_t value);
 		void step(int cyclesPassed);
-		void restart();
+		void trigger();
 		int16_t getSample() const;
 
 	private:
@@ -34,12 +34,14 @@ namespace ggb
 		uint16_t getPeriodValue() const;
 		int getUsedDutyCycleIndex() const;
 		int getInitialLengthCounter() const;
+		int getInitialVolume() const;
 
 		int m_dutyCyclePosition = 0;
 		uint16_t m_baseAddres = 0xFF10;
 		uint16_t m_periodDivider = 0;
 		int m_periodCounter = 0; // TODO find better name
-		int m_lenghtCounter = 0;
+		int m_lengthCounter = 0;
+		int m_volume = 1;
 		bool m_hasSweep = true;
 		bool m_isOn = false;
 		uint8_t* m_sweep = nullptr;
@@ -62,9 +64,11 @@ namespace ggb
 		void setBus(BUS* bus);
 		void write(uint16_t address, uint8_t value);
 		void step(int cyclesPassed);
+		SampleBuffer* getSampleBuffer();
 
 	private:
 		int m_cycleCounter = 0;
+		int m_testCounter = 0;
 		
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		SampleBuffer m_sampleBuffer;

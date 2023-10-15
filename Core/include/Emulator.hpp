@@ -26,6 +26,7 @@ namespace ggb
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setInput(std::unique_ptr<Input> input);
+		SampleBuffer* getSampleBuffer();
 		Dimensions getTileDataDimensions() const;
 		Dimensions getGameWindowDimensions() const;
 

@@ -71,6 +71,11 @@ void ggb::Emulator::setInput(std::unique_ptr<Input> input)
 	m_input->setBus(m_bus.get());
 }
 
+SampleBuffer* ggb::Emulator::getSampleBuffer()
+{
+	return m_audio->getSampleBuffer();
+}
+
 Dimensions ggb::Emulator::getTileDataDimensions() const
 {
 	return m_ppu->getTileDataDimensions();

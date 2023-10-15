@@ -38,22 +38,26 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 
 	if (offset == VOLUME_OFFSET) 
 	{
+		*m_volumeAndEnvelope = value;
 		return;
 	}
 
 	if (offset == PERIOD_LOW_OFFSET) 
 	{
+		*m_periodLow = value;
 		return;
 	}
 
 	if (offset == PERIOD_HIGH_OFFSET) 
 	{
 		*m_periodHighAndControl = value;
-		if (isBitSet(*m_periodHighAndControl, 7))
-			m_isOn = true;
+		if (isBitSet(*m_periodHighAndControl, 7)) 
+		{
+			trigger();
+		}
 		if (isBitSet(*m_periodHighAndControl, 6)) 
 		{
-			m_lenghtCounter = getInitialLengthCounter();
+			m_lengthCounter = getInitialLengthCounter();
 		}
 		return;
 	}
@@ -75,18 +79,19 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 
 	if (isLengthShutdownEnabled()) 
 	{
-		m_lenghtCounter += cyclesPassed;
-		if ((m_lenghtCounter / CPU_CLOCKS_PER_LENGTH_INCREASE) >= 64) 
+		m_lengthCounter += cyclesPassed;
+		if ((m_lengthCounter / CPU_CLOCKS_PER_LENGTH_INCREASE) >= 64) 
 		{
 			m_isOn = false;
 		}
 	}
 }
 
-void ggb::SquareWaveChannel::restart()
+void ggb::SquareWaveChannel::trigger()
 {
+	m_isOn = true;
 	m_periodDivider = getPeriodValue();
-
+	m_dutyCyclePosition = 0;
 }
 
 int16_t ggb::SquareWaveChannel::getSample() const
@@ -95,8 +100,10 @@ int16_t ggb::SquareWaveChannel::getSample() const
 		return 0;
 
 	auto index = getUsedDutyCycleIndex();
+	auto sample = DUTY_CYCLES[index][m_dutyCyclePosition];
+
 	// TODO handle volume
-	return DUTY_CYCLES[index][m_dutyCyclePosition]; 
+	return sample * m_volume;
 }
 
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
@@ -126,6 +133,11 @@ int ggb::SquareWaveChannel::getInitialLengthCounter() const
 	return (*m_lengthTimerAndDutyCycle & lengthBitMask) * CPU_CLOCKS_PER_LENGTH_INCREASE;
 }
 
+int ggb::SquareWaveChannel::getInitialVolume() const
+{
+	return (*m_volumeAndEnvelope & 0xb11110000) >> 4;
+}
+
 ggb::Audio::Audio(BUS* bus)
 {
 	setBus(bus);
@@ -137,6 +149,8 @@ void ggb::Audio::setBus(BUS* bus)
 	m_masterVolume = bus->getPointerIntoMemory(AUDIO_MASTER_VOLUME_ADDRESS);
 	m_soundPanning = bus->getPointerIntoMemory(AUDIO_PANNING_ADDRESS);
 	m_soundOn = bus->getPointerIntoMemory(AUDIO_MAIN_STATE_ADDRESS);
+	if (m_channel2)
+		m_channel2->setBus(bus);
 }
 
 void ggb::Audio::write(uint16_t address, uint8_t value)
@@ -160,10 +174,20 @@ void ggb::Audio::step(int cyclesPassed)
 
 	if (m_cycleCounter >= sampleGeneratingRate) 
 	{
-		m_cycleCounter -= cyclesPassed;
+		m_cycleCounter -= sampleGeneratingRate;
 		int16_t sample = m_channel2->getSample();
-		if (sample)
-			int c = 3;
+		//int16_t sample = 0;
+		//m_testCounter++;
+		//if (m_testCounter == 10) 
+		//{
+		//	m_testCounter = 0;
+		//	sample = 1;
+		//}
 		m_sampleBuffer.push(sample);
 	}
+}
+
+ggb::SampleBuffer* ggb::Audio::getSampleBuffer()
+{
+	return &m_sampleBuffer;
 }
