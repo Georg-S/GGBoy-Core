@@ -1,16 +1,17 @@
 #pragma once
 #include <atomic>
-#include <memory>
 
 namespace ggb
 {
+	/// A lock free (at least on most platforms) ring buffer
 	template<typename T, size_t MAX_SIZE>
 	class SingleProducerSingleConsumerRingbuffer
 	{
 	public:
 		bool push(const T& data)
 		{
-			return push(std::move(data));
+			T toPush = data;
+			return push(std::move(toPush));
 		}
 
 		bool push(T&& data)

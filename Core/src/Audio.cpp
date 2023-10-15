@@ -1,7 +1,6 @@
 #include "Audio.hpp"
 
 #include "Utility.hpp"
-#include "Constants.hpp"
 
 static bool isChannel2Memory(uint16_t address) 
 {
@@ -33,6 +32,7 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	auto offset = memory - m_baseAddres;
 	if (offset == LENGTH_TIMER_OFFSET) 
 	{
+		*m_lengthTimerAndDutyCycle = value;
 		return;
 	}
 
@@ -51,12 +51,79 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		*m_periodHighAndControl = value;
 		if (isBitSet(*m_periodHighAndControl, 7))
 			m_isOn = true;
+		if (isBitSet(*m_periodHighAndControl, 6)) 
+		{
+			m_lenghtCounter = getInitialLengthCounter();
+		}
 		return;
 	}
 }
 
 void ggb::SquareWaveChannel::step(int cyclesPassed)
 {
+	if (!m_isOn)
+		return;
+
+	// This counter ticks with a quarter of the cpu frequency
+	m_periodCounter += cyclesPassed;
+
+	if ((m_periodCounter / CPU_CLOCKS_PER_PERIOD_INCREASE) > 2047)
+	{
+		m_periodCounter = getPeriodValue();
+		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
+	}
+
+	if (isLengthShutdownEnabled()) 
+	{
+		m_lenghtCounter += cyclesPassed;
+		if ((m_lenghtCounter / CPU_CLOCKS_PER_LENGTH_INCREASE) >= 64) 
+		{
+			m_isOn = false;
+		}
+	}
+}
+
+void ggb::SquareWaveChannel::restart()
+{
+	m_periodDivider = getPeriodValue();
+
+}
+
+int16_t ggb::SquareWaveChannel::getSample() const
+{
+	if (!m_isOn)
+		return 0;
+
+	auto index = getUsedDutyCycleIndex();
+	// TODO handle volume
+	return DUTY_CYCLES[index][m_dutyCyclePosition]; 
+}
+
+bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
+{
+	return isBitSet(*m_periodHighAndControl, 6);
+}
+
+uint16_t ggb::SquareWaveChannel::getPeriodValue() const
+{
+	uint16_t high = *m_periodHighAndControl & 0b111;
+	uint16_t low = *m_periodLow;
+
+	return ((high << 8 | low) * CPU_CLOCKS_PER_PERIOD_INCREASE);
+}
+
+int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const
+{
+	bool msb = isBitSet(*m_lengthTimerAndDutyCycle, 7);
+	bool lsb = isBitSet(*m_lengthTimerAndDutyCycle, 6);
+
+	return getNumberFromBits(lsb, msb);
+}
+
+int ggb::SquareWaveChannel::getInitialLengthCounter() const
+{
+	constexpr auto lengthBitMask = static_cast<uint8_t>(0xb111111);
+	return (*m_lengthTimerAndDutyCycle & lengthBitMask) * CPU_CLOCKS_PER_LENGTH_INCREASE;
 }
 
 ggb::Audio::Audio(BUS* bus)
@@ -88,6 +155,15 @@ void ggb::Audio::step(int cyclesPassed)
 	if (!isBitSet(*m_soundOn, 7))
 		return; // TODO reset state?
 
-	int b = 3;
+	m_cycleCounter += cyclesPassed;
+	m_channel2->step(cyclesPassed);
 
+	if (m_cycleCounter >= sampleGeneratingRate) 
+	{
+		m_cycleCounter -= cyclesPassed;
+		int16_t sample = m_channel2->getSample();
+		if (sample)
+			int c = 3;
+		m_sampleBuffer.push(sample);
+	}
 }

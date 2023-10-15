@@ -40,7 +40,8 @@ namespace ggb
 	static constexpr uint16_t INTERRUPT_REQUEST_ADDRESS = 0xFF0F;
 	static constexpr uint16_t ENABLED_INTERRUPT_ADDRESS = 0xFFFF;
 
-	static constexpr uint32_t CPU_BASE_CLOCK = 4194304;
+	static constexpr uint32_t CPU_BASE_CLOCK = 4194304; // frequency in hz
+	static constexpr uint32_t PERIOD_DIVIDER_CLOCK = 1048576; // frequency in hz
 	static constexpr double NANO_SECONDS_PER_CYCLE = 1000000000.0 / CPU_BASE_CLOCK;
 	static constexpr uint32_t STANDARD_SAMPLE_RATE = 44100; // In hertz
 	static constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = CPU_BASE_CLOCK / 16384;

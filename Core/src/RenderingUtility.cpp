@@ -87,6 +87,7 @@ void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, con
 
 void ggb::getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
+	// TODO refactor with getTileRowRGBData into single method
 	assert(outVec.size() >= 8);
 	auto low = bus->read(tileAddress + (tileRow * 2));
 	auto high = bus->read(tileAddress + (tileRow * 2) + 1);

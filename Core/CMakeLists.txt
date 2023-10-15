@@ -17,6 +17,7 @@ set(HEADERS
 	"include/Timer.hpp"
 	"include/Input.hpp"
 	"include/Audio.hpp"
+	"include/Ringbuffer.hpp"
 	)
 
 set(SOURCES 
