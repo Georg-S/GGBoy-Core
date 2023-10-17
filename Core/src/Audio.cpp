@@ -39,6 +39,9 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	if (offset == VOLUME_OFFSET) 
 	{
 		*m_volumeAndEnvelope = value;
+		m_volume = getInitialVolume();
+		if (*m_volumeAndEnvelope != 0x08)
+			int b = 3;
 		return;
 	}
 
@@ -61,6 +64,7 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		}
 		return;
 	}
+	assert(!"");
 }
 
 void ggb::SquareWaveChannel::step(int cyclesPassed)
@@ -70,10 +74,13 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 
 	// This counter ticks with a quarter of the cpu frequency
 	m_periodCounter += cyclesPassed;
+	m_volumeCounter += cyclesPassed;
 
-	if ((m_periodCounter / CPU_CLOCKS_PER_PERIOD_INCREASE) > 2047)
+	auto calc = (m_periodCounter / CPU_CLOCKS_PER_PERIOD_INCREASE);
+
+	if (calc >= 2048)
 	{
-		m_periodCounter = getPeriodValue();
+		m_periodCounter = getPeriodValue() + ((calc - 2048)*4);
 		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
 	}
 
@@ -82,7 +89,44 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 		m_lengthCounter += cyclesPassed;
 		if ((m_lengthCounter / CPU_CLOCKS_PER_LENGTH_INCREASE) >= 64) 
 		{
+			m_lengthCounter = 0;
 			m_isOn = false;
+		}
+	}
+
+	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
+	{
+		m_isOn = false;
+		return;
+	}
+
+	if (m_volumeCounter >= CPU_CLOCKS_PER_VOLUME_INCREASE) 
+	{
+		m_volumeCounter -= CPU_CLOCKS_PER_LENGTH_INCREASE;
+		m_volumeSweepCounter++;
+		const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
+
+		auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
+		if (m_volumeChange && (m_volumeSweepCounter >= m_sweepPace))
+		{
+			if (!m_sweepPace) 
+			{
+				m_volumeSweepCounter = 0;
+			}
+			else 
+			{
+				m_volumeSweepCounter -= m_sweepPace;
+				if (increase)
+					m_volume += 1;
+				else
+					m_volume -= 1;
+			}
+		}
+
+		if (m_volume > 15 || m_volume < 0) 
+		{
+			m_volume = std::clamp(m_volume, 0, 15);
+			m_volumeChange = false;
 		}
 	}
 }
@@ -90,17 +134,21 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 void ggb::SquareWaveChannel::trigger()
 {
 	m_isOn = true;
-	m_periodDivider = getPeriodValue();
 	m_dutyCyclePosition = 0;
+	m_periodCounter = getPeriodValue();
+	m_volume = getInitialVolume(); // TODO is this correct?
+	m_volumeChange = true;
 }
 
-int16_t ggb::SquareWaveChannel::getSample() const
+ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const
 {
 	if (!m_isOn)
 		return 0;
 
 	auto index = getUsedDutyCycleIndex();
 	auto sample = DUTY_CYCLES[index][m_dutyCyclePosition];
+	//if (sample == 0)
+	//	sample = -1;
 
 	// TODO handle volume
 	return sample * m_volume;
@@ -129,13 +177,15 @@ int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const
 
 int ggb::SquareWaveChannel::getInitialLengthCounter() const
 {
-	constexpr auto lengthBitMask = static_cast<uint8_t>(0xb111111);
+	constexpr auto lengthBitMask = static_cast<uint8_t>(0b111111);
 	return (*m_lengthTimerAndDutyCycle & lengthBitMask) * CPU_CLOCKS_PER_LENGTH_INCREASE;
 }
 
 int ggb::SquareWaveChannel::getInitialVolume() const
 {
-	return (*m_volumeAndEnvelope & 0xb11110000) >> 4;
+	uint8_t mask = static_cast<uint8_t>(0b11110000);
+	auto bitAnd = (*m_volumeAndEnvelope & mask);
+	return bitAnd >> 4;
 }
 
 ggb::Audio::Audio(BUS* bus)
@@ -158,8 +208,16 @@ void ggb::Audio::write(uint16_t address, uint8_t value)
 	if (isChannel2Memory(address))
 		m_channel2->write(address, value);
 
-	if (address == AUDIO_MAIN_STATE_ADDRESS)
+	if (address == AUDIO_MAIN_STATE_ADDRESS) 
 		setBitToValue(*m_soundOn, 7, isBitSet(value, 7));
+}
+
+uint8_t ggb::Audio::read(uint16_t address)
+{
+	if (isChannel2Memory(address))
+		int c = 3;
+	int b = 3;
+	return 0xFF;
 }
 
 void ggb::Audio::step(int cyclesPassed)
@@ -175,15 +233,10 @@ void ggb::Audio::step(int cyclesPassed)
 	if (m_cycleCounter >= sampleGeneratingRate) 
 	{
 		m_cycleCounter -= sampleGeneratingRate;
-		int16_t sample = m_channel2->getSample();
-		//int16_t sample = 0;
-		//m_testCounter++;
-		//if (m_testCounter == 10) 
-		//{
-		//	m_testCounter = 0;
-		//	sample = 1;
-		//}
-		m_sampleBuffer.push(sample);
+		AUDIO_FORMAT sample = 0;
+		sample = m_channel2->getSample();
+
+		m_sampleBuffer.push({ sample,sample });
 	}
 }
 

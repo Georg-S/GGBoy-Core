@@ -87,6 +87,10 @@ uint8_t ggb::BUS::read(uint16_t address) const
         int de = 3; // TODO should probably write into the cartridge (because of RAM banking)
     if (address == 0xFF46) // DMA Transfer address, write only
         return 0xFF;
+    if (isAudioMemory(address))
+    {
+        return m_audio->read(address);
+    }
 
     return m_memory[address];
 }

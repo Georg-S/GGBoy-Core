@@ -32,13 +32,13 @@ public:
 		SDL_DestroyTexture(m_texture);
 	}
 
-	virtual void renderNewFrame(const ggb::FrameBuffer& framebuffer) 
+	virtual void renderNewFrame(const ggb::FrameBuffer& framebuffer)
 	{
 		startRendering();
 
-		for (int x = 0; x < framebuffer.m_buffer.size(); x++) 
+		for (int x = 0; x < framebuffer.m_buffer.size(); x++)
 		{
-			for (int y = 0; y < framebuffer.m_buffer[0].size(); y++) 
+			for (int y = 0; y < framebuffer.m_buffer[0].size(); y++)
 			{
 				const auto rgba = framebuffer.m_buffer[x][y];
 
@@ -158,79 +158,68 @@ private:
 //	*samples_played += (len / 8);
 //}
 
-static void test_audio_callback(void* userdata, uint8_t* stream, int len)
-{
-	static int counter = 0;
-	float* fstream = reinterpret_cast<float*>(stream);
-	counter++;
-	int sample = 0;
-	if (counter == 3) 
-	{
-		counter = 0;
-		sample = 1;
-	}
-
-	const auto count = len / 8;
-	for (int sid = 0; sid < count; ++sid)
-	{
-		fstream[2 * sid + 0] = sample; /* L */
-		fstream[2 * sid + 1] = sample; /* R */
-	}
-}
+//static void test_audio_callback(void* userdata, uint8_t* stream, int len)
+//{
+//	static int counter = 0;
+//	float* fstream = reinterpret_cast<float*>(stream);
+//	counter++;
+//	int sample = 0;
+//	if (counter == 3)
+//	{
+//		counter = 0;
+//		sample = 1;
+//	}
+//
+//	const auto count = len / 8;
+//	for (int sid = 0; sid < count; ++sid)
+//	{
+//		fstream[2 * sid + 0] = sample; /* L */
+//		fstream[2 * sid + 1] = sample; /* R */
+//	}
+//}
+static constexpr int CHANNEL_COUNT = 2;
 
 static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
 {
 	ggb::SampleBuffer* sampleBuffer = reinterpret_cast<ggb::SampleBuffer*>(userdata);
-	float* fstream = reinterpret_cast<float*>(stream);
+	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(stream);
 
-	static const int volume = 1;
-	const auto count = len / 8;
+	static const int volume = 2000;
+	const auto count = len / (sizeof(ggb::AUDIO_FORMAT) * CHANNEL_COUNT);
 
-	for (int sid = 0; sid < count; ++sid)
+	for (size_t sid = 0; sid < count; ++sid)
 	{
-		int16_t sample = 0;
-		sampleBuffer->pop(&sample);
+		auto frame = sampleBuffer->pop(ggb::Frame{});
 
- 		fstream[2 * sid + 0] = sample * volume; /* L */
-		fstream[2 * sid + 1] = sample * volume; /* R */
+		audioStream[2 * sid + 0] = frame.leftSample * volume; /* L */
+		audioStream[2 * sid + 1] = frame.rightSample * volume; /* R */
 	}
 }
 
-bool intializeAudio(ggb::Emulator* emu) 
+bool intializeAudio(ggb::Emulator* emu)
 {
 	uint64_t samples_played = 0;
 
 	if (SDL_Init(SDL_INIT_AUDIO) < 0)
 	{
-		fprintf(stderr,
-			"Error initializing SDL. SDL_Error: %s\n",
-			SDL_GetError()
-		);
+		fprintf(stderr, "Error initializing SDL. SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
 
 	SDL_AudioSpec audio_spec_want = {};
 	SDL_AudioSpec audio_spec = {};
-
 	audio_spec_want.freq = ggb::STANDARD_SAMPLE_RATE;
-	audio_spec_want.format = AUDIO_F32;
-	audio_spec_want.channels = 2;
+	audio_spec_want.format = AUDIO_S16;
+	audio_spec_want.channels = CHANNEL_COUNT;
 	audio_spec_want.samples = 256;
 	audio_spec_want.callback = emulator_audio_callback;
 	audio_spec_want.userdata = static_cast<void*>(emu->getSampleBuffer());
 
-	SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(
-		NULL, 0,
-		&audio_spec_want, &audio_spec,
-		SDL_AUDIO_ALLOW_FORMAT_CHANGE
-	);
+	SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(nullptr, 0, &audio_spec_want, &audio_spec, 0);
 
 	if (!audio_device_id)
 	{
-		fprintf(stderr,
-			"Error creating SDL audio device. SDL_Error: %s\n",
-			SDL_GetError()
-		);
+		fprintf(stderr, "Error creating SDL audio device. SDL_Error: %s\n", SDL_GetError());
 		SDL_Quit();
 		return false;
 	}
