@@ -16,7 +16,8 @@ set(HEADERS
 	"include/Constants.hpp"
 	"include/Timer.hpp"
 	"include/Input.hpp"
-	"include/Audio.hpp"
+	"include/AudioProcessingUnit.hpp"
+	"include/SquareWaveChannel.hpp"
 	"include/Ringbuffer.hpp"
 	)
 
@@ -33,7 +34,8 @@ set(SOURCES
 	"src/Utility.cpp"
 	"src/Timer.cpp"
 	"src/Input.cpp"
-	"src/Audio.cpp"
+	"src/AudioProcessingUnit.cpp"
+	"src/SquareWaveChannel.cpp"
 	)
 
 

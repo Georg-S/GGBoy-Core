@@ -2,7 +2,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "Audio.hpp"
+#include "AudioProcessingUnit.hpp"
 #include "Constants.hpp"
 #include "Utility.hpp"
 #include "Timer.hpp"
@@ -63,7 +63,7 @@ void ggb::BUS::setTimer(Timer* timer)
     m_timer = timer;
 }
 
-void ggb::BUS::setAudio(Audio* audio)
+void ggb::BUS::setAudio(AudioProcessingUnit* audio)
 {
     m_audio = audio;
 }

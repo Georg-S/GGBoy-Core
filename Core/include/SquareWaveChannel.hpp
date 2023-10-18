@@ -7,12 +7,6 @@
 namespace ggb
 {
 	using AUDIO_FORMAT = int16_t;
-	struct Frame
-	{
-		AUDIO_FORMAT leftSample;
-		AUDIO_FORMAT rightSample;
-	};
-	using SampleBuffer = SingleProducerSingleConsumerRingbuffer<Frame, ggb::STANDARD_SAMPLE_RATE /4 >;
 	static constexpr int DUTY_CYCLE_COUNT = 4;
 	static constexpr int DUTY_CYCLE_LENGTH = 8;
 	static constexpr int LENGTH_FREQUENCY = 256; // In hz
@@ -65,27 +59,5 @@ namespace ggb
 		static constexpr int VOLUME_OFFSET = 2;
 		static constexpr int PERIOD_LOW_OFFSET = 3;
 		static constexpr int PERIOD_HIGH_OFFSET = 4;
-	};
-
-
-	class Audio
-	{
-	public:
-		Audio(BUS* bus);
-		void setBus(BUS* bus);
-		void write(uint16_t address, uint8_t value);
-		uint8_t read(uint16_t address);
-		void step(int cyclesPassed);
-		SampleBuffer* getSampleBuffer();
-
-	private:
-		int m_cycleCounter = 0;
-		int m_testCounter = 0;
-		
-		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
-		SampleBuffer m_sampleBuffer;
-		uint8_t* m_soundOn = nullptr;
-		uint8_t* m_soundPanning = nullptr;
-		uint8_t* m_masterVolume = nullptr;
 	};
 }

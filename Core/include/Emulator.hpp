@@ -8,7 +8,7 @@
 #include "Cartridge.hpp"
 #include "Timer.hpp"
 #include "Input.hpp"
-#include "Audio.hpp"
+#include "AudioProcessingUnit.hpp"
 #include "PixelProcessingUnit.hpp"
 #include "RenderingUtility.hpp"
 
@@ -40,7 +40,7 @@ namespace ggb
 		std::unique_ptr<PixelProcessingUnit> m_ppu;
 		std::unique_ptr<Timer> m_timer;
 		std::unique_ptr<Input> m_input;
-		std::unique_ptr<Audio> m_audio;
+		std::unique_ptr<AudioProcessingUnit> m_audio;
 		int m_syncCounter = 0;
 		long long m_previousTimeStamp = 0;
 		double m_emulationSpeed = 1.0;

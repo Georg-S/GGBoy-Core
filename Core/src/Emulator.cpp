@@ -10,7 +10,7 @@ ggb::Emulator::Emulator()
 	m_bus = std::make_unique<BUS>();
 	m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
 	m_timer = std::make_unique<Timer>(m_bus.get());
-	m_audio = std::make_unique<Audio>(m_bus.get());
+	m_audio = std::make_unique<AudioProcessingUnit>(m_bus.get());
 	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
 }
 
