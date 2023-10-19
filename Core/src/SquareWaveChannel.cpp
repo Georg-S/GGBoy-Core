@@ -33,15 +33,13 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	if (offset == LENGTH_TIMER_OFFSET)
 	{
 		*m_lengthTimerAndDutyCycle = value;
+		m_lengthCounter = getInitialLengthCounter();
 		return;
 	}
 
 	if (offset == VOLUME_OFFSET)
 	{
 		*m_volumeAndEnvelope = value;
-		m_volume = getInitialVolume();
-		if (*m_volumeAndEnvelope != 0x08)
-			int b = 3;
 		return;
 	}
 
@@ -73,61 +71,12 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 		return;
 
 	// This counter ticks with a quarter of the cpu frequency
-	m_periodCounter += cyclesPassed;
-	m_volumeCounter += cyclesPassed;
+	m_periodCounter -= cyclesPassed;
 
-	auto calc = (m_periodCounter / CPU_CLOCKS_PER_PERIOD_INCREASE);
-
-	if (calc >= 2048)
+	if (m_periodCounter <= 0)
 	{
-		m_periodCounter = getPeriodValue() + ((calc - 2048) * 4);
+		m_periodCounter = getPeriodValue() + m_periodCounter;
 		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
-	}
-
-	if (isLengthShutdownEnabled())
-	{
-		m_lengthCounter += cyclesPassed;
-		if ((m_lengthCounter / CPU_CLOCKS_PER_LENGTH_INCREASE) >= 64)
-		{
-			m_lengthCounter = 0;
-			m_isOn = false;
-		}
-	}
-
-	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
-	{
-		m_isOn = false;
-		return;
-	}
-
-	if (m_volumeCounter >= CPU_CLOCKS_PER_VOLUME_INCREASE)
-	{
-		m_volumeCounter -= CPU_CLOCKS_PER_LENGTH_INCREASE;
-		m_volumeSweepCounter++;
-		const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
-
-		auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
-		if (m_volumeChange /*&& (m_volumeSweepCounter >= m_sweepPace)*/)
-		{
-			if (!m_sweepPace)
-			{
-				m_volumeSweepCounter = 0;
-			}
-			else
-			{
-				m_volumeSweepCounter -= m_sweepPace;
-				if (increase)
-					m_volume += 1;
-				else
-					m_volume -= 1;
-			}
-		}
-
-		if (m_volume > 15 || m_volume < 0)
-		{
-			m_volume = std::clamp(m_volume, 0, 15);
-			m_volumeChange = false;
-		}
 	}
 }
 
@@ -147,11 +96,55 @@ ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const
 
 	auto index = getUsedDutyCycleIndex();
 	auto sample = DUTY_CYCLES[index][m_dutyCyclePosition];
-	//if (sample == 0)
-	//	sample = -1;
 
-	// TODO handle volume
 	return sample * m_volume;
+}
+
+void ggb::SquareWaveChannel::tickVolumeEnvelope()
+{
+	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
+	{
+		m_isOn = false;
+		return;
+	}
+
+	m_volumeSweepCounter++;
+	const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
+	const auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
+	if (m_volumeSweepCounter < m_sweepPace)
+		return;
+
+	if (!m_sweepPace || !m_volumeChange)
+	{
+		m_volumeSweepCounter = 0;
+		return;
+	}
+
+	m_volumeSweepCounter -= m_sweepPace;
+	if (increase)
+		m_volume += 1;
+	else
+		m_volume -= 1;
+
+	if (m_volume > 15 || m_volume < 0)
+	{
+		m_volume = std::clamp(m_volume, 0, 15);
+		m_volumeChange = false;
+	}
+}
+
+void ggb::SquareWaveChannel::tickLengthShutdown()
+{
+	if (!isLengthShutdownEnabled())
+		return;
+
+	m_lengthCounter++;
+
+	if (m_lengthCounter >= 64)
+	{
+		m_lengthCounter = 0;
+		m_isOn = false;
+	}
 }
 
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
@@ -161,10 +154,12 @@ bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
 
 uint16_t ggb::SquareWaveChannel::getPeriodValue() const
 {
-	uint16_t high = *m_periodHighAndControl & 0b111;
-	uint16_t low = *m_periodLow;
+	const uint16_t high = *m_periodHighAndControl & 0b111;
+	const uint16_t low = *m_periodLow;
+	const uint16_t num = (high << 8) | low;
 
-	return ((high << 8 | low) * CPU_CLOCKS_PER_PERIOD_INCREASE);
+
+	return (2048 - num) * 4;
 }
 
 int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const
@@ -177,8 +172,7 @@ int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const
 
 int ggb::SquareWaveChannel::getInitialLengthCounter() const
 {
-	constexpr auto lengthBitMask = static_cast<uint8_t>(0b111111);
-	return (*m_lengthTimerAndDutyCycle & lengthBitMask) * CPU_CLOCKS_PER_LENGTH_INCREASE;
+	return *m_lengthTimerAndDutyCycle & 0b111111;
 }
 
 int ggb::SquareWaveChannel::getInitialVolume() const

@@ -48,6 +48,7 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 
 	m_cycleCounter += cyclesPassed;
 	m_channel2->step(cyclesPassed);
+	frameSequencerStep(cyclesPassed);
 
 	if (m_cycleCounter >= sampleGeneratingRate)
 	{
@@ -62,4 +63,40 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
 {
 	return &m_sampleBuffer;
+}
+
+void ggb::AudioProcessingUnit::frameSequencerStep(int cyclesPassed)
+{
+	constexpr auto FRAME_SEQUENCER_FREQUENCY = 512;
+	constexpr auto CPU_CLOCKS_PER_FRAME_SEQUENCER_INCREASE = CPU_BASE_CLOCK / FRAME_SEQUENCER_FREQUENCY;
+
+	m_frameFrequencerCounter += cyclesPassed;
+	if (m_frameFrequencerCounter >= CPU_CLOCKS_PER_FRAME_SEQUENCER_INCREASE) 
+	{
+		m_frameFrequencerCounter -= CPU_CLOCKS_PER_FRAME_SEQUENCER_INCREASE;
+		m_frameSequencerStep = (m_frameSequencerStep + 1) % 8;
+
+		if (m_frameSequencerStep == 0)
+		{
+			m_channel2->tickLengthShutdown();
+		}
+		else if (m_frameSequencerStep == 2)
+		{
+			m_channel2->tickLengthShutdown();
+			// TODO clock Sweep
+		}
+		else if (m_frameSequencerStep == 4)
+		{
+			m_channel2->tickLengthShutdown();
+		}
+		else if (m_frameSequencerStep == 6) 
+		{
+			m_channel2->tickLengthShutdown();
+			// TODO clock Sweep
+		}
+		else if (m_frameSequencerStep == 7)
+		{
+			m_channel2->tickVolumeEnvelope();
+		}
+	}
 }

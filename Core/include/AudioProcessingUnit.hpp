@@ -26,11 +26,15 @@ namespace ggb
 		SampleBuffer* getSampleBuffer();
 
 	private:
+		void frameSequencerStep(int cyclesPassed);
+
 		int m_cycleCounter = 0;
 		int m_testCounter = 0;
 		
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		SampleBuffer m_sampleBuffer;
+		int m_frameSequencerStep = 0;
+		int m_frameFrequencerCounter = 0;
 		uint8_t* m_soundOn = nullptr;
 		uint8_t* m_soundPanning = nullptr;
 		uint8_t* m_masterVolume = nullptr;

@@ -30,6 +30,8 @@ namespace ggb
 		void step(int cyclesPassed);
 		void trigger();
 		AUDIO_FORMAT getSample() const;
+		void tickVolumeEnvelope();
+		void tickLengthShutdown();
 
 	private:
 		bool isLengthShutdownEnabled() const;
@@ -43,7 +45,6 @@ namespace ggb
 		uint16_t m_periodDivider = 0;
 		int m_periodCounter = 0; // TODO find better name
 		int m_lengthCounter = 0;
-		int m_volumeCounter = 0;
 		int m_volumeSweepCounter = 0;
 		int m_volume = 0;
 		bool m_hasSweep = true;
