@@ -184,7 +184,7 @@ static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
 	ggb::SampleBuffer* sampleBuffer = reinterpret_cast<ggb::SampleBuffer*>(userdata);
 	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(stream);
 
-	static const int volume = 300;
+	static const int volume = 500;
 	const auto count = len / (sizeof(ggb::AUDIO_FORMAT) * CHANNEL_COUNT);
 
 	for (size_t sid = 0; sid < count; ++sid)
@@ -257,6 +257,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
+	//emulator.loadCartridge("Roms/TestROMs/cgb_sound.gb");
 	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
 	emulator.setInput(std::move(appInputHandling));

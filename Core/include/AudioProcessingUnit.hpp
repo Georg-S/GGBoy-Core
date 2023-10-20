@@ -32,6 +32,7 @@ namespace ggb
 		int m_testCounter = 0;
 		
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
+		std::unique_ptr<SquareWaveChannel> m_channel1 = nullptr;
 		SampleBuffer m_sampleBuffer;
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;

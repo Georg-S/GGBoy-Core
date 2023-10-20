@@ -32,6 +32,7 @@ namespace ggb
 		AUDIO_FORMAT getSample() const;
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
+		void tickFrequencySweep();
 
 	private:
 		bool isLengthShutdownEnabled() const;
@@ -39,6 +40,8 @@ namespace ggb
 		int getUsedDutyCycleIndex() const;
 		int getInitialLengthCounter() const;
 		int getInitialVolume() const;
+		int getInitialFrequencySweepPace() const;
+		void setRawPeriodValue(uint16_t val);
 
 		int m_dutyCyclePosition = 0;
 		uint16_t m_baseAddres = 0xFF10;
@@ -47,6 +50,8 @@ namespace ggb
 		int m_lengthCounter = 0;
 		int m_volumeSweepCounter = 0;
 		int m_volume = 0;
+		int m_frequencySweepCounter = 0;
+		int m_frequencySweepPace = 0;
 		bool m_hasSweep = true;
 		bool m_isOn = false;
 		bool m_volumeChange = false;
@@ -60,5 +65,6 @@ namespace ggb
 		static constexpr int VOLUME_OFFSET = 2;
 		static constexpr int PERIOD_LOW_OFFSET = 3;
 		static constexpr int PERIOD_HIGH_OFFSET = 4;
+		static constexpr uint16_t PERIOD_LOW_BITMASK = 0b111;
 	};
 }

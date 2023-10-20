@@ -2,6 +2,11 @@
 
 #include "Utility.hpp"
 
+static bool isChannel1Memory(uint16_t address)
+{
+	return (address >= 0xFF10 && address <= 0xFF15);
+}
+
 static bool isChannel2Memory(uint16_t address)
 {
 	return (address >= 0xFF16 && address <= 0xFF19);
@@ -10,6 +15,7 @@ static bool isChannel2Memory(uint16_t address)
 ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 {
 	setBus(bus);
+	m_channel1 = std::make_unique<SquareWaveChannel>(true, bus);
 	m_channel2 = std::make_unique<SquareWaveChannel>(false, bus);
 }
 
@@ -18,12 +24,16 @@ void ggb::AudioProcessingUnit::setBus(BUS* bus)
 	m_masterVolume = bus->getPointerIntoMemory(AUDIO_MASTER_VOLUME_ADDRESS);
 	m_soundPanning = bus->getPointerIntoMemory(AUDIO_PANNING_ADDRESS);
 	m_soundOn = bus->getPointerIntoMemory(AUDIO_MAIN_STATE_ADDRESS);
+	if (m_channel1)
+		m_channel1->setBus(bus);
 	if (m_channel2)
 		m_channel2->setBus(bus);
 }
 
 void ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 {
+	if (isChannel1Memory(address))
+		m_channel1->write(address, value);
 	if (isChannel2Memory(address))
 		m_channel2->write(address, value);
 
@@ -35,6 +45,7 @@ uint8_t ggb::AudioProcessingUnit::read(uint16_t address)
 {
 	if (isChannel2Memory(address))
 		int c = 3;
+	assert(!"Not yet correctly implemented");
 	int b = 3;
 	return 0xFF;
 }
@@ -47,6 +58,7 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 		return; // TODO reset state?
 
 	m_cycleCounter += cyclesPassed;
+	m_channel1->step(cyclesPassed);
 	m_channel2->step(cyclesPassed);
 	frameSequencerStep(cyclesPassed);
 
@@ -54,7 +66,8 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 	{
 		m_cycleCounter -= sampleGeneratingRate;
 		AUDIO_FORMAT sample = 0;
-		sample = m_channel2->getSample();
+		//sample = m_channel2->getSample();
+		sample = m_channel1->getSample();
 
 		m_sampleBuffer.push({ sample,sample });
 	}
@@ -78,24 +91,31 @@ void ggb::AudioProcessingUnit::frameSequencerStep(int cyclesPassed)
 
 		if (m_frameSequencerStep == 0)
 		{
+			m_channel1->tickLengthShutdown();
 			m_channel2->tickLengthShutdown();
 		}
 		else if (m_frameSequencerStep == 2)
 		{
+			m_channel1->tickLengthShutdown();
+			m_channel1->tickFrequencySweep();
 			m_channel2->tickLengthShutdown();
-			// TODO clock Sweep
+
 		}
 		else if (m_frameSequencerStep == 4)
 		{
+			m_channel1->tickLengthShutdown();
 			m_channel2->tickLengthShutdown();
 		}
 		else if (m_frameSequencerStep == 6) 
 		{
+			m_channel1->tickLengthShutdown();
+			m_channel1->tickFrequencySweep();
+
 			m_channel2->tickLengthShutdown();
-			// TODO clock Sweep
 		}
 		else if (m_frameSequencerStep == 7)
 		{
+			m_channel1->tickVolumeEnvelope();
 			m_channel2->tickVolumeEnvelope();
 		}
 	}

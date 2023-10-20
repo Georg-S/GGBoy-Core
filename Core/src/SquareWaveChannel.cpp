@@ -29,7 +29,19 @@ void ggb::SquareWaveChannel::setBus(BUS* bus)
 
 void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 {
-	auto offset = memory - m_baseAddres;
+	const auto offset = memory - m_baseAddres;
+
+	if (offset == 0) 
+	{
+		*m_sweep = value;
+		// Value of 0 (=disable frequency sweep) gets set instantly or any value if the frequency sweep is currently disabled
+		// other values are set on channel triggering or after  a frequency sweep iteration
+		auto initialSweep = getInitialFrequencySweepPace();
+		if (!initialSweep || (m_frequencySweepPace == 0))
+			m_frequencySweepPace = initialSweep;
+		return;
+	}
+
 	if (offset == LENGTH_TIMER_OFFSET)
 	{
 		*m_lengthTimerAndDutyCycle = value;
@@ -87,6 +99,8 @@ void ggb::SquareWaveChannel::trigger()
 	m_periodCounter = getPeriodValue();
 	m_volume = getInitialVolume(); // TODO is this correct?
 	m_volumeChange = true;
+	if (m_hasSweep)
+		m_frequencySweepPace = getInitialFrequencySweepPace();
 }
 
 ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const
@@ -147,6 +161,41 @@ void ggb::SquareWaveChannel::tickLengthShutdown()
 	}
 }
 
+void ggb::SquareWaveChannel::tickFrequencySweep()
+{
+	const auto individualStep = *m_sweep & 0b111;
+	if (individualStep == 0 && (m_frequencySweepPace == 0))
+	{
+		m_frequencySweepCounter = 0;
+		return;
+	}
+
+	m_frequencySweepCounter++;
+	if (m_frequencySweepCounter >= m_frequencySweepPace) 
+	{
+		m_frequencySweepPace = getInitialFrequencySweepPace();
+		m_frequencySweepCounter = 0;
+		const bool increase = !isBitSet(*m_sweep, 3);
+
+		const int high = *m_periodHighAndControl & 0b111;
+		const int low = *m_periodLow;
+		const int periodValue = (high << 8) | low;
+		auto newPeriodValue = periodValue >> individualStep;
+
+		if (increase)
+			newPeriodValue = periodValue + newPeriodValue;
+		else
+			newPeriodValue = periodValue - newPeriodValue;
+		assert(newPeriodValue >= 0);
+		if (newPeriodValue > 0x7FF) 
+		{
+			m_isOn = false; // Overflow check -> disables channel
+			return;
+		}
+		setRawPeriodValue(newPeriodValue);
+	}
+}
+
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
 {
 	return isBitSet(*m_periodHighAndControl, 6);
@@ -180,4 +229,22 @@ int ggb::SquareWaveChannel::getInitialVolume() const
 	uint8_t mask = static_cast<uint8_t>(0b11110000);
 	auto bitAnd = (*m_volumeAndEnvelope & mask);
 	return bitAnd >> 4;
+}
+
+int ggb::SquareWaveChannel::getInitialFrequencySweepPace() const
+{
+	const uint8_t num = (*m_sweep & 0b01110000) >> 4;
+
+	return num;
+}
+
+void ggb::SquareWaveChannel::setRawPeriodValue(uint16_t val)
+{
+	const auto highNum = val >> 8;
+	const auto lowNum = val & 0b11111111;
+	assert((highNum & ~PERIOD_LOW_BITMASK) == 0);
+
+	*m_periodHighAndControl = *m_periodHighAndControl & ~PERIOD_LOW_BITMASK;
+	*m_periodHighAndControl = *m_periodHighAndControl | highNum;
+	*m_periodLow = lowNum;
 }
