@@ -16,7 +16,7 @@ namespace ggb
 		void tickLengthShutdown();
 
 	private:
-		int getInitialLengthTimer() const;
+		int getInitialLengthCounter() const;
 		int getInitialVolume() const;
 		void stepLFSR();
 		void trigger();

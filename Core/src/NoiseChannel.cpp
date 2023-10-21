@@ -18,6 +18,13 @@ void ggb::NoiseChannel::setBus(BUS* bus)
 
 bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 {
+	if (address == 0xFF20)
+	{
+		*m_lengthTimer = value;
+		m_lengthCounter = getInitialLengthCounter();
+		return true;
+	}
+
 	if (address == 0xFF23)
 	{
 		*m_control = value;
@@ -49,6 +56,9 @@ void ggb::NoiseChannel::step(int cyclesPassed)
 
 ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample()
 {
+	if (!m_isOn)
+		return 0;
+
 	if (isBitSet(m_lfsr, 0))
 		return 0;
 
@@ -99,6 +109,11 @@ void ggb::NoiseChannel::tickLengthShutdown()
 		m_lengthCounter = 0;
 		m_isOn = false;
 	}
+}
+
+int ggb::NoiseChannel::getInitialLengthCounter() const
+{
+	return *m_lengthTimer;
 }
 
 int ggb::NoiseChannel::getInitialVolume() const
