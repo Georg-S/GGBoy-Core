@@ -31,7 +31,10 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 {
 	const auto offset = memory - m_baseAddres;
 
-	if (offset == 0) 
+	if ((offset == VOLUME_OFFSET) || (offset == PERIOD_LOW_OFFSET))
+		return false;
+
+	if (offset == FREQUENCY_SWEEP_OFFSET)
 	{
 		*m_sweep = value;
 		// Value of 0 (=disable frequency sweep) gets set instantly or any value if the frequency sweep is currently disabled
@@ -49,24 +52,6 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		return true;
 	}
 
-	if (offset == VOLUME_OFFSET)
-		return false;
-
-	if (offset == PERIOD_LOW_OFFSET)
-		return false;
-
-	//if (offset == VOLUME_OFFSET)
-	//{
-	//	*m_volumeAndEnvelope = value;
-	//	return false;
-	//}
-
-	//if (offset == PERIOD_LOW_OFFSET)
-	//{
-	//	*m_periodLow = value;
-	//	return false;
-	//}
-
 	if (offset == PERIOD_HIGH_AND_CONTROL_OFFSET)
 	{
 		*m_periodHighAndControl = value;
@@ -74,13 +59,15 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		{
 			trigger();
 		}
-		if (isBitSet(*m_periodHighAndControl, 6))
-		{
-			m_lengthCounter = getInitialLengthCounter();
-		}
+		// Not sure where this came from but i guess it is not needed
+		//if (isBitSet(*m_periodHighAndControl, 6))
+		//{
+		//	m_lengthCounter = getInitialLengthCounter();
+		//}
 		return true;
 	}
 	assert(!"");
+	return false;
 }
 
 void ggb::SquareWaveChannel::step(int cyclesPassed)
@@ -96,17 +83,6 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 		m_periodCounter = getPeriodValue() + m_periodCounter;
 		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
 	}
-}
-
-void ggb::SquareWaveChannel::trigger()
-{
-	m_isOn = true;
-	m_dutyCyclePosition = 0;
-	m_periodCounter = getPeriodValue();
-	m_volume = getInitialVolume(); // TODO is this correct?
-	m_volumeChange = true;
-	if (m_hasSweep)
-		m_frequencySweepPace = getInitialFrequencySweepPace();
 }
 
 ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const
@@ -200,6 +176,18 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 		}
 		setRawPeriodValue(newPeriodValue);
 	}
+}
+
+void ggb::SquareWaveChannel::trigger()
+{
+	m_isOn = true;
+	m_dutyCyclePosition = 0;
+	m_periodCounter = getPeriodValue();
+	m_volume = getInitialVolume(); // TODO is this correct?
+	m_volumeChange = true;
+	m_lengthCounter = getInitialLengthCounter();
+	if (m_hasSweep)
+		m_frequencySweepPace = getInitialFrequencySweepPace();
 }
 
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const

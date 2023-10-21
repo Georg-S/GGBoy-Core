@@ -11,17 +11,20 @@ namespace ggb
 		void setBus(BUS* bus);
 		void step(int cyclesPassed);
 		bool write(uint16_t address, uint8_t value);
-		void trigger();
 		AUDIO_FORMAT getSample() const;
-		//void tickLengthShutdown();
+		void tickLengthShutdown();
 
 	private:
+		void trigger();
 		int getPeriodCounter() const;
-
+		bool isLengthShutdownEnabled() const;
+		uint8_t getInitialLengthCounter() const;
+		int getOutputLevel() const;
 
 		bool m_isOn = false;
 		int m_sampleIndex = 0;
 		int m_periodCounter = 0;
+		int m_lengthCounter = 0;
 		uint8_t* m_enabled = nullptr;
 		uint8_t* m_lengthTimer = nullptr;
 		uint8_t* m_outputLevel = nullptr;

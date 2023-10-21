@@ -5,6 +5,7 @@
 #include "Ringbuffer.hpp"
 #include "SquareWaveChannel.hpp"
 #include "WaveChannel.hpp"
+#include "NoiseChannel.hpp"
 
 namespace ggb
 {
@@ -13,7 +14,7 @@ namespace ggb
 		AUDIO_FORMAT leftSample;
 		AUDIO_FORMAT rightSample;
 	};
-	using SampleBuffer = SingleProducerSingleConsumerRingbuffer<Frame, ggb::STANDARD_SAMPLE_RATE /4 >;
+	using SampleBuffer = SingleProducerSingleConsumerRingbuffer<Frame, ggb::STANDARD_SAMPLE_RATE / 10 >;
 
 	// Often seen abbreviated as "APU"
 	class AudioProcessingUnit 
@@ -30,6 +31,7 @@ namespace ggb
 	private:
 		void sampleGeneratorStep(int cyclesPassed);
 		void frameSequencerStep(int cyclesPassed);
+		void tickChannelsLengthShutdown();
 
 		int m_cycleCounter = 0;
 		int m_testCounter = 0;
@@ -37,6 +39,7 @@ namespace ggb
 		std::unique_ptr<SquareWaveChannel> m_channel1 = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		std::unique_ptr<WaveChannel> m_channel3 = nullptr;
+		std::unique_ptr<NoiseChannel> m_channel4 = nullptr;
 		SampleBuffer m_sampleBuffer;
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;

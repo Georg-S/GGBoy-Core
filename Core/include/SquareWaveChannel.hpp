@@ -27,13 +27,13 @@ namespace ggb
 		void setBus(BUS* bus);
 		bool write(uint16_t memory, uint8_t value);
 		void step(int cyclesPassed);
-		void trigger();
 		AUDIO_FORMAT getSample() const;
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
 		void tickFrequencySweep();
 
 	private:
+		void trigger();
 		bool isLengthShutdownEnabled() const;
 		uint16_t getPeriodValue() const;
 		int getUsedDutyCycleIndex() const;
@@ -60,6 +60,7 @@ namespace ggb
 		uint8_t* m_periodLow = nullptr;
 		uint8_t* m_periodHighAndControl = nullptr;
 
+		static constexpr int FREQUENCY_SWEEP_OFFSET = 0;
 		static constexpr int LENGTH_TIMER_OFFSET = 1;
 		static constexpr int VOLUME_OFFSET = 2;
 		static constexpr int PERIOD_LOW_OFFSET = 3;
