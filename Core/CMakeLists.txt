@@ -19,6 +19,7 @@ set(HEADERS
 	"include/AudioProcessingUnit.hpp"
 	"include/SquareWaveChannel.hpp"
 	"include/Ringbuffer.hpp"
+	"include/WaveChannel.hpp"
 	)
 
 set(SOURCES 
@@ -36,6 +37,7 @@ set(SOURCES
 	"src/Input.cpp"
 	"src/AudioProcessingUnit.cpp"
 	"src/SquareWaveChannel.cpp"
+	"src/WaveChannel.cpp"
 	)
 
 

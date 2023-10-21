@@ -97,6 +97,7 @@ uint8_t ggb::BUS::read(uint16_t address) const
 
 int8_t ggb::BUS::readSigned(uint16_t address) const
 {
+    // TODO: Currently this is "implementation defined behavior" with C++ 20 this can easily be made well defined
     return static_cast<int8_t>(read(address));
 }
 
@@ -128,11 +129,10 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 
     if (isAudioMemory(address)) 
     {
-        m_audio->write(address, value);
-        return;
+        if (m_audio->write(address, value))
+            return;
     }
-
-    if (isUnusedMemory(address)) 
+    else if (isUnusedMemory(address)) 
     {
         return; // Writing to unused/invalid memory does nothing
         assert(!"Unused memory used");

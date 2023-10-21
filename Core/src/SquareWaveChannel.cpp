@@ -24,10 +24,10 @@ void ggb::SquareWaveChannel::setBus(BUS* bus)
 	m_lengthTimerAndDutyCycle = bus->getPointerIntoMemory(m_baseAddres + LENGTH_TIMER_OFFSET);
 	m_volumeAndEnvelope = bus->getPointerIntoMemory(m_baseAddres + VOLUME_OFFSET);
 	m_periodLow = bus->getPointerIntoMemory(m_baseAddres + PERIOD_LOW_OFFSET);
-	m_periodHighAndControl = bus->getPointerIntoMemory(m_baseAddres + PERIOD_HIGH_OFFSET);
+	m_periodHighAndControl = bus->getPointerIntoMemory(m_baseAddres + PERIOD_HIGH_AND_CONTROL_OFFSET);
 }
 
-void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
+bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 {
 	const auto offset = memory - m_baseAddres;
 
@@ -39,29 +39,35 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		auto initialSweep = getInitialFrequencySweepPace();
 		if (!initialSweep || (m_frequencySweepPace == 0))
 			m_frequencySweepPace = initialSweep;
-		return;
+		return true;
 	}
 
 	if (offset == LENGTH_TIMER_OFFSET)
 	{
 		*m_lengthTimerAndDutyCycle = value;
 		m_lengthCounter = getInitialLengthCounter();
-		return;
+		return true;
 	}
 
 	if (offset == VOLUME_OFFSET)
-	{
-		*m_volumeAndEnvelope = value;
-		return;
-	}
+		return false;
 
 	if (offset == PERIOD_LOW_OFFSET)
-	{
-		*m_periodLow = value;
-		return;
-	}
+		return false;
 
-	if (offset == PERIOD_HIGH_OFFSET)
+	//if (offset == VOLUME_OFFSET)
+	//{
+	//	*m_volumeAndEnvelope = value;
+	//	return false;
+	//}
+
+	//if (offset == PERIOD_LOW_OFFSET)
+	//{
+	//	*m_periodLow = value;
+	//	return false;
+	//}
+
+	if (offset == PERIOD_HIGH_AND_CONTROL_OFFSET)
 	{
 		*m_periodHighAndControl = value;
 		if (isBitSet(*m_periodHighAndControl, 7))
@@ -72,7 +78,7 @@ void ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 		{
 			m_lengthCounter = getInitialLengthCounter();
 		}
-		return;
+		return true;
 	}
 	assert(!"");
 }

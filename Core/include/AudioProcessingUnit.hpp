@@ -4,6 +4,7 @@
 #include "BUS.hpp"
 #include "Ringbuffer.hpp"
 #include "SquareWaveChannel.hpp"
+#include "WaveChannel.hpp"
 
 namespace ggb
 {
@@ -20,19 +21,22 @@ namespace ggb
 	public:
 		AudioProcessingUnit(BUS* bus);
 		void setBus(BUS* bus);
-		void write(uint16_t address, uint8_t value);
+		// Returns true if the write was handled, false if a raw memory write should be made
+		bool write(uint16_t address, uint8_t value);
 		uint8_t read(uint16_t address);
 		void step(int cyclesPassed);
 		SampleBuffer* getSampleBuffer();
 
 	private:
+		void sampleGeneratorStep(int cyclesPassed);
 		void frameSequencerStep(int cyclesPassed);
 
 		int m_cycleCounter = 0;
 		int m_testCounter = 0;
 		
-		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel1 = nullptr;
+		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
+		std::unique_ptr<WaveChannel> m_channel3 = nullptr;
 		SampleBuffer m_sampleBuffer;
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;

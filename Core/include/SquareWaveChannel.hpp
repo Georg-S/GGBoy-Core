@@ -6,7 +6,6 @@
 
 namespace ggb
 {
-	using AUDIO_FORMAT = int16_t;
 	static constexpr int DUTY_CYCLE_COUNT = 4;
 	static constexpr int DUTY_CYCLE_LENGTH = 8;
 	static constexpr int LENGTH_FREQUENCY = 256; // In hz
@@ -26,7 +25,7 @@ namespace ggb
 	{
 		SquareWaveChannel(bool hasSweep, BUS* bus);
 		void setBus(BUS* bus);
-		void write(uint16_t memory, uint8_t value);
+		bool write(uint16_t memory, uint8_t value);
 		void step(int cyclesPassed);
 		void trigger();
 		AUDIO_FORMAT getSample() const;
@@ -64,7 +63,7 @@ namespace ggb
 		static constexpr int LENGTH_TIMER_OFFSET = 1;
 		static constexpr int VOLUME_OFFSET = 2;
 		static constexpr int PERIOD_LOW_OFFSET = 3;
-		static constexpr int PERIOD_HIGH_OFFSET = 4;
+		static constexpr int PERIOD_HIGH_AND_CONTROL_OFFSET = 4;
 		static constexpr uint16_t PERIOD_LOW_BITMASK = 0b111;
 	};
 }

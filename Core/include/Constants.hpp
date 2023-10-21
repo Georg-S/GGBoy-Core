@@ -64,5 +64,5 @@ namespace ggb
 	static constexpr uint16_t TILE_MAP_WIDTH = 32;
 	static constexpr uint16_t TILE_MAP_HEIGHT = 32;
 	static constexpr uint16_t TILE_MAP_SIZE = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
-
+	using AUDIO_FORMAT = int16_t;
 }

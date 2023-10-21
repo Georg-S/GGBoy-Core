@@ -12,11 +12,17 @@ static bool isChannel2Memory(uint16_t address)
 	return (address >= 0xFF16 && address <= 0xFF19);
 }
 
+static bool isChannel3Memory(uint16_t address)
+{
+	return (address >= 0xFF1A && address <= 0xFF1E) || (address >= 0xFF30 && address <= 0xFF3F);
+}
+
 ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 {
 	setBus(bus);
 	m_channel1 = std::make_unique<SquareWaveChannel>(true, bus);
 	m_channel2 = std::make_unique<SquareWaveChannel>(false, bus);
+	m_channel3 = std::make_unique<WaveChannel>(bus);
 }
 
 void ggb::AudioProcessingUnit::setBus(BUS* bus)
@@ -28,17 +34,25 @@ void ggb::AudioProcessingUnit::setBus(BUS* bus)
 		m_channel1->setBus(bus);
 	if (m_channel2)
 		m_channel2->setBus(bus);
+	if (m_channel3)
+		m_channel3->setBus(bus);
 }
 
-void ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
+bool ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 {
 	if (isChannel1Memory(address))
-		m_channel1->write(address, value);
+		return m_channel1->write(address, value);
 	if (isChannel2Memory(address))
-		m_channel2->write(address, value);
+		return m_channel2->write(address, value);
+	if (isChannel3Memory(address))
+		return m_channel3->write(address, value);
 
-	if (address == AUDIO_MAIN_STATE_ADDRESS)
+	if (address == AUDIO_MAIN_STATE_ADDRESS) 
+	{
 		setBitToValue(*m_soundOn, 7, isBitSet(value, 7));
+		return true;
+	}
+	return false;
 }
 
 uint8_t ggb::AudioProcessingUnit::read(uint16_t address)
@@ -52,30 +66,36 @@ uint8_t ggb::AudioProcessingUnit::read(uint16_t address)
 
 void ggb::AudioProcessingUnit::step(int cyclesPassed)
 {
-	constexpr auto sampleGeneratingRate = CPU_BASE_CLOCK / STANDARD_SAMPLE_RATE;
-
 	if (!isBitSet(*m_soundOn, 7))
 		return; // TODO reset state?
 
-	m_cycleCounter += cyclesPassed;
 	m_channel1->step(cyclesPassed);
 	m_channel2->step(cyclesPassed);
+	m_channel3->step(cyclesPassed);
 	frameSequencerStep(cyclesPassed);
-
-	if (m_cycleCounter >= sampleGeneratingRate)
-	{
-		m_cycleCounter -= sampleGeneratingRate;
-		AUDIO_FORMAT sample = 0;
-		//sample = m_channel2->getSample();
-		sample = m_channel1->getSample();
-
-		m_sampleBuffer.push({ sample,sample });
-	}
+	sampleGeneratorStep(cyclesPassed);
 }
 
 ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
 {
 	return &m_sampleBuffer;
+}
+
+void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
+{
+	constexpr auto sampleGeneratingRate = CPU_BASE_CLOCK / STANDARD_SAMPLE_RATE;
+
+	m_cycleCounter += cyclesPassed;
+	if (m_cycleCounter >= sampleGeneratingRate)
+	{
+		m_cycleCounter -= sampleGeneratingRate;
+		AUDIO_FORMAT sample = 0;
+		//sample = m_channel1->getSample();
+		//sample = m_channel2->getSample();
+		sample = m_channel3->getSample();
+
+		m_sampleBuffer.push({ sample,sample });
+	}
 }
 
 void ggb::AudioProcessingUnit::frameSequencerStep(int cyclesPassed)
