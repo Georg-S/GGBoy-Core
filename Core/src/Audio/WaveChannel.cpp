@@ -1,4 +1,4 @@
-#include "WaveChannel.hpp"
+#include "Audio/WaveChannel.hpp"
 
 #include "Utility.hpp"
 

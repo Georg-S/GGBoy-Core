@@ -2,7 +2,14 @@
 project(GGBoyCore)
 #set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(HEADERS 
+set (AUDIO_HEADERS
+	"include/Audio/AudioProcessingUnit.hpp"
+	"include/Audio/SquareWaveChannel.hpp"
+	"include/Audio/WaveChannel.hpp"
+	"include/Audio/NoiseChannel.hpp"
+	)
+
+set (MISCELLANEOUS_HEADERS
 	"include/BUS.hpp"
 	"include/CPU.hpp"
 	"include/CPUInstructions.hpp"
@@ -16,14 +23,15 @@ set(HEADERS
 	"include/Constants.hpp"
 	"include/Timer.hpp"
 	"include/Input.hpp"
-	"include/AudioProcessingUnit.hpp"
-	"include/SquareWaveChannel.hpp"
 	"include/Ringbuffer.hpp"
-	"include/WaveChannel.hpp"
-	"include/NoiseChannel.hpp"
 	)
 
-set(SOURCES 
+set(HEADERS 
+	${MISCELLANEOUS_HEADERS}
+	${AUDIO_HEADERS}
+	)
+
+set (MISCELLANEOUS_SOURCES
 	"src/BUS.cpp"
 	"src/CPU.cpp"
 	"src/CPUInstructions.cpp"
@@ -36,14 +44,25 @@ set(SOURCES
 	"src/Utility.cpp"
 	"src/Timer.cpp"
 	"src/Input.cpp"
-	"src/AudioProcessingUnit.cpp"
-	"src/SquareWaveChannel.cpp"
-	"src/WaveChannel.cpp"
-	"src/NoiseChannel.cpp"
+	)
+
+set (AUDIO_SOURCES
+	"src/Audio/AudioProcessingUnit.cpp"
+	"src/Audio/SquareWaveChannel.cpp"
+	"src/Audio/WaveChannel.cpp"
+	"src/Audio/NoiseChannel.cpp"
+	)
+
+set(SOURCES 
+	${MISCELLANEOUS_SOURCES}
+	${AUDIO_SOURCES}
 	)
 
 
-#source_group("" FILES ${miscFiles})
+source_group("Header Files/Audio" FILES ${AUDIO_HEADERS})
+source_group("Header Files" FILES ${MISCELLANEOUS_HEADERS})
+source_group("Source Files/Audio" FILES ${AUDIO_SOURCES})
+source_group("Source Files" FILES ${MISCELLANEOUS_SOURCES})
 
 add_library(GGBoyCore STATIC 
 	${SOURCES}

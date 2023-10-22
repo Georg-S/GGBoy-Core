@@ -32,7 +32,7 @@ namespace ggb
 		bool m_isOn = false;
 		int m_cycleCounter = 0;
 		bool m_volumeChange = false;
-		uint16_t m_lfsr = 0xFFFFu;
+		uint16_t m_lfsr = 0xFFFFu; // LFSR = Linear-feedback shift register
 		uint8_t* m_lengthTimer = nullptr;
 		uint8_t* m_volumeAndEnvelope = nullptr;
 		uint8_t* m_frequencyAndRandomness = nullptr;

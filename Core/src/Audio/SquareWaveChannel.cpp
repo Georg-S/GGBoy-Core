@@ -1,4 +1,4 @@
-#include "SquareWaveChannel.hpp"
+#include "Audio/SquareWaveChannel.hpp"
 
 #include "Utility.hpp"
 
@@ -31,9 +31,6 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 {
 	const auto offset = memory - m_baseAddres;
 
-	if ((offset == VOLUME_OFFSET) || (offset == PERIOD_LOW_OFFSET))
-		return false;
-
 	if (offset == FREQUENCY_SWEEP_OFFSET)
 	{
 		*m_sweep = value;
@@ -56,17 +53,11 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	{
 		*m_periodHighAndControl = value;
 		if (isBitSet(*m_periodHighAndControl, 7))
-		{
 			trigger();
-		}
-		// Not sure where this came from but i guess it is not needed
-		//if (isBitSet(*m_periodHighAndControl, 6))
-		//{
-		//	m_lengthCounter = getInitialLengthCounter();
-		//}
+
 		return true;
 	}
-	assert(!"");
+
 	return false;
 }
 
@@ -80,7 +71,7 @@ void ggb::SquareWaveChannel::step(int cyclesPassed)
 
 	if (m_periodCounter <= 0)
 	{
-		m_periodCounter = getPeriodValue() + m_periodCounter;
+		m_periodCounter = getInitialPeriodCounter() + m_periodCounter;
 		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
 	}
 }
@@ -118,9 +109,9 @@ void ggb::SquareWaveChannel::tickVolumeEnvelope()
 
 	m_volumeSweepCounter -= m_sweepPace;
 	if (increase)
-		m_volume += 1;
+		m_volume++;
 	else
-		m_volume -= 1;
+		m_volume--;
 
 	if (m_volume > 15 || m_volume < 0)
 	{
@@ -158,10 +149,7 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 		m_frequencySweepPace = getInitialFrequencySweepPace();
 		m_frequencySweepCounter = 0;
 		const bool increase = !isBitSet(*m_sweep, 3);
-
-		const int high = *m_periodHighAndControl & 0b111;
-		const int low = *m_periodLow;
-		const int periodValue = (high << 8) | low;
+		const int periodValue = getPeriodValue();
 		auto newPeriodValue = periodValue >> individualStep;
 
 		if (increase)
@@ -201,8 +189,12 @@ uint16_t ggb::SquareWaveChannel::getPeriodValue() const
 	const uint16_t low = *m_periodLow;
 	const uint16_t num = (high << 8) | low;
 
+	return num;
+}
 
-	return (2048 - num) * 4;
+uint16_t ggb::SquareWaveChannel::getInitialPeriodCounter() const
+{
+	return (2048 - getPeriodValue()) * 4;
 }
 
 int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const

@@ -36,6 +36,7 @@ namespace ggb
 		void trigger();
 		bool isLengthShutdownEnabled() const;
 		uint16_t getPeriodValue() const;
+		uint16_t getInitialPeriodCounter() const; // In CPU cycles
 		int getUsedDutyCycleIndex() const;
 		int getInitialLengthCounter() const;
 		int getInitialVolume() const;
@@ -44,8 +45,7 @@ namespace ggb
 
 		int m_dutyCyclePosition = 0;
 		uint16_t m_baseAddres = 0xFF10;
-		uint16_t m_periodDivider = 0;
-		int m_periodCounter = 0; // TODO find better name
+		int m_periodCounter = 0;
 		int m_lengthCounter = 0;
 		int m_volumeSweepCounter = 0;
 		int m_volume = 0;

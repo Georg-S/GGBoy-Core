@@ -1,4 +1,4 @@
-#include "NoiseChannel.hpp"
+#include "Audio/NoiseChannel.hpp"
 
 #include "Utility.hpp"
 

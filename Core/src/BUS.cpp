@@ -2,7 +2,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "AudioProcessingUnit.hpp"
+#include "Audio/AudioProcessingUnit.hpp"
 #include "Constants.hpp"
 #include "Utility.hpp"
 #include "Timer.hpp"

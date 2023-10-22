@@ -8,7 +8,7 @@
 #include "Cartridge.hpp"
 #include "Timer.hpp"
 #include "Input.hpp"
-#include "AudioProcessingUnit.hpp"
+#include "Audio/AudioProcessingUnit.hpp"
 #include "PixelProcessingUnit.hpp"
 #include "RenderingUtility.hpp"
 
