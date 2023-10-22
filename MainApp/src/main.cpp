@@ -184,7 +184,7 @@ static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
 	ggb::SampleBuffer* sampleBuffer = reinterpret_cast<ggb::SampleBuffer*>(userdata);
 	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(stream);
 
-	static const int volume = 500;
+	static const int volume = 60;
 	const auto count = len / (sizeof(ggb::AUDIO_FORMAT) * CHANNEL_COUNT);
 
 	for (size_t sid = 0; sid < count; ++sid)
@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
 	auto tileDataDimensions = emulator.getTileDataDimensions();
 	auto gameWindowDimensions = emulator.getGameWindowDimensions();
 	//auto tileDataRenderer = std::make_unique<SDLRenderer>(tileDataDimensions.width, tileDataDimensions.height, 4);
-	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 3);
+	auto gameWindowRenderer = std::make_unique<SDLRenderer>(gameWindowDimensions.width, gameWindowDimensions.height, 5);
 	const Uint8* keyStates = SDL_GetKeyboardState(nullptr);
 
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
@@ -263,13 +263,14 @@ int main(int argc, char* argv[])
 	emulator.setInput(std::move(appInputHandling));
 	intializeAudio(&emulator);
 
+	static constexpr int UPDATE_INPUT_TICKS = 10;
 	int counter = 0;
 	while (true)
 	{
 		emulator.step();
-		if (counter++ == 10)
+		if (counter++ == UPDATE_INPUT_TICKS)
 		{
-			counter -= 10;
+			counter -= UPDATE_INPUT_TICKS;
 			SDL_PumpEvents(); // Don't pump events on every step -> not really needed and improves performance
 
 			if (keyStates[SDL_SCANCODE_R])

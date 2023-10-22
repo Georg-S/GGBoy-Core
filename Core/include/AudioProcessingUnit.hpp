@@ -32,6 +32,7 @@ namespace ggb
 		void sampleGeneratorStep(int cyclesPassed);
 		void frameSequencerStep(int cyclesPassed);
 		void tickChannelsLengthShutdown();
+		int getMasterVolume() const;
 
 		int m_cycleCounter = 0;
 		int m_testCounter = 0;

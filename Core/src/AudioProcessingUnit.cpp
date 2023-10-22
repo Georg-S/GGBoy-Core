@@ -92,20 +92,32 @@ ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
 
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
+	constexpr auto CHANNEL_COUNT = 4;
 	constexpr auto sampleGeneratingRate = CPU_BASE_CLOCK / STANDARD_SAMPLE_RATE;
+	const auto masterVolume = getMasterVolume();
+	Frame outFrame = {};
+
+	auto soundPanning = [this, &outFrame](int leftBit, int rightBit, AUDIO_FORMAT channelSample) 
+	{
+		if (isBitSet(*m_soundPanning, leftBit))
+			outFrame.leftSample += channelSample;
+		if (isBitSet(*m_soundPanning, rightBit))
+			outFrame.rightSample += channelSample;
+	};
 
 	m_cycleCounter += cyclesPassed;
 	if (m_cycleCounter >= sampleGeneratingRate)
 	{
 		m_cycleCounter -= sampleGeneratingRate;
-		AUDIO_FORMAT sample = 0;
-		//sample += m_channel1->getSample();
-		//sample += m_channel2->getSample();
-		//sample += m_channel3->getSample();
-		sample += m_channel4->getSample();
-		//sample /= 3;
+		soundPanning(4, 0, m_channel1->getSample());
+		soundPanning(5, 1, m_channel2->getSample());
+		soundPanning(6, 2, m_channel3->getSample());
+		soundPanning(7, 3, m_channel4->getSample());
+		// Mixing is done by simply adding up the channels up and dividing by the count of channels
+		outFrame.leftSample = (outFrame.leftSample/CHANNEL_COUNT) * masterVolume;
+		outFrame.rightSample = (outFrame.rightSample / CHANNEL_COUNT) * masterVolume;
 
-		m_sampleBuffer.push({ sample,sample });
+		m_sampleBuffer.push(std::move(outFrame));
 	}
 }
 
@@ -149,4 +161,10 @@ void ggb::AudioProcessingUnit::tickChannelsLengthShutdown()
 	m_channel2->tickLengthShutdown();
 	m_channel3->tickLengthShutdown();
 	m_channel4->tickLengthShutdown();
+}
+
+int ggb::AudioProcessingUnit::getMasterVolume() const
+{
+	// A master volume of 0 = very quiet (but not silent) therefore we just add one and call it a day
+	return (*m_masterVolume & 0b111) + 1;
 }
