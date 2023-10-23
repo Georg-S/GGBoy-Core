@@ -1,4 +1,4 @@
-#include "MemoryBankControllerNone.hpp"
+#include "Cartridge/MemoryBankControllerNone.hpp"
 
 ggb::MemoryBankControllerNone::MemoryBankControllerNone(std::vector<uint8_t>&& cartridgeData)
 	: MemoryBankController(std::move(cartridgeData))
@@ -17,11 +17,6 @@ uint8_t ggb::MemoryBankControllerNone::read(uint16_t address) const
 
 void ggb::MemoryBankControllerNone::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const
 {
-	auto convertedAddress = startAddress - 0x4000;;
-
-	for (size_t i = 0; i < OAM_SIZE; i++)
-	{
-		// TODO maybe use memcpy instead
-		oam[i] = m_cartridgeData[convertedAddress + i];
-	}
+	auto convertedAddress = startAddress - 0x4000;
+	executeOAMDMATransfer(m_cartridgeData[convertedAddress], oam);
 }

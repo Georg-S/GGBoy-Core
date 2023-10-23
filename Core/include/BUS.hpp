@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "Cartridge.hpp"
+#include "Cartridge/Cartridge.hpp"
 
 namespace ggb 
 {

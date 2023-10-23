@@ -5,7 +5,7 @@
 
 #include "BUS.hpp"
 #include "CPU.hpp"
-#include "Cartridge.hpp"
+#include "Cartridge/Cartridge.hpp"
 #include "Timer.hpp"
 #include "Input.hpp"
 #include "Audio/AudioProcessingUnit.hpp"

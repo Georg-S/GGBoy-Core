@@ -24,38 +24,20 @@ namespace ggb
 		MC_INVALID, // Should be the last entry
 	};
 
+	uint16_t convertRawAddressToBankAddress(uint16_t address, int romBankNumber);
+	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
+
 	class MemoryBankController
 	{
 	public:
-		MemoryBankController(std::vector<uint8_t>&& cartridgeData)
-			: m_cartridgeData(std::move(cartridgeData))
-		{
-		};
+		MemoryBankController(std::vector<uint8_t>&& cartridgeData);
 		virtual ~MemoryBankController() = default;
 		virtual void write(uint16_t address, uint8_t value) = 0;
 		virtual uint8_t read(uint16_t address) const = 0;
 		virtual void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const = 0;
-
-		static MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData)
-		{
-			auto val = cartRidgeData[MBC_TYPE_ADDRESS];
-			return MBCTYPE(val);
-		}
-
-		MBCTYPE getMBCType() const
-		{
-			auto val = m_cartridgeData[MBC_TYPE_ADDRESS];
-			return MBCTYPE(val);
-		}
-
-		static uint16_t convertRawAddressToBankAddress(uint16_t address, int romBankNumber) 
-		{
-			auto startAddress = romBankNumber * ROM_BANK_SIZE;
-			auto newAddress = address - 0x4000;
-			return startAddress + newAddress;
-		}
-
+		MBCTYPE getMBCType() const;
 	protected:
+		void executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const;
 		std::vector<uint8_t> m_cartridgeData;
 	};
 }

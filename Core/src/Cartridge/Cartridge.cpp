@@ -1,12 +1,12 @@
-#include "Cartridge.hpp"
+#include "Cartridge/Cartridge.hpp"
 
 #include <fstream>
 #include <cassert>
 
 #include "Logging.hpp"
 #include "Constants.hpp"
-#include "MemoryBankControllerNone.hpp"
-#include "MemoryBankControllerOne.hpp"
+#include "Cartridge/MemoryBankControllerNone.hpp"
+#include "Cartridge/MemoryBankControllerOne.hpp"
 
 using namespace ggb;
 
@@ -24,7 +24,7 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
 	for (auto& data : bufData)
 		cartridgeData.emplace_back(static_cast<uint8_t>(std::move(data)));
 
-	m_mbcType = MemoryBankController::getMBCType(cartridgeData);
+	m_mbcType = getMBCType(cartridgeData);
 	m_memoryBankController = createMemoryBankController(m_mbcType, std::move(cartridgeData));
 
 	return true;
@@ -37,6 +37,7 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 
 void ggb::Cartridge::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam)
 {
+	m_memoryBankController->executeOAMDMATransfer(startAddress, oam);
 }
 
 

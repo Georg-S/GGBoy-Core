@@ -1,4 +1,4 @@
-#include "MemoryBankControllerOne.hpp"
+#include "Cartridge/MemoryBankControllerOne.hpp"
 
 #include <cassert>
 
@@ -71,10 +71,5 @@ uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
 void ggb::MemoryBankControllerOne::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const
 {
 	auto convertedAddress = convertRawAddressToBankAddress(startAddress, m_romBankNumber);
-
-	for (size_t i = 0; i < OAM_SIZE; i++)
-	{
-		// TODO maybe use memcpy instead
-		oam[i] = m_cartridgeData[convertedAddress + i];
-	}
+	executeOAMDMATransfer(m_cartridgeData[convertedAddress], oam);
 }
