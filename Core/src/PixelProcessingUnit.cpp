@@ -245,7 +245,8 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 	const uint16_t backgroundTileMap = isBitSet(*m_LCDControl, 3) ? 0x9C00 : 0x9800;
 	const bool signedAddressingMode = !isBitSet(*m_LCDControl, 4);
 
-	const auto yPosInBackground = scanLine() + *m_viewPortYPos;
+	// TODO is the % 256 correct?
+	const auto yPosInBackground = (scanLine() + *m_viewPortYPos) % 256;
 	auto lineShift = ((yPosInBackground / TILE_HEIGHT) * TILE_MAP_WIDTH);
 	assert(lineShift < TILE_MAP_SIZE);
 
