@@ -24,6 +24,9 @@ set (MISCELLANEOUS_HEADERS
 	"include/Timer.hpp"
 	"include/Input.hpp"
 	"include/Ringbuffer.hpp"
+	"include/MemoryBankController.hpp"
+	"include/MemoryBankControllerNone.hpp"
+	"include/MemoryBankControllerOne.hpp"
 	)
 
 set(HEADERS 
@@ -44,6 +47,8 @@ set (MISCELLANEOUS_SOURCES
 	"src/Utility.cpp"
 	"src/Timer.cpp"
 	"src/Input.cpp"
+	"src/MemoryBankControllerNone.cpp"
+	"src/MemoryBankControllerOne.cpp"
 	)
 
 set (AUDIO_SOURCES
