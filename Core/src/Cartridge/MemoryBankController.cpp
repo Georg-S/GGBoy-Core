@@ -20,7 +20,7 @@ void ggb::MemoryBankController::executeOAMDMATransfer(const uint8_t* cartridgeDa
 }
 
 
-uint16_t ggb::convertRawAddressToBankAddress(uint16_t address, int romBankNumber)
+int ggb::convertRawAddressToBankAddress(uint16_t address, int romBankNumber)
 {
 	auto startAddress = romBankNumber * ROM_BANK_SIZE;
 	auto newAddress = address - 0x4000;

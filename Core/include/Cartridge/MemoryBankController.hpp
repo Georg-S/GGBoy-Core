@@ -24,7 +24,7 @@ namespace ggb
 		MC_INVALID, // Should be the last entry
 	};
 
-	uint16_t convertRawAddressToBankAddress(uint16_t address, int romBankNumber);
+	int convertRawAddressToBankAddress(uint16_t address, int romBankNumber);
 	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
 
 	class MemoryBankController

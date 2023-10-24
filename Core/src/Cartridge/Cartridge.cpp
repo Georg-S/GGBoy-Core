@@ -7,6 +7,7 @@
 #include "Constants.hpp"
 #include "Cartridge/MemoryBankControllerNone.hpp"
 #include "Cartridge/MemoryBankControllerOne.hpp"
+#include "Cartridge/MemoryBankControllerFive.hpp"
 
 using namespace ggb;
 
@@ -53,15 +54,17 @@ std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController
 	case ggb::NO_MBC:
 		return std::make_unique<MemoryBankControllerNone>(std::move(cartridgeData));
 	case ggb::MBC1:
-		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData));
+		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData), false);
 	case ggb::MBC1_RAM:
 		break;
 	case ggb::MBC1_RAM_BATTERY:
-		break;
+		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData), true);
+	case ggb::MC5_RAM_BATTERY:
+		return std::make_unique<MemoryBankControllerFive>(std::move(cartridgeData));
 	default:
 		break;
 	}
-
+	assert(!"Not implemented");
 	return nullptr;
 }
 

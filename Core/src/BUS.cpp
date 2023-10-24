@@ -51,6 +51,14 @@ constexpr static bool isAudioMemory(uint16_t address)
 void ggb::BUS::reset()
 {
     m_memory = std::vector<uint8_t>(uint16_t(0xFFFF) + 1, 0);
+    m_memory[SERIAL_TRANSFER_ADDRESS] = 0x00;
+    m_memory[SERIAL_TRANSFER_CONTROL_ADDRESS] = 0x7E;
+    m_memory[TIMER_COUNTER_ADDRESS] = 0x00;
+    m_memory[TIMER_MODULO_ADDRESS] = 0x00;
+    m_memory[TIMER_CONTROL_ADDRESS] = 0xF8;
+    m_memory[INTERRUPT_REQUEST_ADDRESS] = 0xE1;
+
+    m_memory[LCD_CONTROL_REGISTER_ADDRESS] = 0x91;
 }
 
 void ggb::BUS::setCartridge(Cartridge* cartridge)

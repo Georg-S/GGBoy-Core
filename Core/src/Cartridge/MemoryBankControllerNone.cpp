@@ -18,5 +18,5 @@ uint8_t ggb::MemoryBankControllerNone::read(uint16_t address) const
 void ggb::MemoryBankControllerNone::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const
 {
 	auto convertedAddress = startAddress - 0x4000;
-	executeOAMDMATransfer(m_cartridgeData[convertedAddress], oam);
+	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[convertedAddress], oam);
 }
