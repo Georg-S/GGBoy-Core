@@ -276,11 +276,11 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 
 void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 {
-	const auto convertScreenCoordinateToWindow = [&](int screenCoord)
+	const auto convertScreenCoordinateToWindow = [&](int screenCoord) -> int
 	{
 		return (screenCoord + 7) - *m_windowXPos;
 	};
-	const auto convertWindowCoordinateToScreen = [](int windowCoord)
+	const auto convertWindowCoordinateToScreen = [](int windowCoord) -> int
 	{
 		return windowCoord - 7;
 	};
@@ -309,9 +309,12 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
 		while (tileColumn < TILE_WIDTH && xCoord < GAME_WINDOW_WIDTH)
 		{
-			const auto colorValue = m_objColorBuffer[tileColumn];
-			const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
-			m_pixelBuffer[xCoord] = { rgb, colorValue };
+			if (xCoord >= 0) 
+			{
+				const auto colorValue = m_objColorBuffer[tileColumn];
+				const auto rgb = getRGBFromNumAndPalette(colorValue, palette);
+				m_pixelBuffer[xCoord] = { rgb, colorValue };
+			}
 
 			++tileColumn;
 			++xCoord;
