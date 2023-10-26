@@ -42,7 +42,7 @@ ggb::MemoryBankControllerOne::MemoryBankControllerOne(std::vector<uint8_t>&& car
 	, m_hasRam(hasRam)
 {
 	if (m_hasRam)
-		m_ram = std::vector<uint8_t>(32768, 0);
+		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
 }
 
 void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
@@ -57,14 +57,16 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 	{
 		auto num = value & 0x1F;
 		m_romBankNumber = std::max(num, 1);
+		// TODO mask bits to max count of rom bank
 		return;
 	}
+
 	if (isCartridgeRAM(address)) 
 	{
 		if (!m_hasRam || !m_ramEnabled)
 			return;
 
-		m_ram[address - 0xA000] = value;
+		m_ram[getRAMAddress(address)] = value;
 		return;
 	}
 	assert(!"");
@@ -74,7 +76,6 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 	{
 		assert(!"Not implemented");
 	}
-
 }
 
 uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
@@ -83,16 +84,14 @@ uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
 		return m_cartridgeData[address];
 
 	if (isROMBankAddress(address))
-	{
-		const auto newAddress = convertRawAddressToBankAddress(address, m_romBankNumber);
-		return m_cartridgeData[newAddress];
-	}
+		return m_cartridgeData[getROMAddress(address)];
 
 	if (isCartridgeRAM(address)) 
 	{
-		if (!m_hasRam)
+		if (!m_hasRam || !m_ramEnabled)
 			return 0xFF;
-		return m_ram[address - 0xA000];
+
+		return m_ram[getRAMAddress(address)];
 	}
 
 	assert(!"Invalid");
@@ -103,4 +102,14 @@ void ggb::MemoryBankControllerOne::executeOAMDMATransfer(uint16_t startAddress, 
 {
 	auto convertedAddress = convertRawAddressToBankAddress(startAddress, m_romBankNumber);
 	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[convertedAddress], oam);
+}
+
+int ggb::MemoryBankControllerOne::getROMAddress(uint16_t address) const
+{
+	return convertRawAddressToBankAddress(address, m_romBankNumber);
+}
+
+int ggb::MemoryBankControllerOne::getRAMAddress(uint16_t address) const
+{
+	return convertRawAddressToRAMBankAddress(address, m_ramBankNumber);
 }

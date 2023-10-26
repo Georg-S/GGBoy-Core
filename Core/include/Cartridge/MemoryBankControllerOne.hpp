@@ -12,9 +12,13 @@ namespace ggb
 		uint8_t read(uint16_t address) const override;
 		void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const override;
 	private:
+		int getROMAddress(uint16_t address) const;
+		int getRAMAddress(uint16_t address) const;
+
 		std::vector<uint8_t> m_ram;
 		bool m_ramEnabled = false;
 		bool m_hasRam = false;
-		int m_romBankNumber = 0;
+		int m_romBankNumber = 1;
+		int m_ramBankNumber = 0;
 	};
 }

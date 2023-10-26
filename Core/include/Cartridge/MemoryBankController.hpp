@@ -25,6 +25,7 @@ namespace ggb
 	};
 
 	int convertRawAddressToBankAddress(uint16_t address, int romBankNumber);
+	int convertRawAddressToRAMBankAddress(uint16_t address, int ramBankNumber);
 	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
 
 	class MemoryBankController
@@ -36,8 +37,14 @@ namespace ggb
 		virtual uint8_t read(uint16_t address) const = 0;
 		virtual void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const = 0;
 		MBCTYPE getMBCType() const;
+		int getRomSize() const;
+		int getROMBankCount() const;
+		int getRAMSize() const;
+		int getRAMBankCount() const;
 	protected:
 		void executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const;
 		std::vector<uint8_t> m_cartridgeData;
+		int m_ROMBankCount = 0;
+		int m_RAMBankCount = 0;
 	};
 }
