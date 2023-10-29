@@ -54,11 +54,11 @@ std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController
 	case ggb::NO_MBC:
 		return std::make_unique<MemoryBankControllerNone>(std::move(cartridgeData));
 	case ggb::MBC1:
-		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData), false);
+		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData));
 	case ggb::MBC1_RAM:
 		break;
 	case ggb::MBC1_RAM_BATTERY:
-		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData), true);
+		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData));
 	case ggb::MC5_RAM_BATTERY:
 		return std::make_unique<MemoryBankControllerFive>(std::move(cartridgeData));
 	default:

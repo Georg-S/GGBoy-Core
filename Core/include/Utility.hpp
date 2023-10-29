@@ -1,6 +1,8 @@
 #pragma once
 #include <cassert>
 #include <cstdint>
+#include <fstream>
+#include <vector>
 
 namespace ggb 
 {
@@ -45,4 +47,35 @@ namespace ggb
 		return (number & bitToCheck) == bitToCheck;
 	}
 
-}
+	template<typename T>
+	void serialize(std::ostream& outStream, const T& pod)
+	{
+		static_assert(std::is_trivially_copyable_v<T> == true);
+		outStream.write(reinterpret_cast<const char*>(&pod), sizeof(T));
+	}
+
+	template<typename T>
+	void deserialize(std::istream& inStream, T& outPod)
+	{
+		static_assert(std::is_trivially_copyable_v<T> == true);
+		inStream.read(reinterpret_cast<char*>(&outPod), sizeof(T));
+	}
+
+	template<typename T>
+	void serialize(std::ostream& outStream, const std::vector<T>& toSerialize) 
+	{
+		serialize(outStream, toSerialize.size());
+		for (const auto& elem : toSerialize)
+			serialize(outStream, elem);
+	}
+
+	template<typename T>
+	void deserialize(std::istream& inStream, std::vector<T>& outVec)
+	{
+		size_t size = 0;
+		deserialize(inStream, size);
+		outVec.resize(size);
+		for (auto& elem : outVec)
+			deserialize(inStream, elem);
+	}
+} 

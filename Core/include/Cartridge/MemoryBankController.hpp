@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <filesystem>
 
 #include "Constants.hpp"
 
@@ -28,7 +29,7 @@ namespace ggb
 	int convertRawAddressToRAMBankAddress(uint16_t address, int ramBankNumber);
 	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
 
-	class MemoryBankController
+	class MemoryBankController // Often abbreviated as MBC
 	{
 	public:
 		MemoryBankController(std::vector<uint8_t>&& cartridgeData);
@@ -41,9 +42,15 @@ namespace ggb
 		int getROMBankCount() const;
 		int getRAMSize() const;
 		int getRAMBankCount() const;
+		void loadRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
+		void saveRAM(const std::filesystem::path& path) const; // Does nothing if MBC has no RAM
+
 	protected:
 		void executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const;
+
 		std::vector<uint8_t> m_cartridgeData;
+		std::vector<uint8_t> m_ram;
+		bool m_hasRam = false;
 		int m_ROMBankCount = 0;
 		int m_RAMBankCount = 0;
 	};

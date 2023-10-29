@@ -3,13 +3,13 @@
 
 #include "Cartridge/Cartridge.hpp"
 
-namespace ggb 
+namespace ggb
 {
 	class Timer;
 	class AudioProcessingUnit;
 	class PixelProcessingUnit;
 
-	class BUS 
+	class BUS
 	{
 	public:
 		BUS() = default;
@@ -37,6 +37,6 @@ namespace ggb
 		Timer* m_timer = nullptr;
 		AudioProcessingUnit* m_audio = nullptr;
 		PixelProcessingUnit* m_ppu = nullptr;
-		std::vector<uint8_t> m_memory = std::vector<uint8_t>(uint16_t(0xFFFF)+1, 0);
+		std::vector<uint8_t> m_memory = std::vector<uint8_t>(0xFFFF + 1, 0);
 	};
 }

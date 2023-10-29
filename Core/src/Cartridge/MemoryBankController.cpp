@@ -1,6 +1,9 @@
 #include "Cartridge/MemoryBankController.hpp"
 
 #include <cassert>
+#include <fstream>
+
+#include "Utility.hpp"
 
 // The last three values of this array are from unoffical sources and might be wrong
 static constexpr int valueToROMBankCountMapping[] = {2, 4, 8, 16, 32, 64, 128, 256, 512, 72, 80, 96};
@@ -12,6 +15,7 @@ ggb::MemoryBankController::MemoryBankController(std::vector<uint8_t>&& cartridge
 {
 	m_ROMBankCount = getROMBankCount();
 	m_RAMBankCount = getRAMBankCount();
+	m_hasRam = m_ROMBankCount > 0;
 }
 
 ggb::MBCTYPE ggb::MemoryBankController::getMBCType() const
@@ -40,6 +44,30 @@ int ggb::MemoryBankController::getRAMBankCount() const
 	const auto val = m_cartridgeData[0x149];
 	assert(val != 1);
 	return valueToRAMBankCountMapping[val];
+}
+
+void ggb::MemoryBankController::loadRAM(const std::filesystem::path& path)
+{
+	if (!m_hasRam)
+		return;
+
+	std::ifstream file(path, std::ios::binary);
+	if (!file.is_open())
+		return; // TODO handle error better
+
+	deserialize(file, m_ram);
+}
+
+void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path) const
+{
+	if (!m_hasRam)
+		return;
+
+	std::ofstream file(path, std::ios::binary);
+	if (!file.is_open())
+		return; // TODO handle error better
+
+	serialize(file, m_ram);
 }
 
 void ggb::MemoryBankController::executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const

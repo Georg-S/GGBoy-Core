@@ -37,19 +37,30 @@ constexpr static bool isCartridgeRAM(uint16_t address)
 	return (address >= 0xA000 && address <= 0xBFFF);
 }
 
-ggb::MemoryBankControllerOne::MemoryBankControllerOne(std::vector<uint8_t>&& cartridgeData, bool hasRam)
+static const std::string filePath = "RAM.bin";
+
+ggb::MemoryBankControllerOne::MemoryBankControllerOne(std::vector<uint8_t>&& cartridgeData)
 	: MemoryBankController(std::move(cartridgeData))
-	, m_hasRam(hasRam)
 {
 	if (m_hasRam)
 		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
+
+	if (std::filesystem::exists(filePath)) 
+	{
+		// TODO use a better path
+		loadRAM(filePath);
+		assert(m_ram.size() == getRAMSize());
+	}
 }
 
 void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 {
 	if (isRAMEnableAddress(address)) 
 	{
+		const bool previous = m_ramEnabled;
 		m_ramEnabled = ((value & 0xF) == 0xA);
+		if (!m_ramEnabled && (m_ramEnabled != previous))
+			saveRAM(filePath);
 		return;
 	}
 
