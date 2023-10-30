@@ -234,6 +234,8 @@ static void handleEmulatorKeyPresses(ggb::Emulator* emulator, const Uint8* keySt
 		emulator->reset();
 	if (keyStates[SDL_SCANCODE_F1])
 		emulator->saveEmulatorState("Savestate1.bin");
+	if (keyStates[SDL_SCANCODE_F5])
+		emulator->loadEmulatorState("Savestate1.bin");
 }
 
 int main(int argc, char* argv[])

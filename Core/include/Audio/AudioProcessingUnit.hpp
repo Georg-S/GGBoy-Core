@@ -35,7 +35,6 @@ namespace ggb
 		void frameSequencerStep(int cyclesPassed);
 		void tickChannelsLengthShutdown();
 		int getMasterVolume() const;
-
 		
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;

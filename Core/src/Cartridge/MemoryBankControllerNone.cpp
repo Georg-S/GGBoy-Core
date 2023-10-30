@@ -1,10 +1,5 @@
 #include "Cartridge/MemoryBankControllerNone.hpp"
 
-ggb::MemoryBankControllerNone::MemoryBankControllerNone(std::vector<uint8_t>&& cartridgeData)
-	: MemoryBankController(std::move(cartridgeData))
-{
-}
-
 void ggb::MemoryBankControllerNone::write(uint16_t address, uint8_t value)
 {
 	// We don't have any RAM etc. so do nothing here on purpose

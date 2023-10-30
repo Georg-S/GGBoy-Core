@@ -80,12 +80,31 @@ void ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 	{
 		auto serializeUnique = std::make_unique<ggb::Serialize>(outputPath);
 		auto serialize = serializeUnique.get();
+
 		serialization(serialize);
 		m_currentCartridge->serialize(serialize);
 	}
 	catch (const std::exception& e) 
 	{
 		logError(std::string("Error saving emulator state: ")  + e.what());
+	}
+}
+
+void ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
+{
+	try
+	{
+		auto deserializeUnique = std::make_unique<ggb::Deserialize>(filePath);
+		auto deserialize = deserializeUnique.get();
+
+		serialization(deserialize);
+		m_currentCartridge->deserialize(deserialize);
+
+		rewire();
+	}
+	catch (const std::exception& e)
+	{
+		logError(std::string("Error saving emulator state: ") + e.what());
 	}
 }
 
@@ -106,14 +125,14 @@ Dimensions ggb::Emulator::getGameWindowDimensions() const
 
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
-	serialization->read_write(m_syncCounter);
-	serialization->read_write(m_previousTimeStamp);
-	serialization->read_write(m_emulationSpeed);
 	m_bus->serialization(serialization);
 	m_cpu->serialization(serialization);
 	m_ppu->serialization(serialization);
 	m_timer->serialization(serialization);
 	m_audio->serialization(serialization);
+	serialization->read_write(m_emulationSpeed);
+	serialization->read_write(m_previousTimeStamp);
+	serialization->read_write(m_syncCounter);
 }
 
 void ggb::Emulator::rewire()

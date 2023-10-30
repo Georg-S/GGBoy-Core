@@ -77,7 +77,7 @@ namespace ggb {
 	public:
 		Deserialize(const std::filesystem::path& inPath) 
 		{
-			m_deserializeStream.open(inPath);
+			m_deserializeStream.open(inPath, std::ios::binary);
 			m_serialize = false;
 		}
 	};

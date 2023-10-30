@@ -11,14 +11,6 @@ static constexpr int valueToROMBankCountMapping[] = {2, 4, 8, 16, 32, 64, 128, 2
 // Second value is never used -> INVALID
 static constexpr int valueToRAMBankCountMapping[] = {0, 0xFFFFF, 1, 4, 16, 8};
 
-ggb::MemoryBankController::MemoryBankController(std::vector<uint8_t>&& cartridgeData)
-	: m_cartridgeData(std::move(cartridgeData))
-{
-	m_ROMBankCount = getROMBankCount();
-	m_RAMBankCount = getRAMBankCount();
-	m_hasRam = m_ROMBankCount > 0;
-}
-
 ggb::MBCTYPE ggb::MemoryBankController::getMBCType() const
 {
 	return ggb::getMBCType(m_cartridgeData);
@@ -69,6 +61,14 @@ void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path) const
 		return; // TODO handle error better
 
 	serialize(file, m_ram);
+}
+
+void ggb::MemoryBankController::initialize(std::vector<uint8_t>&& cartridgeData)
+{
+	m_cartridgeData = std::move(cartridgeData);
+	m_ROMBankCount = getROMBankCount();
+	m_RAMBankCount = getRAMBankCount();
+	m_hasRam = m_ROMBankCount > 0;
 }
 
 void ggb::MemoryBankController::serialization(Serialization* serialization)

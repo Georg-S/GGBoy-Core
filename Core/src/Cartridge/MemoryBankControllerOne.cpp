@@ -39,20 +39,6 @@ constexpr static bool isCartridgeRAM(uint16_t address)
 
 static const std::string filePath = "RAM.bin";
 
-ggb::MemoryBankControllerOne::MemoryBankControllerOne(std::vector<uint8_t>&& cartridgeData)
-	: MemoryBankController(std::move(cartridgeData))
-{
-	if (m_hasRam)
-		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
-
-	if (std::filesystem::exists(filePath)) 
-	{
-		// TODO use a better path
-		loadRAM(filePath);
-		assert(m_ram.size() == getRAMSize());
-	}
-}
-
 void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 {
 	if (isRAMEnableAddress(address)) 
@@ -113,6 +99,21 @@ void ggb::MemoryBankControllerOne::executeOAMDMATransfer(uint16_t startAddress, 
 {
 	auto convertedAddress = convertRawAddressToBankAddress(startAddress, m_romBankNumber);
 	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[convertedAddress], oam);
+}
+
+void ggb::MemoryBankControllerOne::initialize(std::vector<uint8_t>&& cartridgeData)
+{
+	MemoryBankController::initialize(std::move(cartridgeData));
+
+	if (m_hasRam)
+		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
+
+	if (std::filesystem::exists(filePath))
+	{
+		// TODO use a better path
+		loadRAM(filePath);
+		assert(m_ram.size() == getRAMSize());
+	}
 }
 
 void ggb::MemoryBankControllerOne::serialization(Serialization* serialization)

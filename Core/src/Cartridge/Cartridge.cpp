@@ -26,7 +26,8 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
 		cartridgeData.emplace_back(static_cast<uint8_t>(std::move(data)));
 
 	m_mbcType = getMBCType(cartridgeData);
-	m_memoryBankController = createMemoryBankController(m_mbcType, std::move(cartridgeData));
+	m_memoryBankController = createMemoryBankController(m_mbcType);
+	m_memoryBankController->initialize(std::move(cartridgeData));
 
 	return true;
 }
@@ -41,7 +42,6 @@ void ggb::Cartridge::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam)
 	m_memoryBankController->executeOAMDMATransfer(startAddress, oam);
 }
 
-
 uint8_t ggb::Cartridge::read(uint16_t address) const
 {
 	return m_memoryBankController->read(address);
@@ -55,7 +55,9 @@ void ggb::Cartridge::serialize(Serialization* serialize)
 
 void ggb::Cartridge::deserialize(Serialization* deserialize)
 {
-	// TODO implement
+	serialization(deserialize);
+	m_memoryBankController = createMemoryBankController(m_mbcType);
+	m_memoryBankController->serialization(deserialize);
 }
 
 void ggb::Cartridge::serialization(Serialization* serialize)
@@ -63,20 +65,20 @@ void ggb::Cartridge::serialization(Serialization* serialize)
 	serialize->read_write(m_mbcType);
 }
 
-std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController(MBCTYPE mbcType, std::vector<uint8_t>&& cartridgeData) const
+std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController(MBCTYPE mbcType) const
 {
 	switch (mbcType)
 	{
 	case ggb::NO_MBC:
-		return std::make_unique<MemoryBankControllerNone>(std::move(cartridgeData));
+		return std::make_unique<MemoryBankControllerNone>();
 	case ggb::MBC1:
-		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData));
+		return std::make_unique<MemoryBankControllerOne>();
 	case ggb::MBC1_RAM:
 		break;
 	case ggb::MBC1_RAM_BATTERY:
-		return std::make_unique<MemoryBankControllerOne>(std::move(cartridgeData));
+		return std::make_unique<MemoryBankControllerOne>();
 	case ggb::MC5_RAM_BATTERY:
-		return std::make_unique<MemoryBankControllerFive>(std::move(cartridgeData));
+		return std::make_unique<MemoryBankControllerFive>();
 	default:
 		break;
 	}

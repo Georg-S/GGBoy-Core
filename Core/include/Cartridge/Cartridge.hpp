@@ -20,7 +20,7 @@ namespace ggb
 
 	private:
 		void serialization(Serialization* serialize);
-		std::unique_ptr<MemoryBankController> createMemoryBankController(MBCTYPE mbcType, std::vector<uint8_t>&& cartridgeData) const;
+		std::unique_ptr<MemoryBankController> createMemoryBankController(MBCTYPE mbcType) const;
 
 		std::unique_ptr<MemoryBankController> m_memoryBankController;
 		MBCTYPE m_mbcType = MC_INVALID;

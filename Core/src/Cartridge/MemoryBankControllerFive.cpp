@@ -39,11 +39,6 @@ constexpr static bool isCartridgeRAM(uint16_t address)
 	return (address >= 0xA000 && address <= 0xBFFF);
 }
 
-ggb::MemoryBankControllerFive::MemoryBankControllerFive(std::vector<uint8_t>&& cartridgeData)
-	: MemoryBankController(std::move(cartridgeData))
-{
-}
-
 void ggb::MemoryBankControllerFive::write(uint16_t address, uint8_t value)
 {
 	if (isRAMEnableAddress(address)) 
