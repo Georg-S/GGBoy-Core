@@ -127,3 +127,9 @@ int ggb::CPU::step()
 
 	return duration;
 }
+
+void ggb::CPU::serialization(Serialization* serialization)
+{
+	m_cpuState.serialization(serialization);
+	serialization->read_write(m_instructionCounter);
+}

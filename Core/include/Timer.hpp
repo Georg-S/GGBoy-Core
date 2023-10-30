@@ -1,5 +1,6 @@
 #pragma once
 #include "BUS.hpp"
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -12,6 +13,7 @@ namespace ggb
 		void step(int elapsedCycles);
 		void resetDividerRegister();
 		void updateTimerDivider(int elapsedCycles);
+		void serialization(Serialization* serialization);
 
 	private:
 		BUS* m_bus;

@@ -195,6 +195,11 @@ void ggb::BUS::resetTimerDivider()
     m_timer->resetDividerRegister();
 }
 
+void ggb::BUS::serialization(Serialization* serialization)
+{
+    serialization->read_write(m_memory);
+}
+
 void ggb::BUS::directMemoryAccess(uint8_t value)
 {
     // TODO maybe not do this in every function call, move into contructor

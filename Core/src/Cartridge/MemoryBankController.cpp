@@ -3,6 +3,7 @@
 #include <cassert>
 #include <fstream>
 
+#include "Serialization.hpp"
 #include "Utility.hpp"
 
 // The last three values of this array are from unoffical sources and might be wrong
@@ -68,6 +69,15 @@ void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path) const
 		return; // TODO handle error better
 
 	serialize(file, m_ram);
+}
+
+void ggb::MemoryBankController::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_cartridgeData);
+	serialization->read_write(m_ram);
+	serialization->read_write(m_hasRam);
+	serialization->read_write(m_ROMBankCount);
+	serialization->read_write(m_RAMBankCount);
 }
 
 void ggb::MemoryBankController::executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const

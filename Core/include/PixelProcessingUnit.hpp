@@ -1,9 +1,10 @@
 #pragma once
+#include <functional>
+
 #include "BUS.hpp"
 #include "RenderingUtility.hpp"
 #include "Utility.hpp"
-
-#include <functional>
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -80,6 +81,7 @@ namespace ggb
 		Dimensions getTileDataDimensions() const;
 		void setDrawTileData(bool enable);
 		void setDrawWholeBackground(bool enable);
+		void serialization(Serialization* serialization);
 
 	private:
 		void renderGame();

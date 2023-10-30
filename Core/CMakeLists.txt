@@ -32,6 +32,7 @@ set (MISCELLANEOUS_HEADERS
 	"include/Timer.hpp"
 	"include/Input.hpp"
 	"include/Ringbuffer.hpp"
+	"include/Serialization.hpp"
 	)
 
 set(HEADERS 

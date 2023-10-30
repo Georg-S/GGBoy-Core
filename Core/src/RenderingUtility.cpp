@@ -4,10 +4,9 @@
 
 using namespace ggb;
 
-ggb::FrameBuffer::FrameBuffer(BUS* bus, int xSize, int ySize)
+ggb::FrameBuffer::FrameBuffer(int xSize, int ySize)
 	: m_xSize(xSize) 
 	, m_ySize(ySize)
-	, m_bus(bus)
 {
 	for (size_t x = 0; x < m_xSize; x++) 
 		m_buffer.emplace_back(std::vector<RGBA>(ySize, {0,0,0}));
@@ -23,11 +22,16 @@ RGBA ggb::FrameBuffer::getPixel(int x, int y) const
 	return m_buffer[x][y];
 }
 
-ggb::Tile::Tile()
+void ggb::FrameBuffer::serialization(Serialization* serialization)
 {
-	m_rawData = std::vector<TileRawData>(8, {0,0});
-	for (size_t i = 0; i < 8; i++)
-		m_data.emplace_back(std::vector<RGBA>(8, {0,0,0}));
+	serialization->read_write(m_xSize);
+	serialization->read_write(m_ySize);
+	serialization->read_write(m_buffer);
+}
+
+void ggb::Tile::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_data);
 }
 
 // TODO differentiate between background/window and sprites/obj
@@ -68,9 +72,8 @@ Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palet
 	return tile;
 }
 
-void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, std::vector<RGBA>& outVec)
+void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, RGBA* outRow)
 {
-	assert(outVec.size() >= 8);
 	auto low = bus->read(tileAddress + (tileRow * 2));
 	auto high = bus->read(tileAddress + (tileRow * 2) + 1);
 
@@ -81,7 +84,7 @@ void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, con
 		auto num = getNumberFromBits(lsb, msb);
 		auto rgb = getRGBFromNumAndPalette(num, palette);
 
-		outVec[7 - x] = std::move(rgb);
+		outRow[7 - x] = std::move(rgb);
 	}
 }
 

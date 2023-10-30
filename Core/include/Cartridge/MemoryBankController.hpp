@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "Constants.hpp"
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -44,6 +45,7 @@ namespace ggb
 		int getRAMBankCount() const;
 		void loadRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		void saveRAM(const std::filesystem::path& path) const; // Does nothing if MBC has no RAM
+		virtual void serialization(Serialization* serialization);
 
 	protected:
 		void executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const;

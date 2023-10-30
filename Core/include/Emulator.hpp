@@ -2,6 +2,7 @@
 #include "CPU.hpp"
 
 #include <memory>
+#include <filesystem>
 
 #include "BUS.hpp"
 #include "CPU.hpp"
@@ -11,6 +12,7 @@
 #include "Audio/AudioProcessingUnit.hpp"
 #include "PixelProcessingUnit.hpp"
 #include "RenderingUtility.hpp"
+#include "Serialization.hpp"
 
 
 namespace ggb
@@ -26,6 +28,8 @@ namespace ggb
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setInput(std::unique_ptr<Input> input);
+		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
+		void saveEmulatorState(const std::filesystem::path& outputPath); 
 		SampleBuffer* getSampleBuffer();
 		Dimensions getTileDataDimensions() const;
 		Dimensions getGameWindowDimensions() const;
@@ -33,6 +37,7 @@ namespace ggb
 	private:
 		void rewire();
 		void synchronizeEmulatorMasterClock(int elapsedCycles);
+		void serialization(ggb::Serialization* serialization);
 
 		std::unique_ptr<CPU> m_cpu;
 		std::unique_ptr<BUS> m_bus;

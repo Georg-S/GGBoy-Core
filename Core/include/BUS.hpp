@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "Cartridge/Cartridge.hpp"
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -29,6 +30,7 @@ namespace ggb
 		uint8_t* getPointerIntoMemory(uint16_t address); // For memory mapped IO only (e.g. the Timer)
 		void requestInterrupt(int interrupt);
 		void resetTimerDivider();
+		void serialization(Serialization* serialization); // Used for both serialize / deserialize
 
 	private:
 		void directMemoryAccess(uint8_t value);

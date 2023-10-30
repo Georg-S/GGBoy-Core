@@ -144,6 +144,18 @@ bool ggb::CPUState::isStopped() const
 	return m_stopped;
 }
 
+void ggb::CPUState::serialization(Serialization* serialization)
+{
+	serialization->read_write(afUnion);
+	serialization->read_write(bcUnion);
+	serialization->read_write(deUnion);
+	serialization->read_write(hlUnion);
+	serialization->read_write(m_stackPointer);
+	serialization->read_write(m_instructionPointer);
+	serialization->read_write(m_interruptsEnabled);
+	serialization->read_write(m_stopped);
+}
+
 uint8_t ggb::CPUState::F() const
 {
 	return afUnion.regs[0];

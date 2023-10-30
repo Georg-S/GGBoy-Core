@@ -2,6 +2,9 @@
 #include "Logging.hpp"
 #include "Constants.hpp"
 
+#include "Utility.hpp"
+
+
 using namespace ggb;
 
 ggb::Emulator::Emulator()
@@ -71,6 +74,21 @@ void ggb::Emulator::setInput(std::unique_ptr<Input> input)
 	m_input->setBus(m_bus.get());
 }
 
+void ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
+{
+	try 
+	{
+		auto serializeUnique = std::make_unique<ggb::Serialize>(outputPath);
+		auto serialize = serializeUnique.get();
+		serialization(serialize);
+		m_currentCartridge->serialize(serialize);
+	}
+	catch (const std::exception& e) 
+	{
+		logError(std::string("Error saving emulator state: ")  + e.what());
+	}
+}
+
 SampleBuffer* ggb::Emulator::getSampleBuffer()
 {
 	return m_audio->getSampleBuffer();
@@ -84,6 +102,18 @@ Dimensions ggb::Emulator::getTileDataDimensions() const
 Dimensions ggb::Emulator::getGameWindowDimensions() const
 {
 	return Dimensions{ GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT };
+}
+
+void ggb::Emulator::serialization(ggb::Serialization* serialization)
+{
+	serialization->read_write(m_syncCounter);
+	serialization->read_write(m_previousTimeStamp);
+	serialization->read_write(m_emulationSpeed);
+	m_bus->serialization(serialization);
+	m_cpu->serialization(serialization);
+	m_ppu->serialization(serialization);
+	m_timer->serialization(serialization);
+	m_audio->serialization(serialization);
 }
 
 void ggb::Emulator::rewire()

@@ -94,3 +94,10 @@ void ggb::MemoryBankControllerFive::executeOAMDMATransfer(uint16_t startAddress,
 	auto convertedAddress = convertRawAddressToBankAddress(startAddress, m_romBankNumber);
 	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[convertedAddress], oam);
 }
+
+void ggb::MemoryBankControllerFive::serialization(Serialization* serialization)
+{
+	MemoryBankController::serialization(serialization);
+	serialization->read_write(m_ramEnabled);
+	serialization->read_write(m_romBankNumber);
+}

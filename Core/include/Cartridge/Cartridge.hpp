@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "MemoryBankController.hpp"
+#include "Serialization.hpp"
 
 namespace ggb 
 {
@@ -14,8 +15,11 @@ namespace ggb
 		void write(uint16_t address, uint8_t value);
 		void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam);
 		uint8_t read(uint16_t address) const;
+		void serialize(Serialization* serialize);
+		void deserialize(Serialization* deserialize);
 
 	private:
+		void serialization(Serialization* serialize);
 		std::unique_ptr<MemoryBankController> createMemoryBankController(MBCTYPE mbcType, std::vector<uint8_t>&& cartridgeData) const;
 
 		std::unique_ptr<MemoryBankController> m_memoryBankController;

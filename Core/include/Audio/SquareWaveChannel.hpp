@@ -3,6 +3,7 @@
 #include "Constants.hpp"
 #include "BUS.hpp"
 #include "Ringbuffer.hpp"
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -31,6 +32,7 @@ namespace ggb
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
 		void tickFrequencySweep();
+		void serialization(Serialization* serialization);
 
 	private:
 		void trigger();

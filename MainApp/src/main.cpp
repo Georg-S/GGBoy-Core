@@ -196,7 +196,7 @@ static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
 	}
 }
 
-bool intializeAudio(ggb::Emulator* emu)
+static bool intializeAudio(ggb::Emulator* emu)
 {
 	uint64_t samples_played = 0;
 
@@ -226,6 +226,14 @@ bool intializeAudio(ggb::Emulator* emu)
 	SDL_PauseAudioDevice(audio_device_id, 0);
 
 	return true;
+}
+
+static void handleEmulatorKeyPresses(ggb::Emulator* emulator, const Uint8* keyStates)
+{
+	if (keyStates[SDL_SCANCODE_R])
+		emulator->reset();
+	if (keyStates[SDL_SCANCODE_F1])
+		emulator->saveEmulatorState("Savestate1.bin");
 }
 
 int main(int argc, char* argv[])
@@ -272,9 +280,7 @@ int main(int argc, char* argv[])
 		{
 			counter -= UPDATE_INPUT_TICKS;
 			SDL_PumpEvents(); // Don't pump events on every step -> not really needed and improves performance
-
-			if (keyStates[SDL_SCANCODE_R])
-				emulator.reset();
+			handleEmulatorKeyPresses(&emulator, keyStates);
 		}
 	}
 

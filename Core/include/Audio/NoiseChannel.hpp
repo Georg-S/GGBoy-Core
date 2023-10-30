@@ -1,6 +1,7 @@
 #pragma once
 #include "BUS.hpp"
 #include "Constants.hpp"
+#include "Serialization.hpp"
 
 namespace ggb
 {
@@ -14,6 +15,7 @@ namespace ggb
 		AUDIO_FORMAT getSample();
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
+		void serialization(Serialization* serialization);
 
 	private:
 		int getInitialLengthCounter() const;

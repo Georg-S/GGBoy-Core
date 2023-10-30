@@ -111,6 +111,16 @@ void ggb::NoiseChannel::tickLengthShutdown()
 	}
 }
 
+void ggb::NoiseChannel::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_volumeSweepCounter);
+	serialization->read_write(m_volume);
+	serialization->read_write(m_lengthCounter);
+	serialization->read_write(m_isOn);
+	serialization->read_write(m_cycleCounter);
+	serialization->read_write(m_volumeChange);
+}
+
 int ggb::NoiseChannel::getInitialLengthCounter() const
 {
 	return *m_lengthTimer;

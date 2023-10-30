@@ -166,6 +166,21 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 	}
 }
 
+void ggb::SquareWaveChannel::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_dutyCyclePosition);
+	serialization->read_write(m_baseAddres);
+	serialization->read_write(m_periodCounter);
+	serialization->read_write(m_lengthCounter);
+	serialization->read_write(m_volumeSweepCounter);
+	serialization->read_write(m_volume);
+	serialization->read_write(m_frequencySweepCounter);
+	serialization->read_write(m_frequencySweepPace);
+	serialization->read_write(m_hasSweep);
+	serialization->read_write(m_isOn);
+	serialization->read_write(m_volumeChange);
+}
+
 void ggb::SquareWaveChannel::trigger()
 {
 	m_isOn = true;

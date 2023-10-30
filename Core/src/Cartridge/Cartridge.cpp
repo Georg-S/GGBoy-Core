@@ -47,6 +47,22 @@ uint8_t ggb::Cartridge::read(uint16_t address) const
 	return m_memoryBankController->read(address);
 }
 
+void ggb::Cartridge::serialize(Serialization* serialize)
+{
+	serialization(serialize);
+	m_memoryBankController->serialization(serialize);
+}
+
+void ggb::Cartridge::deserialize(Serialization* deserialize)
+{
+	// TODO implement
+}
+
+void ggb::Cartridge::serialization(Serialization* serialize)
+{
+	serialize->read_write(m_mbcType);
+}
+
 std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController(MBCTYPE mbcType, std::vector<uint8_t>&& cartridgeData) const
 {
 	switch (mbcType)

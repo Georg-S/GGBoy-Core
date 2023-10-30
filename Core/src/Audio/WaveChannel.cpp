@@ -104,6 +104,14 @@ void ggb::WaveChannel::tickLengthShutdown()
 	}
 }
 
+void ggb::WaveChannel::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_isOn);
+	serialization->read_write(m_sampleIndex);
+	serialization->read_write(m_periodCounter);
+	serialization->read_write(m_lengthCounter);
+}
+
 int ggb::WaveChannel::getPeriodCounter() const
 {
 	const uint16_t high = *m_periodHighAndControl & 0b111;

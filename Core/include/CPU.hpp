@@ -12,13 +12,14 @@ namespace ggb
 		void reset();
 		void setBus(BUS* bus);
 		int step();
+		void serialization(Serialization* serialization); // Used for both serialize / deserialize
 
 	private:
 		bool handleInterrupts();
 
-		OPCodes m_opcodes;
-		CPUState m_cpuState;
 		BUS* m_bus = nullptr;
+		OPCodes m_opcodes; // TODO maybe not make this part of cpu but instead a static variable
+		CPUState m_cpuState;
 		uint64_t m_instructionCounter = 0;
 	};
 }

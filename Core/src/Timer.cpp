@@ -73,3 +73,9 @@ void ggb::Timer::updateTimerDivider(int elapsedCycles)
 		m_dividerCounter -= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT;
 	}
 }
+
+void ggb::Timer::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_dividerCounter);
+	serialization->read_write(m_counterForTimerCounter);
+}

@@ -90,6 +90,17 @@ ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
 	return &m_sampleBuffer;
 }
 
+void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
+{
+	serialization->read_write(m_frameSequencerStep);
+	serialization->read_write(m_frameFrequencerCounter);
+	serialization->read_write(m_cycleCounter);
+	m_channel1->serialization(serialization);
+	m_channel2->serialization(serialization);
+	m_channel3->serialization(serialization);
+	m_channel4->serialization(serialization);
+}
+
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
 	constexpr auto CHANNEL_COUNT = 4;

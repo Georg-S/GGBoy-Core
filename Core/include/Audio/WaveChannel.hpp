@@ -1,6 +1,7 @@
 #pragma once
 #include "BUS.hpp"
 #include "Constants.hpp"
+#include "Serialization.hpp"
 
 namespace ggb 
 {
@@ -13,6 +14,7 @@ namespace ggb
 		bool write(uint16_t address, uint8_t value);
 		AUDIO_FORMAT getSample() const;
 		void tickLengthShutdown();
+		void serialization(Serialization* serialization);
 
 	private:
 		void trigger();

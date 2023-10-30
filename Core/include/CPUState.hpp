@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#include "Serialization.hpp"
+
 namespace ggb 
 {
 	class CPUState
@@ -37,6 +39,7 @@ namespace ggb
 		bool stop();
 		bool resume();
 		bool isStopped() const;
+		void serialization(Serialization* serialization); // Used for both serialize / deserialize
 
 	private:
 		uint8_t F() const;

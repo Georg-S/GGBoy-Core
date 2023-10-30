@@ -18,8 +18,8 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	m_objColorBuffer = std::vector<uint8_t>(8, 0);
 	m_currentObjectRowPixelBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
 	m_pixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
-	m_gameFrameBuffer = std::make_unique<FrameBuffer>(m_bus, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
-	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(m_bus, TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
+	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
+	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
 }
 
@@ -169,6 +169,21 @@ void ggb::PixelProcessingUnit::setDrawTileData(bool enable)
 void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
 {
 	m_drawWholeBackground = enable;
+}
+
+void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
+{
+	// TODO emulator should probably save / serialize the last saved frame and render it (will be useful if the emulator is paused)
+	serialization->read_write(m_objects);
+	serialization->read_write(m_currentScanlineObjects);
+	serialization->read_write(m_vramTiles);
+	serialization->read_write(m_currentRowBuffer);
+	serialization->read_write(m_objColorBuffer);
+	serialization->read_write(m_pixelBuffer);
+	serialization->read_write(m_currentObjectRowPixelBuffer);
+
+	m_gameFrameBuffer->serialization(serialization);
+	m_tileDataFrameBuffer->serialization(serialization);
 }
 
 void ggb::PixelProcessingUnit::renderGame()
