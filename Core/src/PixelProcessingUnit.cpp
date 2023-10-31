@@ -226,7 +226,7 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 	// Offset needed to convert object coordinates to screen coordinates
 	static const int screenOffset = 16;
 	int objectHeight = TILE_HEIGHT;
-	if (isBitSet(*m_LCDControl, 2))
+	if (isBitSet(*m_LCDControl, 2)) 
 		objectHeight = TILE_HEIGHT * 2;
 
 	m_currentScanlineObjects.clear();
@@ -348,11 +348,11 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 	for (const auto& obj : m_currentScanlineObjects)
 	{
 		uint16_t tileAddress = TILE_MAP_1_ADDRESS + (*obj.tileIndex * TILE_MEMORY_SIZE);
-		if (*obj.yPosition + 7 < scanLine())
-			++tileAddress; // TODO: Is this correct for y flipped 8 x 16 ???
-
+		// TODO handle 8x16 objects
 		const auto objConvertedYPos = *obj.yPosition - 16;
-		const auto objTileLine = scanLine() - objConvertedYPos;
+		auto objTileLine = scanLine() - objConvertedYPos;
+		if (obj.isFlipYSet())
+			objTileLine = 7 - objTileLine;
 		const auto colorPalette = getObjectColorPalette(obj);
 		const bool backgroundOverObj = obj.drawBackgroundOverObject();
 

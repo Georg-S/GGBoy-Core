@@ -234,8 +234,20 @@ static void handleEmulatorKeyPresses(ggb::Emulator* emulator, const Uint8* keySt
 		emulator->reset();
 	if (keyStates[SDL_SCANCODE_F1])
 		emulator->saveEmulatorState("Savestate1.bin");
+	if (keyStates[SDL_SCANCODE_F2])
+		emulator->saveEmulatorState("Savestate2.bin");
+	if (keyStates[SDL_SCANCODE_F3])
+		emulator->saveEmulatorState("Savestate3.bin");
+	if (keyStates[SDL_SCANCODE_F4])
+		emulator->saveEmulatorState("Savestate4.bin");
 	if (keyStates[SDL_SCANCODE_F5])
 		emulator->loadEmulatorState("Savestate1.bin");
+	if (keyStates[SDL_SCANCODE_F6])
+		emulator->loadEmulatorState("Savestate2.bin");
+	if (keyStates[SDL_SCANCODE_F7])
+		emulator->loadEmulatorState("Savestate3.bin");
+	if (keyStates[SDL_SCANCODE_F8])
+		emulator->loadEmulatorState("Savestate4.bin");
 }
 
 int main(int argc, char* argv[])
@@ -250,8 +262,8 @@ int main(int argc, char* argv[])
 
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	//emulator.loadCartridge("Roms/Games/Tetris.gb");
-	emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
-	//emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
+	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
+	emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
 	//emulator.loadCartridge("Roms/Games/Pokemon_Yellow.gb");
 	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
 	//emulator.loadCartridge("Roms/TestROMs/instr_timing.gb");

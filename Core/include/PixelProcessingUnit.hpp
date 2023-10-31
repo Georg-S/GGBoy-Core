@@ -32,19 +32,24 @@ namespace ggb
 
 	struct Object 
 	{
+		bool usePalette1() const
+		{
+			return isBitSet(*attributes, 4);
+		}
+
 		bool isFlipXSet() const
 		{
 			return isBitSet(*attributes, 5);
 		}
 
+		bool isFlipYSet() const 
+		{
+			return isBitSet(*attributes, 6);
+		}
+
 		bool drawBackgroundOverObject() const 
 		{
 			return isBitSet(*attributes, 7); // background and window
-		}
-
-		bool usePalette1() const
-		{
-			return isBitSet(*attributes, 4);
 		}
 
 		uint8_t* yPosition = nullptr;
