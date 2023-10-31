@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "Constants.hpp"
 #include "BUS.hpp"
 #include "Ringbuffer.hpp"
@@ -27,11 +29,13 @@ namespace ggb
 		SquareWaveChannel(bool hasSweep, BUS* bus);
 		void setBus(BUS* bus);
 		bool write(uint16_t memory, uint8_t value);
+		std::optional<uint8_t> read(uint16_t address) const;
 		void step(int cyclesPassed);
 		AUDIO_FORMAT getSample() const;
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
 		void tickFrequencySweep();
+		bool isOn() const;
 		void serialization(Serialization* serialization);
 
 	private:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "Constants.hpp"
 #include "BUS.hpp"
 #include "Ringbuffer.hpp"
@@ -25,7 +27,7 @@ namespace ggb
 		void setBus(BUS* bus);
 		// Returns true if the write was handled, false if a raw memory write should be made
 		bool write(uint16_t address, uint8_t value);
-		uint8_t read(uint16_t address);
+		std::optional<uint8_t> read(uint16_t address) const;
 		void step(int cyclesPassed);
 		SampleBuffer* getSampleBuffer();
 		void serialization(Serialization* serialization);

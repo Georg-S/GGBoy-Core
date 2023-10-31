@@ -1,4 +1,6 @@
 #pragma once
+#include <optional>
+
 #include "BUS.hpp"
 #include "Constants.hpp"
 #include "Serialization.hpp"
@@ -11,10 +13,12 @@ namespace ggb
 		NoiseChannel(BUS* bus);
 		void setBus(BUS* bus);
 		bool write(uint16_t address, uint8_t value);
+		std::optional<uint8_t> read(uint16_t address) const;
 		void step(int cyclesPassed);
 		AUDIO_FORMAT getSample();
 		void tickVolumeEnvelope();
 		void tickLengthShutdown();
+		bool isOn() const;
 		void serialization(Serialization* serialization);
 
 	private:

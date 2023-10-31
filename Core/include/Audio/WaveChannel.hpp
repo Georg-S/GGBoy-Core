@@ -1,4 +1,7 @@
 #pragma once
+
+#include <optional>
+
 #include "BUS.hpp"
 #include "Constants.hpp"
 #include "Serialization.hpp"
@@ -12,8 +15,10 @@ namespace ggb
 		void setBus(BUS* bus);
 		void step(int cyclesPassed);
 		bool write(uint16_t address, uint8_t value);
+		std::optional<uint8_t> read(uint16_t address) const;
 		AUDIO_FORMAT getSample() const;
 		void tickLengthShutdown();
+		bool isOn() const;
 		void serialization(Serialization* serialization);
 
 	private:

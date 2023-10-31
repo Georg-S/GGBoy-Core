@@ -85,19 +85,17 @@ uint8_t ggb::BUS::read(uint16_t address) const
 {
     if (isEchoMemory(address))
         address -= 0x2000;
-    if (isCartridgeROM(address))
-        return m_cartridge->read(address);
-    if (isCartridgeRAM(address))
+    if (isCartridgeROM(address) || isCartridgeRAM(address))
         return m_cartridge->read(address);
     if (isUnusedMemory(address))
         return 0xFF; // Reading from unused/invalid memory
-    if (isCartridgeRAM(address))
-        int de = 3; // TODO should probably write into the cartridge (because of RAM banking)
     if (address == 0xFF46) // DMA Transfer address, write only
         return 0xFF;
     if (isAudioMemory(address))
     {
-        return m_audio->read(address);
+        auto value = m_audio->read(address);
+        if (value)
+            return value.value();
     }
 
     return m_memory[address];

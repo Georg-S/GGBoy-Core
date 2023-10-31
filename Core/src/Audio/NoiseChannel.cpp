@@ -36,6 +36,14 @@ bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 	return false;
 }
 
+std::optional<uint8_t> ggb::NoiseChannel::read(uint16_t address) const
+{
+	if (address == 0xFF23)
+		return *m_control & 0b01000000;
+
+	return std::nullopt;
+}
+
 void ggb::NoiseChannel::step(int cyclesPassed)
 {
 	if (!m_isOn)
@@ -109,6 +117,11 @@ void ggb::NoiseChannel::tickLengthShutdown()
 		m_lengthCounter = 0;
 		m_isOn = false;
 	}
+}
+
+bool ggb::NoiseChannel::isOn() const
+{
+	return m_isOn;
 }
 
 void ggb::NoiseChannel::serialization(Serialization* serialization)

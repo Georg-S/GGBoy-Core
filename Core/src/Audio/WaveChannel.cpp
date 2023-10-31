@@ -59,6 +59,14 @@ bool ggb::WaveChannel::write(uint16_t address, uint8_t value)
 	return false;
 }
 
+std::optional<uint8_t> ggb::WaveChannel::read(uint16_t address) const
+{
+	if (address == CHANNEL3_PERIOD_HIGH_AND_CONTROL_ADDRESS)
+		return *m_periodHighAndControl & 0b01000000;
+
+	return std::nullopt;
+}
+
 void ggb::WaveChannel::trigger()
 {
 	m_isOn = true;
@@ -102,6 +110,11 @@ void ggb::WaveChannel::tickLengthShutdown()
 		m_lengthCounter = 0;
 		m_isOn = false;
 	}
+}
+
+bool ggb::WaveChannel::isOn() const
+{
+	return m_isOn;
 }
 
 void ggb::WaveChannel::serialization(Serialization* serialization)

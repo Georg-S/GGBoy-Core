@@ -61,6 +61,17 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	return false;
 }
 
+std::optional<uint8_t> ggb::SquareWaveChannel::read(uint16_t address) const
+{
+	const auto offset = address - m_baseAddres;
+	if (offset == LENGTH_TIMER_OFFSET)
+		return *m_lengthTimerAndDutyCycle & 0b11000000;
+	if (offset == PERIOD_HIGH_AND_CONTROL_OFFSET)
+		return *m_periodHighAndControl & 0b01000000;
+
+	return std::nullopt;
+}
+
 void ggb::SquareWaveChannel::step(int cyclesPassed)
 {
 	if (!m_isOn)
@@ -164,6 +175,11 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 		}
 		setRawPeriodValue(newPeriodValue);
 	}
+}
+
+bool ggb::SquareWaveChannel::isOn() const
+{
+	return m_isOn;
 }
 
 void ggb::SquareWaveChannel::serialization(Serialization* serialization)
