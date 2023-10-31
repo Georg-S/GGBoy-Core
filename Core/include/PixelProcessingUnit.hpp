@@ -103,6 +103,7 @@ namespace ggb
 		ColorPalette getBackgroundAndWindowColorPalette() const;
 		ColorPalette getObjectColorPalette(const Object& obj) const;
 		void updateAndRenderTileData();
+		int getObjectHeight() const;
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;

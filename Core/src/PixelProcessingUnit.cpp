@@ -225,16 +225,13 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 {
 	// Offset needed to convert object coordinates to screen coordinates
 	static const int screenOffset = 16;
-	int objectHeight = TILE_HEIGHT;
-	if (isBitSet(*m_LCDControl, 2)) 
-		objectHeight = TILE_HEIGHT * 2;
 
 	m_currentScanlineObjects.clear();
 	m_currentScanlineObjects.reserve(10);
 	for (const auto& obj : m_objects)
 	{
 		int yObjStart = static_cast<int>(*obj.yPosition) - screenOffset;
-		int yObjEnd = static_cast<int>(*obj.yPosition) + objectHeight - screenOffset - 1;
+		int yObjEnd = static_cast<int>(*obj.yPosition) + getObjectHeight() - screenOffset - 1;
 
 		if (*m_LCDYCoordinate < yObjStart || *m_LCDYCoordinate > yObjEnd)
 			continue;
@@ -341,6 +338,8 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 {
 	constexpr int TRANSPARENT_PIXEL_VALUE = 0;
+	constexpr int SCREEN_Y_OFFSET = 16;
+	constexpr int SCREEN_X_OFFSET = 8;
 
 	for (auto& obj : m_currentObjectRowPixelBuffer)
 		obj.pixelSet = false;
@@ -348,19 +347,21 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 	for (const auto& obj : m_currentScanlineObjects)
 	{
 		uint16_t tileAddress = TILE_MAP_1_ADDRESS + (*obj.tileIndex * TILE_MEMORY_SIZE);
-		// TODO handle 8x16 objects
-		const auto objConvertedYPos = *obj.yPosition - 16;
-		auto objTileLine = scanLine() - objConvertedYPos;
-		if (obj.isFlipYSet())
-			objTileLine = 7 - objTileLine;
+		const auto objScreenYPos = *obj.yPosition - SCREEN_Y_OFFSET;
 		const auto colorPalette = getObjectColorPalette(obj);
 		const bool backgroundOverObj = obj.drawBackgroundOverObject();
+		auto objTileLine = scanLine() - objScreenYPos;
 
+		if (obj.isFlipYSet())
+			objTileLine = (getObjectHeight() - 1) - objTileLine;
+
+		// Kind of hacky for 8x16 tiles e.g. to just read the 14th tile row (even though tiles only have 8 rows)
+		// however since 8x16 objects have their tiles continuous in memory, this seems the cleanest way to handle them
 		getTileRowData(m_bus, tileAddress, objTileLine, m_objColorBuffer);
 		if (obj.isFlipXSet())
 			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
-		for (int x = *obj.xPosition - 8, objX = 0; objX < TILE_WIDTH && x < GAME_WINDOW_WIDTH; ++x, ++objX)
+		for (int x = *obj.xPosition - SCREEN_X_OFFSET, objX = 0; objX < TILE_WIDTH && x < GAME_WINDOW_WIDTH; ++x, ++objX)
 		{
 			if (x < 0) 
 				continue;
@@ -497,4 +498,11 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i]);
 
 	renderTileData(m_vramTiles, m_tileDataFrameBuffer.get(), m_tileDataRenderer.get());
+}
+
+int ggb::PixelProcessingUnit::getObjectHeight() const
+{
+	if (isBitSet(*m_LCDControl, 2))
+		return TILE_HEIGHT * 2;
+	return TILE_HEIGHT;
 }
