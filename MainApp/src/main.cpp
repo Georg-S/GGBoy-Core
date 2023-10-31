@@ -184,7 +184,7 @@ static void emulator_audio_callback(void* userdata, uint8_t* stream, int len)
 	ggb::SampleBuffer* sampleBuffer = reinterpret_cast<ggb::SampleBuffer*>(userdata);
 	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(stream);
 
-	static const int volume = 60;
+	static const int volume = 15;
 	const auto count = len / (sizeof(ggb::AUDIO_FORMAT) * CHANNEL_COUNT);
 
 	for (size_t sid = 0; sid < count; ++sid)

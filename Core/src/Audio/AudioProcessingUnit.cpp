@@ -122,7 +122,6 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
-	constexpr auto CHANNEL_COUNT = 4;
 	constexpr auto sampleGeneratingRate = CPU_BASE_CLOCK / STANDARD_SAMPLE_RATE;
 	const auto masterVolume = getMasterVolume();
 	Frame outFrame = {};
@@ -143,9 +142,9 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 		soundPanning(5, 1, m_channel2->getSample());
 		soundPanning(6, 2, m_channel3->getSample());
 		soundPanning(7, 3, m_channel4->getSample());
-		// Mixing is done by simply adding up the channels up and dividing by the count of channels
-		outFrame.leftSample = (outFrame.leftSample * masterVolume) / CHANNEL_COUNT;
-		outFrame.rightSample = (outFrame.rightSample * masterVolume) / CHANNEL_COUNT;
+		// Mixing is done by simply adding up the channel outputs
+		outFrame.leftSample = outFrame.leftSample * masterVolume;
+		outFrame.rightSample = outFrame.rightSample * masterVolume;
 
 		m_sampleBuffer.push(std::move(outFrame));
 	}
