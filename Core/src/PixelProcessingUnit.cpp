@@ -310,7 +310,7 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	assert(yTileOffset < TILE_MAP_SIZE);
 	const auto screenX = convertWindowCoordinateToScreen(*m_windowXPos);
 	const auto tileRow = yPos % TILE_HEIGHT;
-	auto tileColumn = *m_windowXPos % TILE_WIDTH;
+	auto tileColumn = screenX % TILE_WIDTH;
 
 	for (int xCoord = screenX; xCoord < GAME_WINDOW_WIDTH;)
 	{
