@@ -10,8 +10,6 @@ set(HEADERS "")
 if	(WIN32)
 	set(SDL2_INCLUDE_DIRS $ENV{SDL2_INCLUDE})
 	set(SDL2_LIBRARIES "$ENV{SDL2_BIN}/SDL2.lib")
-	set(SDL2IMAGE_INCLUDE_DIRS $ENV{SDL2IMAGE_INCLUDE})
-	set(SDL2IMAGE_LIBRARIES "$ENV{SDL2IMAGE_BIN}/SDL2_image.lib")
 endif(WIN32)
 
 add_executable(GGBoyApp 
@@ -27,12 +25,5 @@ if (MSVC)
                         POST_BUILD
                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                         "$ENV{SDL2_BIN}/SDL2.dll"
-                        $<TARGET_FILE_DIR:GGBoyApp>)
-
-    file(GLOB SDL2_IMAGE_DLLS "$ENV{SDL2IMAGE_BIN}/*.dll")
-    add_custom_command(TARGET GGBoyApp
-                        POST_BUILD
-                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        ${SDL2_IMAGE_DLLS}
                         $<TARGET_FILE_DIR:GGBoyApp>)
 endif (MSVC)
