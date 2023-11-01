@@ -179,7 +179,6 @@ void ggb::decrement(CPUState* cpu, uint8_t& toDecrement)
 
 void ggb::add(CPUState* cpu, uint8_t& outNum, uint8_t num2)
 {
-	// TODO probably correct but maybe check again
 	const uint8_t initialVal = outNum;
 	outNum += num2;
 	cpu->setSubtractionFlag(false);
@@ -190,16 +189,12 @@ void ggb::add(CPUState* cpu, uint8_t& outNum, uint8_t num2)
 
 void ggb::add(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag)
 {
-	// Wanted to achieve correct behavior without using a bigger integer,
-	// however using a bigger integer would result in much much cleaner code
-	// Therefore this is as of now just for fun and will be refactored .... TODO :)
-	const uint8_t initialVal = outNum;
-	outNum += num2 + carryFlag;
-	bool halfCarry = (((initialVal & 0xF)+(num2 & 0xF) + carryFlag)) > 0xF;
-	const bool carry = ((initialVal + num2) < initialVal) || (outNum < initialVal) || (outNum == initialVal && num2 > 0);
+	const uint32_t result = static_cast<int>(num2) + outNum + carryFlag;
+	const uint16_t lowerNibblesAdded = (outNum & 0xF) + (num2 & 0xF) + carryFlag;
+	outNum = static_cast<uint8_t>(result);
 	cpu->setSubtractionFlag(false);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
+	cpu->setHalfCarryFlag(lowerNibblesAdded > 0xF);
+	cpu->setCarryFlag(result > 0xFF);
 	cpu->setZeroFlag(outNum == 0);
 }
 
@@ -244,19 +239,12 @@ void ggb::sub(CPUState* cpu, uint8_t& outReg, uint8_t reg2)
 
 void ggb::sub(CPUState* cpu, uint8_t& outNum, uint8_t num2, uint8_t carryFlag)
 {
-	// Wanted to achieve correct behavior without using a bigger integer,
-	// however using a bigger integer would result in much much cleaner code
-	// Therefore this is as of now just for fun and will be refactored .... TODO :)
-	const uint8_t initialVal = outNum;
-	outNum = outNum - num2 - carryFlag;
-	const bool halfCarry = (((initialVal & 0xF) - (num2 & 0XF)) > (initialVal & 0xF))
-		|| ((outNum & 0xF) > (initialVal & 0xF))
-		|| ((outNum & 0xF) == (initialVal & 0xF) && (num2&0xF) == 0x0F);
-
-	const bool carry = ((initialVal - num2) > initialVal) || (outNum > initialVal) || (outNum == initialVal && num2 != 0);
+	const uint32_t result = outNum - num2 - carryFlag;
+	const uint32_t lowerNibblesSubtracted = (outNum & 0xF) - (num2 & 0xF) - carryFlag;
+	outNum = static_cast<uint8_t>(result);
 	cpu->setSubtractionFlag(true);
-	cpu->setHalfCarryFlag(halfCarry);
-	cpu->setCarryFlag(carry);
+	cpu->setHalfCarryFlag(lowerNibblesSubtracted > 0xF);
+	cpu->setCarryFlag(result > 0xFF);
 	cpu->setZeroFlag(outNum == 0);
 }
 
@@ -316,6 +304,7 @@ void ggb::rotateLeft(CPUState* cpu, uint8_t& outNum)
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(carry);
+	// TODO if upgrade to C++ 20 is made, use the std::rot functions
 	outNum = outNum << 1;
 	setBitToValue(outNum, 0, carry);
 }

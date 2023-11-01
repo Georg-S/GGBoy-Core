@@ -61,14 +61,9 @@ static void invalidInstruction(CPUInstructionParameters)
 	throw std::exception("Tried to execute an invalid instruction");
 }
 
-static void notImplementedInstruction()
-{
-	assert(!"Tried to execute a not yet implemented instruction");
-	throw std::exception("Tried to execute a not yet implemented instruction");
-}
-
 static void noop(CPUInstructionParameters)
 {
+	// noop does nothing -> therefore empty on purpose
 }
 
 static void loadBCValue(CPUInstructionParameters)
