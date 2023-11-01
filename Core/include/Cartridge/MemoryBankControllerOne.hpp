@@ -14,10 +14,15 @@ namespace ggb
 		virtual void serialization(Serialization* serialization) override;
 
 	private:
+		void setROMBank();
+		void setRAMBank(int bank);
 		int getROMAddress(uint16_t address) const;
 		int getRAMAddress(uint16_t address) const;
 
 		bool m_ramEnabled = false;
+		bool m_romBankingMode = true;
+		int m_lowerROMBank = 1;
+		int m_upperROMBank = 0;
 		int m_romBankNumber = 1;
 		int m_ramBankNumber = 0;
 	};

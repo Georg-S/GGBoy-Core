@@ -130,8 +130,11 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
         return;
     }
 
-    if (address == START_DIRECT_MEMORY_ACCESS_ADDRESS)
+    if (address == START_DIRECT_MEMORY_ACCESS_ADDRESS) 
+    {
         directMemoryAccess(value);
+        return;
+    }
 
     if (isAudioMemory(address)) 
     {

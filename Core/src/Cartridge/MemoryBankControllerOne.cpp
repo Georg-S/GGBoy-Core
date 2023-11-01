@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "Utility.hpp"
+
 static constexpr bool isFirstBankAddress(uint16_t address) 
 {
 	return address >= 0x0000 && address <= 0x3FFF;
@@ -17,7 +19,7 @@ static constexpr bool isROMBankingAddress(uint16_t address)
 	return address >= 0x2000 && address <= 0x3FFF;
 }
 
-static constexpr bool isRAMBankingAddress(uint16_t address)
+static constexpr bool isRAMorUpperROMBankingAddress(uint16_t address)
 {
 	return address >= 0x4000 && address <= 0x5FFF;
 }
@@ -43,18 +45,14 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 {
 	if (isRAMEnableAddress(address)) 
 	{
-		const bool previous = m_ramEnabled;
 		m_ramEnabled = ((value & 0xF) == 0xA);
-		if (!m_ramEnabled && (m_ramEnabled != previous))
-			saveRAM(filePath);
 		return;
 	}
 
 	if (isROMBankingAddress(address))
 	{
-		auto num = value & 0x1F;
-		m_romBankNumber = std::max(num, 1);
-		// TODO mask bits to max count of rom bank
+		m_lowerROMBank = value & 0x1F;
+		setROMBank();
 		return;
 	}
 
@@ -66,12 +64,25 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 		m_ram[getRAMAddress(address)] = value;
 		return;
 	}
-	assert(!"");
-	if (isRAMBankingAddress(address))
-		int e = 5; // TODO
+
+	if (isRAMorUpperROMBankingAddress(address))
+	{
+		const int bank = value & 0b11;
+		if (m_romBankingMode) 
+		{
+			m_upperROMBank = bank;
+			setROMBank();
+			return;
+		}
+
+		setRAMBank(bank);
+		return;
+	}
+
 	if (isBankingModeAddress(address)) 
 	{
-		assert(!"Not implemented");
+		m_romBankingMode = !isBitSet(value, 0);
+		return;
 	}
 }
 
@@ -97,8 +108,18 @@ uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
 
 void ggb::MemoryBankControllerOne::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const
 {
-	auto convertedAddress = convertRawAddressToBankAddress(startAddress, m_romBankNumber);
-	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[convertedAddress], oam);
+	// TODO test: this has not been really tested yet, most games seem to not use it, therefore not sure if the code below is correct
+	int address = startAddress;
+	if (isCartridgeRAM(address))
+	{
+		address = convertRawAddressToRAMBankAddress(address, m_ramBankNumber);
+		MemoryBankController::executeOAMDMATransfer(&m_ram[address], oam);
+		return;
+	}
+
+	if (isROMBankAddress(address))
+		address = convertRawAddressToBankAddress(address, m_romBankNumber);
+	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[address], oam);
 }
 
 void ggb::MemoryBankControllerOne::initialize(std::vector<uint8_t>&& cartridgeData)
@@ -108,20 +129,32 @@ void ggb::MemoryBankControllerOne::initialize(std::vector<uint8_t>&& cartridgeDa
 	if (m_hasRam)
 		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
 
-	if (std::filesystem::exists(filePath))
-	{
-		// TODO use a better path
-		loadRAM(filePath);
-		assert(m_ram.size() == getRAMSize());
-	}
+	// TODO load ram on some rule (if a file exists with the game name or so)
 }
 
 void ggb::MemoryBankControllerOne::serialization(Serialization* serialization)
 {
 	MemoryBankController::serialization(serialization);
 	serialization->read_write(m_ramEnabled);
+	serialization->read_write(m_romBankingMode);
+	serialization->read_write(m_lowerROMBank);
+	serialization->read_write(m_upperROMBank);
 	serialization->read_write(m_romBankNumber);
 	serialization->read_write(m_ramBankNumber);
+}
+
+void ggb::MemoryBankControllerOne::setRAMBank(int bank)
+{
+	if (bank >= getRAMBankCount())
+		return;
+	m_ramBankNumber = bank;
+}
+
+void ggb::MemoryBankControllerOne::setROMBank()
+{
+	int bank = (m_upperROMBank << 5) | m_lowerROMBank;
+	bank &= (getROMBankCount() - 1);
+	m_romBankNumber = bank;
 }
 
 int ggb::MemoryBankControllerOne::getROMAddress(uint16_t address) const
