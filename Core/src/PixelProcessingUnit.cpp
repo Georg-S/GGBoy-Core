@@ -495,7 +495,7 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 
 	const auto colorPalette = getBackgroundAndWindowColorPalette();
 	for (uint16_t i = 0; i < VRAM_TILE_COUNT; i++)
-		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i]);
+		overWriteTileData(m_bus, i, colorPalette, &m_vramTiles[i], m_objColorBuffer);
 
 	renderTileData(m_vramTiles, m_tileDataFrameBuffer.get(), m_tileDataRenderer.get());
 }

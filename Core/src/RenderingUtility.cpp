@@ -34,7 +34,6 @@ void ggb::Tile::serialization(Serialization* serialization)
 	serialization->read_write(m_data);
 }
 
-// TODO differentiate between background/window and sprites/obj
 RGBA ggb::convertGBColorToRGB(GBColor color)
 {
 	switch (color)
@@ -54,43 +53,22 @@ RGBA ggb::getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
 	return convertGBColorToRGB(palette.m_color[num]);
 }
 
-void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile)
+void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec)
 {
 	constexpr uint16_t tileDataStartAddress = 0x8000;
-	constexpr uint16_t tileSize = 16;
-	uint16_t address = tileDataStartAddress + (tileIndex * tileSize);
-	const uint16_t endAddress = tileDataStartAddress + ((tileIndex + 1) * tileSize);
+	uint16_t address = tileDataStartAddress + (tileIndex * TILE_MEMORY_SIZE);
 
-	for (uint8_t y = 0; y < 8; y++)
-		getTileRowRGBData(bus, address,y, palette, outTile->m_data[y]);
-}
-
-Tile ggb::getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette)
-{
-	auto tile = Tile();
-	overWriteTileData(bus, tileIndex, palette, &tile);
-	return tile;
-}
-
-void ggb::getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, RGBA* outRow)
-{
-	auto low = bus->read(tileAddress + (tileRow * 2));
-	auto high = bus->read(tileAddress + (tileRow * 2) + 1);
-
-	for (int x = 7; x >= 0; x--)
+	for (uint8_t y = 0; y < TILE_HEIGHT; y++) 
 	{
-		auto lsb = isBitSet(low, x);
-		auto msb = isBitSet(high, x);
-		auto num = getNumberFromBits(lsb, msb);
-		auto rgb = getRGBFromNumAndPalette(num, palette);
+		getTileRowData(bus, address,y, bufVec);
 
-		outRow[7 - x] = std::move(rgb);
+		for (size_t i = 0; i < TILE_WIDTH; i++)
+			outTile->m_data[y][i] = getRGBFromNumAndPalette(bufVec[i], palette);
 	}
 }
 
 void ggb::getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
-	// TODO refactor with getTileRowRGBData into single method
 	assert(outVec.size() >= 8);
 	auto low = bus->read(tileAddress + (tileRow * 2));
 	auto high = bus->read(tileAddress + (tileRow * 2) + 1);

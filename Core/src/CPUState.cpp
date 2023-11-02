@@ -161,6 +161,7 @@ uint8_t ggb::CPUState::F() const
 	return afUnion.regs[0];
 }
 
+// TODO refactor setting of flags to being able to set multiple flags at once
 void ggb::increment(CPUState* cpu, uint8_t& toIncrement)
 {
 	cpu->setSubtractionFlag(false);

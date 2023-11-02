@@ -67,8 +67,6 @@ namespace ggb
 
 	RGBA convertGBColorToRGB(GBColor color);
 	RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette);
-	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile);
-	Tile getTileByIndex(BUS* bus, uint16_t tileIndex, const ColorPalette& palette);
-	void getTileRowRGBData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, const ColorPalette& palette, RGBA* outRow);
+	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec);
 	void getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
 }
