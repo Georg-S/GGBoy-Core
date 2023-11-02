@@ -155,32 +155,6 @@ void ggb::BUS::write(uint16_t address, uint16_t value)
     assert(!"DON'T USE THIS AS OF NOW");
 }
 
-void ggb::BUS::setBitValue(uint16_t address, int bit, bool bitValue)
-{
-    auto value = read(address);
-    setBitToValue(value, bit, bitValue);
-    write(address, value); 
-}
-
-void ggb::BUS::setBit(uint16_t address, int bit)
-{
-    auto value = read(address);
-    ggb::setBit(value, bit);
-    write(address, value);
-}
-
-void ggb::BUS::resetBit(uint16_t address, int bit)
-{
-    auto value = read(address);
-    ggb::clearBit(value, bit);
-    write(address, value);
-}
-
-bool ggb::BUS::checkBit(uint16_t address, int bit) const
-{
-    return isBitSet(read(address), bit);
-}
-
 uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
 {
     return &m_memory[address];

@@ -2764,10 +2764,9 @@ ggb::OPCodes::OPCodes()
 	initOpcodesArray();
 }
 
-int OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
+int OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus) const
 {
-	bool branchTaken = false;
-	OPCode* toExecute = nullptr;
+	const OPCode* toExecute = nullptr;
 	if (opCode == 0xCB) 
 	{
 		auto extendedOpcode = read(cpu, bus);
@@ -2778,6 +2777,7 @@ int OPCodes::execute(uint16_t opCode, ggb::CPUState* cpu, ggb::BUS* bus)
 		toExecute = &m_opcodes[opCode];
 	}
 
+	bool branchTaken = false;
 	toExecute->func(cpu, bus, &branchTaken);
 
 	if (branchTaken) 

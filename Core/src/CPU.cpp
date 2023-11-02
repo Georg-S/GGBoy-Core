@@ -1,6 +1,7 @@
 #include "CPU.hpp"
 
 #include "CPUInstructions.hpp"
+#include "Utility.hpp"
 #include "Logging.hpp"
 #include "Constants.hpp"
 
@@ -32,73 +33,43 @@ void ggb::CPU::reset()
 void ggb::CPU::setBus(BUS* bus)
 {
 	m_bus = bus;
+
+	m_requestedInterrupts = m_bus->getPointerIntoMemory(INTERRUPT_REQUEST_ADDRESS);
+	m_enabledInterrupts = m_bus->getPointerIntoMemory(ENABLED_INTERRUPT_ADDRESS);
 }
 
 bool ggb::CPU::handleInterrupts()
 {
 	if (m_cpuState.isStopped() && m_bus->read(INTERRUPT_REQUEST_ADDRESS) != 0)
-		m_cpuState.resume(); // TODO: handle "halting bug" maybe
+		m_cpuState.resume();
 
 	if (!m_cpuState.interruptsEnabled())
 		return false;
 
-	// TODO maybe make a single lambda for the interrupts, however for now (debugging purposes) we leave it how it is
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT) 
-		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_VBLANK_BIT))
-	{
-		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_VBLANK_BIT);
-		callAddress(&m_cpuState, m_bus, VBLANK_INTERRUPT_ADDRESS);
-		debugLog("VBLANK INTERRUPT");
-		m_cpuState.resume();
+	if (handleInterrupt(INTERRUPT_VBLANK_BIT, VBLANK_INTERRUPT_ADDRESS, "VBLANK INTERRUPT"))
 		return true;
-	}
-
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_LCD_STAT_BIT) 
-		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_LCD_STAT_BIT))
-	{
-		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_LCD_STAT_BIT);
-		callAddress(&m_cpuState, m_bus, LCD_STAT_INTERRUPT_ADDRESS);
-		debugLog("LCD STAT INTERRUPT");
-		m_cpuState.resume();
+	if (handleInterrupt(INTERRUPT_LCD_STAT_BIT, LCD_STAT_INTERRUPT_ADDRESS, "LCD STAT INTERRUPT"))
 		return true;
-	}
-
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_TIMER_BIT) 
-		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_TIMER_BIT))
-	{
-		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_TIMER_BIT);
-		callAddress(&m_cpuState, m_bus, TIMER_INTERRUPT_ADDRESS);
-		debugLog("TIMER INTERRUPT");
-		m_cpuState.resume();
+	if (handleInterrupt(INTERRUPT_TIMER_BIT, TIMER_INTERRUPT_ADDRESS, "TIMER INTERRUPT"))
 		return true;
-	}
-
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_SERIAL_BIT) 
-		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_SERIAL_BIT))
-	{
-		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_SERIAL_BIT);
-		callAddress(&m_cpuState, m_bus, SERIAL_INTERRUPT_ADDRESS);
-		debugLog("SERIAL INTERRUPT");
-		m_cpuState.resume();
+	if (handleInterrupt(INTERRUPT_SERIAL_BIT, SERIAL_INTERRUPT_ADDRESS, "SERIAL INTERRUPT"))
 		return true;
-	}
-
-	if (m_bus->checkBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_JOYPAD_BIT) 
-		&& m_bus->checkBit(ENABLED_INTERRUPT_ADDRESS, INTERRUPT_JOYPAD_BIT))
-	{
-		m_cpuState.disableInterrupts();
-		m_bus->resetBit(INTERRUPT_REQUEST_ADDRESS, INTERRUPT_JOYPAD_BIT);
-		callAddress(&m_cpuState, m_bus, JOYPAD_INTERRUPT_ADDRESS);
-		debugLog("JOYPAD INTERRUPT");
-		m_cpuState.resume();
+	if (handleInterrupt(INTERRUPT_JOYPAD_BIT, JOYPAD_INTERRUPT_ADDRESS, "JOYPAD INTERRUPT"))
 		return true;
-	}
-
 	return false;
+}
+
+bool ggb::CPU::handleInterrupt(int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString)
+{
+	if (!isBitSet(*m_requestedInterrupts, interruptBit) || !isBitSet(*m_enabledInterrupts, interruptBit))
+		return false;
+
+	m_cpuState.disableInterrupts();
+	clearBit(*m_requestedInterrupts, interruptBit);
+	callAddress(&m_cpuState, m_bus, interruptHandlerAddress);
+	debugLog(interruptString);
+	m_cpuState.resume();
+	return true;
 }
 
 int ggb::CPU::step()
@@ -113,8 +84,7 @@ int ggb::CPU::step()
 	auto opCode = m_bus->read(instructionPointer);
 	debugLog(m_opcodes.getMnemonic(opCode));
 	++m_cpuState.InstructionPointer();
-	int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
-	++m_instructionCounter;
+	const int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
 
 	auto serial = m_bus->read(0xff02);
 	if (serial == 0x81) 
@@ -122,7 +92,6 @@ int ggb::CPU::step()
 		char c = m_bus->read(0xff01);
 		printf("%c", c);
 		m_bus->write(0xFF02, uint8_t(0x0));
-
 	}
 
 	return duration;
@@ -131,5 +100,4 @@ int ggb::CPU::step()
 void ggb::CPU::serialization(Serialization* serialization)
 {
 	m_cpuState.serialization(serialization);
-	serialization->read_write(m_instructionCounter);
 }

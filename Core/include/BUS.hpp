@@ -23,10 +23,6 @@ namespace ggb
 		int8_t readSigned(uint16_t address) const;
 		void write(uint16_t address, uint8_t value);
 		void write(uint16_t address, uint16_t value);
-		void setBitValue(uint16_t address, int bit, bool bitValue);
-		void setBit(uint16_t address, int bit);
-		void resetBit(uint16_t address, int bit);
-		bool checkBit(uint16_t address, int bit) const;
 		uint8_t* getPointerIntoMemory(uint16_t address); // For memory mapped IO only (e.g. the Timer)
 		void requestInterrupt(int interrupt);
 		void resetTimerDivider();
