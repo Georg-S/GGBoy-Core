@@ -127,7 +127,7 @@ void ggb::MemoryBankControllerOne::initialize(std::vector<uint8_t>&& cartridgeDa
 	MemoryBankController::initialize(std::move(cartridgeData));
 
 	if (m_hasRam)
-		m_ram = std::vector<uint8_t>(getRAMSize(), 0);
+		m_ram = std::vector<uint8_t>(std::max(static_cast<int>(RAM_BANK_SIZE), getRAMSize()), 0);
 
 	// TODO load ram on some rule (if a file exists with the game name or so)
 }

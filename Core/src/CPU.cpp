@@ -40,7 +40,7 @@ void ggb::CPU::setBus(BUS* bus)
 
 bool ggb::CPU::handleInterrupts()
 {
-	if (m_cpuState.isStopped() && m_bus->read(INTERRUPT_REQUEST_ADDRESS) != 0)
+	if (m_cpuState.isStopped() && (*m_requestedInterrupts & *m_enabledInterrupts)) 
 		m_cpuState.resume();
 
 	if (!m_cpuState.interruptsEnabled())
@@ -68,7 +68,6 @@ bool ggb::CPU::handleInterrupt(int interruptBit, uint16_t interruptHandlerAddres
 	clearBit(*m_requestedInterrupts, interruptBit);
 	callAddress(&m_cpuState, m_bus, interruptHandlerAddress);
 	debugLog(interruptString);
-	m_cpuState.resume();
 	return true;
 }
 

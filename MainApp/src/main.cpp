@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/Games/Dr.Mario.gb");
 	//emulator.loadCartridge("Roms/Games/Tetris.gb");
 	//emulator.loadCartridge("Roms/Games/Super_Mario_Land.gb");
-	emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
+	//emulator.loadCartridge("Roms/Games/Legend_of_Zelda_Link's_Awakening.gb");
 	//emulator.loadCartridge("Roms/Games/Pokemon_Yellow.gb");
 	//emulator.loadCartridge("Roms/TestROMs/interrupt_time.gb");
 	//emulator.loadCartridge("Roms/TestROMs/instr_timing.gb");
@@ -279,6 +279,7 @@ int main(int argc, char* argv[])
 	//emulator.loadCartridge("Roms/TestROMs/09-op r,r.gb");
 	//emulator.loadCartridge("Roms/TestROMs/10-bit ops.gb");
 	//emulator.loadCartridge("Roms/TestROMs/11-op a,(hl).gb");
+	emulator.loadCartridge("Roms/TestROMs/halt_bug.gb");
 	//emulator.loadCartridge("Roms/TestROMs/cgb_sound.gb");
 	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
 	emulator.setGameRenderer(std::move(gameWindowRenderer));
