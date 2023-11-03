@@ -4,22 +4,23 @@
 
 static bool isChannel1Memory(uint16_t address)
 {
-	return (address >= 0xFF10 && address <= 0xFF15);
+	return (address >= ggb::AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS && address <= ggb::AUDIO_CHANNEL_1_PERIOD_HIGH_CONTROL_ADDRESS);
 }
 
 static bool isChannel2Memory(uint16_t address)
 {
-	return (address >= 0xFF16 && address <= 0xFF19);
+	return (address >= ggb::AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS && address <= ggb::AUDIO_CHANNEL_2_PERIOD_HIGH_CONTROL_ADDRESS);
 }
 
 static bool isChannel3Memory(uint16_t address)
 {
-	return (address >= 0xFF1A && address <= 0xFF1E) || (address >= 0xFF30 && address <= 0xFF3F);
+	return (address >= ggb::AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS)
+		|| (address >= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_END_ADDRESS);
 }
 
 static bool isChannel4Memory(uint16_t address)
 {
-	return (address >= 0xFF20) && (address <= 0xFF23);
+	return (address >= ggb::AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS) && (address <= ggb::AUDIO_CHANNEL_4_CONTROL_ADDRESS);
 }
 
 ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
@@ -33,9 +34,9 @@ ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 
 void ggb::AudioProcessingUnit::setBus(BUS* bus)
 {
-	m_masterVolume = bus->getPointerIntoMemory(AUDIO_MASTER_VOLUME_ADDRESS);
-	m_soundPanning = bus->getPointerIntoMemory(AUDIO_PANNING_ADDRESS);
-	m_soundOn = bus->getPointerIntoMemory(AUDIO_MAIN_STATE_ADDRESS);
+	m_masterVolume = bus->getPointerIntoMemory(AUDIO_MASTER_VOLUME_VIN_PANNING_ADDRESS);
+	m_soundPanning = bus->getPointerIntoMemory(AUDIO_SOUND_PANNING_ADDRESS);
+	m_soundOn = bus->getPointerIntoMemory(AUDIO_MASTER_CONTROL_ADDRESS);
 	if (m_channel1)
 		m_channel1->setBus(bus);
 	if (m_channel2)
@@ -57,7 +58,7 @@ bool ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 	if (isChannel4Memory(address))
 		return m_channel4->write(address, value);
 
-	if (address == AUDIO_MAIN_STATE_ADDRESS)
+	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
 		setBitToValue(*m_soundOn, 7, isBitSet(value, 7));
 		return true;
@@ -77,7 +78,7 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 	if (isChannel4Memory(address))
 		return m_channel4->read(address);
 
-	if (address == AUDIO_MAIN_STATE_ADDRESS)
+	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
 		// TODO maybe all channels should use the audio master register directly when turning the channel on/off
 		setBitToValue(result, 7, isBitSet(*m_soundOn, 7));

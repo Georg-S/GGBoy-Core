@@ -50,7 +50,7 @@ namespace ggb
 		void setRawPeriodValue(uint16_t val);
 
 		int m_dutyCyclePosition = 0;
-		uint16_t m_baseAddres = 0xFF10;
+		uint16_t m_baseAddres = AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS;
 		int m_periodCounter = 0;
 		int m_lengthCounter = 0;
 		int m_volumeSweepCounter = 0;

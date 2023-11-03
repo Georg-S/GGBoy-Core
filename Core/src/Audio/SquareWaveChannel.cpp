@@ -2,16 +2,15 @@
 
 #include "Utility.hpp"
 
-static bool isChannel2Memory(uint16_t address)
-{
-	return (address >= 0xFF16 && address <= 0xFF19);
-}
-
 ggb::SquareWaveChannel::SquareWaveChannel(bool hasSweep, BUS* bus)
 	: m_hasSweep(hasSweep)
 {
-	if (!hasSweep)
-		m_baseAddres = 0xFF15;
+	if (!hasSweep) 
+	{
+		// Base Address for channel2 points into unused memory (because it has no frequency sweep functionalaty)
+		// This is done, so that the offset calculation works correctly
+		m_baseAddres = AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS - 1;
+	}
 
 	setBus(bus);
 }
@@ -33,6 +32,7 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 
 	if (offset == FREQUENCY_SWEEP_OFFSET)
 	{
+		assert(m_hasSweep);
 		*m_sweep = value;
 		// Value of 0 (=disable frequency sweep) gets set instantly or any value if the frequency sweep is currently disabled
 		// other values are set on channel triggering or after  a frequency sweep iteration

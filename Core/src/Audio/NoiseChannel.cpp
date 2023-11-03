@@ -10,22 +10,22 @@ ggb::NoiseChannel::NoiseChannel(BUS* bus)
 
 void ggb::NoiseChannel::setBus(BUS* bus)
 {
-	m_lengthTimer = bus->getPointerIntoMemory(0xFF20);
-	m_volumeAndEnvelope = bus->getPointerIntoMemory(0xFF21);
-	m_frequencyAndRandomness = bus->getPointerIntoMemory(0xFF22);
-	m_control = bus->getPointerIntoMemory(0xFF23);
+	m_lengthTimer = bus->getPointerIntoMemory(AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS);
+	m_volumeAndEnvelope = bus->getPointerIntoMemory(AUDIO_CHANNEL_4_VOLUME_ENVELOPE_ADDRESS);
+	m_frequencyAndRandomness = bus->getPointerIntoMemory(AUDIO_CHANNEL_4_FREQUENCY_RANDOMNESS_ADDRESS);
+	m_control = bus->getPointerIntoMemory(AUDIO_CHANNEL_4_CONTROL_ADDRESS);
 }
 
 bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 {
-	if (address == 0xFF20)
+	if (address == AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS)
 	{
 		*m_lengthTimer = value;
 		m_lengthCounter = getInitialLengthCounter();
 		return true;
 	}
 
-	if (address == 0xFF23)
+	if (address == AUDIO_CHANNEL_4_CONTROL_ADDRESS)
 	{
 		*m_control = value;
 		if (isBitSet(*m_control, 7))
@@ -38,7 +38,7 @@ bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 
 std::optional<uint8_t> ggb::NoiseChannel::read(uint16_t address) const
 {
-	if (address == 0xFF23)
+	if (address == AUDIO_CHANNEL_4_CONTROL_ADDRESS)
 		return *m_control & 0b01000000;
 
 	return std::nullopt;
