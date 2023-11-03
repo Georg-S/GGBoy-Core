@@ -51,14 +51,62 @@ constexpr static bool isAudioMemory(uint16_t address)
 void ggb::BUS::reset()
 {
     m_memory = std::vector<uint8_t>(uint16_t(0xFFFF) + 1, 0);
+
+    m_memory[INPUT_REGISTER_ADDRESS] = 0xCF;
     m_memory[SERIAL_TRANSFER_ADDRESS] = 0x00;
     m_memory[SERIAL_TRANSFER_CONTROL_ADDRESS] = 0x7E;
+    m_memory[TIMER_DIVIDER_REGISTER_ADDRESS] = 0x18;
     m_memory[TIMER_COUNTER_ADDRESS] = 0x00;
     m_memory[TIMER_MODULO_ADDRESS] = 0x00;
     m_memory[TIMER_CONTROL_ADDRESS] = 0xF8;
     m_memory[INTERRUPT_REQUEST_ADDRESS] = 0xE1;
-
+    m_memory[AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS] = 0x80;
+    m_memory[AUDIO_CHANNEL_1_LENGTH_DUTY_ADDRESS] = 0xBF;
+    m_memory[AUDIO_CHANNEL_1_VOLUME_ENVELOPE_ADDRESS] = 0xF3;
+    m_memory[AUDIO_CHANNEL_1_PERIOD_LOW_ADDRESS] = 0xFF;
+    m_memory[AUDIO_CHANNEL_1_PERIOD_HIGH_CONTROL_ADDRESS] = 0xBF;
+    m_memory[AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS] = 0x3F;
+    m_memory[AUDIO_CHANNEL_2_VOLUME_ENVELOPE_ADDRESS] = 0x00;
+    m_memory[AUDIO_CHANNEL_2_PERIOD_LOW_ADDRESS] = 0xFF;
+    m_memory[AUDIO_CHANNEL_2_PERIOD_HIGH_CONTROL_ADDRESS] = 0xBF;
+    m_memory[AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS] = 0x7F;
+    m_memory[AUDIO_CHANNEL_3_LENGTH_TIMER_ADDRESS] = 0xFF;
+    m_memory[AUDIO_CHANNEL_3_OUTPUT_LEVEL_ADDRESS] = 0x9F;
+    m_memory[AUDIO_CHANNEL_3_PERIOD_LOW_ADDRESS] = 0xFF;
+    m_memory[AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS] = 0xBF;
+    m_memory[AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS] = 0xFF;
+    m_memory[AUDIO_CHANNEL_4_VOLUME_ENVELOPE_ADDRESS] = 0x00;
+    m_memory[AUDIO_CHANNEL_4_FREQUENCY_RANDOMNESS_ADDRESS] = 0x00;
+    m_memory[AUDIO_CHANNEL_4_CONTROL_ADDRESS] = 0xBF;
+    m_memory[AUDIO_MASTER_VOLUME_VIN_PANNING_ADDRESS] = 0x77;
+    m_memory[AUDIO_SOUND_PANNING_ADDRESS] = 0xF3;
+    m_memory[AUDIO_MASTER_CONTROL_ADDRESS] = 0xF1;
     m_memory[LCD_CONTROL_REGISTER_ADDRESS] = 0x91;
+    m_memory[LCD_STATUS_REGISTER_ADDRESS] = 0x81;
+    m_memory[LCD_VIEWPORT_Y_ADDRESS] = 0x00;
+    m_memory[LCD_VIEWPORT_X_ADDRESS] = 0x00;
+    m_memory[LCD_Y_COORDINATE_ADDRESS] = 0x91;
+    m_memory[LCD_Y_COMPARE_ADDRESS] = 0x00;
+    m_memory[START_DIRECT_MEMORY_ACCESS_ADDRESS] = 0xFF; // 0x00 for GBC
+    m_memory[BACKGROUND_PALETTE_ADDRESS] = 0xFC;
+    m_memory[OBJECT_PALETTE_0_ADDRESS] = 0x00; // Value is actually random
+    m_memory[OBJECT_PALETTE_1_ADDRESS] = 0x00; // Value is actually random
+    m_memory[LCD_WINDOW_Y_ADDRESS] = 0x00; 
+    m_memory[LCD_WINDOW_X_ADDRESS] = 0x00; 
+    m_memory[GBC_SPEED_SWITCH_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_BANKING_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_DMA_SOURCHE_HIGH_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_DMA_SOURCHE_LOW_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS] = 0xFF;
+    m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] = 0xFF;
+    m_memory[GBC_INFRARED_ADDRESS] = 0xFF;
+    m_memory[GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS] = 0xFF;
+    m_memory[GBC_BACKGROUND_PALETTE_DATA_ADDRESS] = 0xFF;
+    m_memory[GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS] = 0xFF;
+    m_memory[GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS] = 0xFF;
+    m_memory[GBC_WRAM_BANKING_ADDRESS] = 0xFF;
+    m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
 }
 
 void ggb::BUS::setCartridge(Cartridge* cartridge)
@@ -157,6 +205,7 @@ void ggb::BUS::write(uint16_t address, uint16_t value)
 
 uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
 {
+    assert(address >= 0xF000);
     return &m_memory[address];
 }
 

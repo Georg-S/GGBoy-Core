@@ -20,6 +20,7 @@ namespace ggb
 	static constexpr uint16_t TIMER_COUNTER_ADDRESS = 0xFF05;
 	static constexpr uint16_t TIMER_MODULO_ADDRESS = 0xFF06;
 	static constexpr uint16_t TIMER_CONTROL_ADDRESS = 0xFF07;
+	static constexpr uint16_t INTERRUPT_REQUEST_ADDRESS = 0xFF0F;
 	static constexpr uint16_t AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS = 0xFF10;
 	static constexpr uint16_t AUDIO_CHANNEL_1_LENGTH_DUTY_ADDRESS = 0xFF11;
 	static constexpr uint16_t AUDIO_CHANNEL_1_VOLUME_ENVELOPE_ADDRESS = 0xFF12;
@@ -68,7 +69,6 @@ namespace ggb
 	static constexpr uint16_t GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS = 0xFF6A;
 	static constexpr uint16_t GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS = 0xFF6B;
 	static constexpr uint16_t GBC_WRAM_BANKING_ADDRESS = 0xFF70;
-	static constexpr uint16_t INTERRUPT_REQUEST_ADDRESS = 0xFF0F;
 	static constexpr uint16_t ENABLED_INTERRUPT_ADDRESS = 0xFFFF;
 
 
