@@ -87,7 +87,7 @@ void ggb::BUS::reset()
     m_memory[LCD_VIEWPORT_X_ADDRESS] = 0x00;
     m_memory[LCD_Y_COORDINATE_ADDRESS] = 0x91;
     m_memory[LCD_Y_COMPARE_ADDRESS] = 0x00;
-    m_memory[START_DIRECT_MEMORY_ACCESS_ADDRESS] = 0xFF; // 0x00 for GBC
+    m_memory[START_DIRECT_MEMORY_ACCESS_ADDRESS] = 0x00; // 0xFF for DMG
     m_memory[BACKGROUND_PALETTE_ADDRESS] = 0xFC;
     m_memory[OBJECT_PALETTE_0_ADDRESS] = 0x00; // Value is actually random
     m_memory[OBJECT_PALETTE_1_ADDRESS] = 0x00; // Value is actually random

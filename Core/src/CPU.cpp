@@ -17,13 +17,15 @@ void ggb::CPU::reset()
 {
 	m_cpuState.setZeroFlag(true);
 	m_cpuState.setSubtractionFlag(false);
-	m_cpuState.A() = 0x01;
+	m_cpuState.setHalfCarryFlag(false);
+	m_cpuState.setCarryFlag(false);
+	m_cpuState.A() = 0x11;
 	m_cpuState.B() = 0x00;
-	m_cpuState.C() = 0x13;
-	m_cpuState.D() = 0x00;
-	m_cpuState.E() = 0xD8;
-	m_cpuState.H() = 0x01;
-	m_cpuState.L() = 0x4D;
+	m_cpuState.C() = 0x00;
+	m_cpuState.D() = 0xFF;
+	m_cpuState.E() = 0x56;
+	m_cpuState.H() = 0x00;
+	m_cpuState.L() = 0x0D;
 	m_cpuState.InstructionPointer() = 0x100;
 	m_cpuState.StackPointer() = 0xFFFE;
 	m_cpuState.disableInterrupts();
