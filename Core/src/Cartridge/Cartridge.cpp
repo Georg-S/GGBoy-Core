@@ -37,9 +37,9 @@ void ggb::Cartridge::write(uint16_t address, uint8_t value)
 	m_memoryBankController->write(address, value);
 }
 
-void ggb::Cartridge::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam)
+void ggb::Cartridge::executeDMATransfer(uint16_t startAddress, uint8_t* out, size_t sizeInBytes)
 {
-	m_memoryBankController->executeOAMDMATransfer(startAddress, oam);
+	m_memoryBankController->executeDMATransfer(startAddress, out, sizeInBytes);
 }
 
 uint8_t ggb::Cartridge::read(uint16_t address) const

@@ -58,10 +58,10 @@ namespace ggb
 	static constexpr uint16_t LCD_WINDOW_X_ADDRESS = 0xFF4B;
 	static constexpr uint16_t GBC_SPEED_SWITCH_ADDRESS = 0xFF4D;
 	static constexpr uint16_t GBC_VRAM_BANKING_ADDRESS = 0xFF4F;
-	static constexpr uint16_t GBC_VRAM_DMA_SOURCHE_HIGH_ADDRESS = 0xFF51;
-	static constexpr uint16_t GBC_VRAM_DMA_SOURCHE_LOW_ADDRESS = 0xFF52;
-	static constexpr uint16_t GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS = 0xFF53;
-	static constexpr uint16_t GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS = 0xFF54;
+	static constexpr uint16_t GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS = 0xFF51;
+	static constexpr uint16_t GBC_VRAM_DMA_SOURCE_LOW_ADDRESS = 0xFF52;
+	static constexpr uint16_t GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS = 0xFF53;
+	static constexpr uint16_t GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS = 0xFF54;
 	static constexpr uint16_t GBC_VRAM_DMA_LENGTH_START_ADDRESS = 0xFF55;
 	static constexpr uint16_t GBC_INFRARED_ADDRESS = 0xFF56;
 	static constexpr uint16_t GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS = 0xFF68; // Background palette index
@@ -88,7 +88,7 @@ namespace ggb
 	static constexpr uint16_t TILE_DATA_HEIGHT = 200;
 	static constexpr uint16_t RAM_BANK_SIZE = 0x2000;
 	static constexpr uint16_t ROM_BANK_SIZE = 0x4000;
-	static constexpr uint16_t OAM_SIZE = 0xA0;
+	static constexpr uint16_t OAM_MEMORY_SIZE = 0xA0;
 	static constexpr uint16_t OBJECT_COUNT = 40;
 	static constexpr uint16_t MAX_ALLOWED_OBJS_PER_SCANLINE = 40;
 	static constexpr uint16_t TILE_MEMORY_SIZE = 16; // in bytes
@@ -97,5 +97,7 @@ namespace ggb
 	static constexpr uint16_t TILE_MAP_WIDTH = 32;
 	static constexpr uint16_t TILE_MAP_HEIGHT = 32;
 	static constexpr uint16_t TILE_MAP_SIZE = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
+	static constexpr uint16_t VRAM_BANK_MEMORY_SIZE = 0x1FFF + 1;
+	static constexpr uint16_t GBC_VRAM_BANK_COUNT = 2;
 	using AUDIO_FORMAT = int16_t;
 }

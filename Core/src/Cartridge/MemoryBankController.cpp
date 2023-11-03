@@ -80,9 +80,9 @@ void ggb::MemoryBankController::serialization(Serialization* serialization)
 	serialization->read_write(m_RAMBankCount);
 }
 
-void ggb::MemoryBankController::executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const
+void ggb::MemoryBankController::executeDMATransfer(const uint8_t* cartridgeData, uint8_t* oam, size_t sizeInBytes) const
 {
-	for (size_t i = 0; i < OAM_SIZE; i++)
+	for (size_t i = 0; i < sizeInBytes; i++)
 	{
 		// TODO maybe use memcpy instead
 		oam[i] = cartridgeData[i];

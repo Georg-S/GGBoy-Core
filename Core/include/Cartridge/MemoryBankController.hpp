@@ -36,7 +36,7 @@ namespace ggb
 		virtual ~MemoryBankController() = default;
 		virtual void write(uint16_t address, uint8_t value) = 0;
 		virtual uint8_t read(uint16_t address) const = 0;
-		virtual void executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const = 0;
+		virtual void executeDMATransfer(uint16_t startAddress, uint8_t* oam, size_t sizeInBytes) const = 0;
 		MBCTYPE getMBCType() const;
 		int getRomSize() const;
 		int getROMBankCount() const;
@@ -48,7 +48,7 @@ namespace ggb
 		virtual void serialization(Serialization* serialization);
 
 	protected:
-		void executeOAMDMATransfer(const uint8_t* cartridgeData, uint8_t* oam) const;
+		void executeDMATransfer(const uint8_t* cartridgeData, uint8_t* oam, size_t sizeInBytes) const;
 
 		std::vector<uint8_t> m_cartridgeData;
 		std::vector<uint8_t> m_ram;

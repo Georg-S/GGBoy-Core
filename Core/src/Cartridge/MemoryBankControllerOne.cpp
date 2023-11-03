@@ -106,20 +106,20 @@ uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
 	return m_cartridgeData[address];
 }
 
-void ggb::MemoryBankControllerOne::executeOAMDMATransfer(uint16_t startAddress, uint8_t* oam) const
+void ggb::MemoryBankControllerOne::executeDMATransfer(uint16_t startAddress, uint8_t* oam, size_t sizeInBytes) const
 {
 	// TODO test: this has not been really tested yet, most games seem to not use it, therefore not sure if the code below is correct
 	int address = startAddress;
 	if (isCartridgeRAM(address))
 	{
 		address = convertRawAddressToRAMBankAddress(address, m_ramBankNumber);
-		MemoryBankController::executeOAMDMATransfer(&m_ram[address], oam);
+		MemoryBankController::executeDMATransfer(&m_ram[address], oam, sizeInBytes);
 		return;
 	}
 
 	if (isROMBankAddress(address))
 		address = convertRawAddressToBankAddress(address, m_romBankNumber);
-	MemoryBankController::executeOAMDMATransfer(&m_cartridgeData[address], oam);
+	MemoryBankController::executeDMATransfer(&m_cartridgeData[address], oam, sizeInBytes);
 }
 
 void ggb::MemoryBankControllerOne::initialize(std::vector<uint8_t>&& cartridgeData)
