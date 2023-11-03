@@ -709,6 +709,7 @@ static void loadLIntoHLAddress(CPUInstructionParameters)
 
 static void halt(CPUInstructionParameters)
 {
+	// TODO handle halt bug
 	cpu->stop();
 }
 
