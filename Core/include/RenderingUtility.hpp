@@ -54,7 +54,7 @@ namespace ggb
 
 	struct ColorPalette 
 	{
-		std::array<GBColor, 4> m_color = {};
+		std::array<RGBA, 4> m_color = {};
 	};
 
 	struct Tile 

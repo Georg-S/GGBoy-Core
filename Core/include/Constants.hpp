@@ -10,7 +10,8 @@ namespace ggb
 	static constexpr uint16_t SERIAL_INTERRUPT_ADDRESS = 0x58;
 	static constexpr uint16_t JOYPAD_INTERRUPT_ADDRESS = 0x60;
 	static constexpr uint16_t MBC_TYPE_ADDRESS = 0x0147;
-	static constexpr uint16_t TILE_MAP_1_ADDRESS = 0x8000;
+	static constexpr uint16_t VRAM_START_ADDRESS = 0x8000;
+	static constexpr uint16_t TILE_MAP_1_ADDRESS = VRAM_START_ADDRESS;
 	static constexpr uint16_t TILE_MAP_2_ADDRESS = 0x9000;
 	static constexpr uint16_t OAM_ADDRESS = 0xFE00; // OAM = object attribute memory
 	static constexpr uint16_t INPUT_REGISTER_ADDRESS = 0xFF00;
@@ -101,5 +102,6 @@ namespace ggb
 	static constexpr uint16_t VRAM_BANK_MEMORY_SIZE = 0x1FFF + 1;
 	static constexpr uint16_t GBC_VRAM_BANK_COUNT = 2;
 	static constexpr uint16_t GBC_COLOR_RAM_MEMORY_SIZE = 64; // in bytes
+	static constexpr uint16_t GBC_COLOR_PALETTE_COUNT = 8;
 	using AUDIO_FORMAT = int16_t;
 }

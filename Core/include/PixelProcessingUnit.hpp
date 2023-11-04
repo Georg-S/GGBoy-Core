@@ -53,6 +53,11 @@ namespace ggb
 			return isBitSet(*attributes, 7); // background and window
 		}
 
+		size_t getGBCPaletteIndex() const 
+		{
+			return *attributes & 0b111;
+		}
+
 		uint8_t* yPosition = nullptr;
 		uint8_t* xPosition = nullptr;
 		uint8_t* tileIndex = nullptr;
@@ -107,6 +112,7 @@ namespace ggb
 		ColorPalette getObjectColorPalette(const Object& obj) const;
 		void updateAndRenderTileData();
 		int getObjectHeight() const;
+		uint8_t getBackgroundTileAttributes(uint16_t address) const;
 
 		BUS* m_bus = nullptr;
 		int m_cycleCounter = 0;
@@ -136,5 +142,7 @@ namespace ggb
 		uint8_t* m_viewPortYPos = nullptr;
 		uint8_t* m_windowXPos = nullptr;
 		uint8_t* m_windowYPos = nullptr;
+		uint8_t* m_VRAMBank0Ptr = nullptr;
+		uint8_t* m_VRAMBank1Ptr = nullptr;
 	};
 }

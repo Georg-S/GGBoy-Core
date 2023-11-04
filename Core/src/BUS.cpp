@@ -285,6 +285,13 @@ uint8_t* ggb::BUS::getPointerIntoMemory(uint16_t address)
 	return &m_memory[address];
 }
 
+uint8_t* ggb::BUS::getVRAMStartPointer(size_t bank)
+{
+	if (bank > 1)
+		return nullptr;
+	return &(m_vram[bank][0]);
+}
+
 void ggb::BUS::requestInterrupt(int interrupt)
 {
 	ggb::setBit(m_memory[INTERRUPT_REQUEST_ADDRESS], interrupt);
@@ -364,10 +371,10 @@ int ggb::BUS::getActiveVRAMBank() const
 	return 0;
 }
 
-int ggb::BUS::getVRAMIndexFromAddress(uint16_t address) const
+int ggb::getVRAMIndexFromAddress(uint16_t address)
 {
-	auto result = address - 0x8000;
+	auto result = address - VRAM_START_ADDRESS;
 	assert(isVRAMAddress(address));
-	assert(result < std::size(m_vram[0]));
+	assert(result < VRAM_BANK_MEMORY_SIZE);
 	return result;
 }

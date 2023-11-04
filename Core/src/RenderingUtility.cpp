@@ -50,7 +50,7 @@ RGBA ggb::convertGBColorToRGB(GBColor color)
 
 RGBA ggb::getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
 {
-	return convertGBColorToRGB(palette.m_color[num]);
+	return palette.m_color[num];
 }
 
 void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec)
