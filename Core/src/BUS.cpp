@@ -47,11 +47,10 @@ constexpr static bool isUnimplementedGBCWriteAddress(uint16_t address)
 {
 	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
 		return true;
-	if (address == ggb::GBC_VRAM_DMA_LENGTH_START_ADDRESS)
-		return true;
 	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
 		return true;
-
+	if (address == ggb::GBC_OBJECT_PRIORITY_MODE_ADDRESS)
+		return true;
 	return false;
 }
 
@@ -70,6 +69,20 @@ constexpr static bool isUnimplementedGBCReadAddress(uint16_t address)
 	if (address == ggb::GBC_VRAM_DMA_SOURCE_LOW_ADDRESS)
 		return true;
 	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
+		return true;
+	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
+		return true;
+	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
+		return true;
+	if (address == ggb::GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS)
+		return true;
+	if (address == ggb::GBC_BACKGROUND_PALETTE_DATA_ADDRESS)
+		return true;
+	if (address == ggb::GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS)
+		return true;
+	if (address == ggb::GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS)
+		return true;
+	if (address == ggb::GBC_OBJECT_PRIORITY_MODE_ADDRESS)
 		return true;
 
 	return false;
@@ -175,12 +188,12 @@ uint8_t ggb::BUS::read(uint16_t address) const
 		if (value)
 			return value.value();
 	}
+
 	if (address == GBC_VRAM_BANKING_ADDRESS)
 	{
 		if (getActiveVRAMBank() == 1)
 			return 0xFF;
-		else
-			return 0xFE;
+		return 0xFE;
 	}
 	if (isVRAMAddress(address))
 		return m_vram[getActiveVRAMBank()][getVRAMIndexFromAddress(address)];
@@ -234,7 +247,6 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 	else if (isUnusedMemory(address))
 	{
 		return; // Writing to unused/invalid memory does nothing
-		assert(!"Unused memory used");
 	}
 
 	if (address == GBC_VRAM_DMA_LENGTH_START_ADDRESS)
@@ -246,6 +258,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 
 	if (isUnimplementedGBCWriteAddress(address))
 		assert(!"Not implemented");
+
+	if (address == GBC_BACKGROUND_PALETTE_DATA_ADDRESS || address == GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS) 
+	{
+		m_ppu->GBCWriteToColorRAM(address, value);
+		return;
+	}
 
 	if (isVRAMAddress(address))
 	{

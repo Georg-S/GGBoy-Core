@@ -33,6 +33,7 @@ set (MISCELLANEOUS_HEADERS
 	"include/Input.hpp"
 	"include/Ringbuffer.hpp"
 	"include/Serialization.hpp"
+	"include/GBCColorRAM.hpp"
 	)
 
 set(HEADERS 
@@ -69,6 +70,7 @@ set (MISCELLANEOUS_SOURCES
 	"src/Utility.cpp"
 	"src/Timer.cpp"
 	"src/Input.cpp"
+	"src/GBCColorRAM.cpp"
 	)
 
 set(SOURCES 

@@ -26,6 +26,8 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 void ggb::PixelProcessingUnit::reset()
 {
 	m_cycleCounter = 0;
+	m_GBCBackgroundColorRAM.reset();
+	m_GBCObjectColorRAM.reset();
 }
 
 void ggb::PixelProcessingUnit::setBus(BUS* bus)
@@ -42,6 +44,8 @@ void ggb::PixelProcessingUnit::setBus(BUS* bus)
 	m_viewPortYPos = m_bus->getPointerIntoMemory(LCD_VIEWPORT_Y_ADDRESS);
 	m_windowXPos = m_bus->getPointerIntoMemory(LCD_WINDOW_X_ADDRESS);
 	m_windowYPos = m_bus->getPointerIntoMemory(LCD_WINDOW_Y_ADDRESS);
+	m_GBCBackgroundColorRAM.setBus(m_bus);
+	m_GBCObjectColorRAM.setBus(m_bus);
 
 	static constexpr uint8_t objectSize = 4; // bytes
 	m_objects.resize(OBJECT_COUNT);
@@ -184,6 +188,28 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 
 	m_gameFrameBuffer->serialization(serialization);
 	m_tileDataFrameBuffer->serialization(serialization);
+	m_GBCBackgroundColorRAM.serialization(serialization);
+	m_GBCObjectColorRAM.serialization(serialization);
+}
+
+void ggb::PixelProcessingUnit::GBCWriteToColorRAM(uint16_t address, uint8_t value)
+{
+	if (address == GBC_BACKGROUND_PALETTE_DATA_ADDRESS)
+	{
+		m_GBCBackgroundColorRAM.write(value);
+		return;
+	}
+	assert(address == GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS);
+	m_GBCObjectColorRAM.write(value);
+}
+
+uint8_t ggb::PixelProcessingUnit::GBCReadColorRAM(uint16_t address) const
+{
+	if (address == GBC_BACKGROUND_PALETTE_DATA_ADDRESS)
+		return m_GBCBackgroundColorRAM.read();
+
+	assert(address == GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS);
+	return m_GBCObjectColorRAM.read();
 }
 
 void ggb::PixelProcessingUnit::renderGame()

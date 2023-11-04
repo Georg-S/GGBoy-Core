@@ -68,6 +68,7 @@ namespace ggb
 	static constexpr uint16_t GBC_BACKGROUND_PALETTE_DATA_ADDRESS = 0xFF69; 
 	static constexpr uint16_t GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS = 0xFF6A;
 	static constexpr uint16_t GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS = 0xFF6B;
+	static constexpr uint16_t GBC_OBJECT_PRIORITY_MODE_ADDRESS = 0xFF6C;
 	static constexpr uint16_t GBC_WRAM_BANKING_ADDRESS = 0xFF70;
 	static constexpr uint16_t ENABLED_INTERRUPT_ADDRESS = 0xFFFF;
 
@@ -99,5 +100,6 @@ namespace ggb
 	static constexpr uint16_t TILE_MAP_SIZE = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
 	static constexpr uint16_t VRAM_BANK_MEMORY_SIZE = 0x1FFF + 1;
 	static constexpr uint16_t GBC_VRAM_BANK_COUNT = 2;
+	static constexpr uint16_t GBC_COLOR_RAM_MEMORY_SIZE = 64; // in bytes
 	using AUDIO_FORMAT = int16_t;
 }

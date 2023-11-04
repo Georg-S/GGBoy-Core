@@ -5,6 +5,7 @@
 #include "RenderingUtility.hpp"
 #include "Utility.hpp"
 #include "Serialization.hpp"
+#include "GBCColorRAM.hpp"
 
 namespace ggb
 {
@@ -87,6 +88,8 @@ namespace ggb
 		void setDrawTileData(bool enable);
 		void setDrawWholeBackground(bool enable);
 		void serialization(Serialization* serialization);
+		void GBCWriteToColorRAM(uint16_t address, uint8_t value);
+		uint8_t GBCReadColorRAM(uint16_t address) const;
 
 	private:
 		void renderGame();
@@ -120,6 +123,8 @@ namespace ggb
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;
 		std::unique_ptr<FrameBuffer> m_tileDataFrameBuffer;
+		GBCColorRAM m_GBCBackgroundColorRAM = GBCColorRAM(GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS);
+		GBCColorRAM m_GBCObjectColorRAM = GBCColorRAM(GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS);
 		uint8_t* m_LCDControl = nullptr;
 		uint8_t* m_LCDYCoordinate = nullptr;
 		uint8_t* m_LYCompare = nullptr;
