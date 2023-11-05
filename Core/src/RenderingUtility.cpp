@@ -52,21 +52,22 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 {
 	constexpr uint16_t tileDataStartAddress = 0x8000;
 	uint16_t address = tileDataStartAddress + (tileIndex * TILE_MEMORY_SIZE);
+	// TODO adjust to GBC
+	//for (uint8_t y = 0; y < TILE_HEIGHT; y++) 
+	//{
+	//	getTileRowData(bus, address,y, bufVec);
 
-	for (uint8_t y = 0; y < TILE_HEIGHT; y++) 
-	{
-		getTileRowData(bus, address,y, bufVec);
-
-		for (size_t i = 0; i < TILE_WIDTH; i++)
-			outTile->m_data[y][i] = palette.getColor(bufVec[i]);
-	}
+	//	for (size_t i = 0; i < TILE_WIDTH; i++)
+	//		outTile->m_data[y][i] = palette.getColor(bufVec[i]);
+	//}
 }
 
-void ggb::getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
+void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
 	assert(outVec.size() >= 8);
-	auto low = bus->read(tileAddress + (tileRow * 2));
-	auto high = bus->read(tileAddress + (tileRow * 2) + 1);
+	auto vramIndex = getVRAMIndexFromAddress((tileAddress + (tileRow * 2)));
+	auto low = vramPtr[vramIndex];
+	auto high = vramPtr[vramIndex + 1];
 
 	for (int x = 7; x >= 0; x--)
 	{

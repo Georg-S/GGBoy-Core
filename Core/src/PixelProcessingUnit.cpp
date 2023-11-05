@@ -320,8 +320,9 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 	const auto colorPaletteIndex = GBCTileData & 0b111;
 	const auto& GBCPalette = GBCGetBackgroundAndWindowColorPalette(colorPaletteIndex);
 	const auto tileAddress = getTileAddress(inOutData->tileIndexAddress, inOutData->signedAddressingMode);
+	uint8_t* vramBank = getVRAMBankPointer(GBCTileData);
 
-	getTileRowData(m_bus, tileAddress, inOutData->tileRow, m_objColorBuffer);
+	getTileRowData(vramBank, tileAddress, inOutData->tileRow, m_objColorBuffer);
 	while (inOutData->tileColumn < TILE_WIDTH && screenXPos < GAME_WINDOW_WIDTH)
 	{
 		if (screenXPos >= 0)
@@ -386,13 +387,14 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 		const auto& colorPalette = GBCGetObjectColorPalette(obj);
 		const bool backgroundOverObj = obj.drawBackgroundOverObject();
 		auto objTileLine = scanLine() - objScreenYPos;
+		uint8_t* vramBank = getVRAMBankPointer(*obj.attributes);
 
 		if (obj.isFlipYSet())
 			objTileLine = (getObjectHeight() - 1) - objTileLine;
 
 		// Kind of hacky for 8x16 tiles e.g. to just read the 14th tile row (even though tiles only have 8 rows)
 		// however since 8x16 objects have their tiles continuous in memory, this seems to be the cleanest way to handle them
-		getTileRowData(m_bus, tileAddress, objTileLine, m_objColorBuffer);
+		getTileRowData(vramBank, tileAddress, objTileLine, m_objColorBuffer);
 		if (obj.isFlipXSet())
 			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
@@ -416,15 +418,25 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 	}
 }
 
+uint8_t* ggb::PixelProcessingUnit::getVRAMBankPointer(uint8_t attributes)
+{
+	if (m_GBCMode && isBitSet(attributes, 3))
+		return m_VRAMBank1Ptr;
+	return m_VRAMBank0Ptr;
+}
+
 uint16_t ggb::PixelProcessingUnit::getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing)
 {
+	auto index = getVRAMIndexFromAddress(tileIndexAddress);
+
 	if (useSignedAddressing)
 	{
-		int16_t tileIndex = m_bus->readSigned(tileIndexAddress);
+		// Currently this cast is implementation defined behavior, with C++20 this can be easily made well defined
+		int8_t tileIndex = static_cast<int8_t>(m_VRAMBank0Ptr[index]); // The tile maps are only in the VRAM Bank 0
 		return TILE_MAP_2_ADDRESS + (tileIndex * TILE_MEMORY_SIZE);
 	}
 
-	auto tileIndex = m_bus->read(tileIndexAddress);
+	auto tileIndex = m_VRAMBank0Ptr[index]; // The tile maps are only in the VRAM Bank 0
 	return TILE_MAP_1_ADDRESS + (tileIndex * TILE_MEMORY_SIZE);
 }
 

@@ -114,6 +114,7 @@ namespace ggb
 		void writeTileIntoBuffer(RenderingScanlineData* inOutData);
 		void writeCurrentWindowLineIntoBuffer();
 		void writeCurrentObjectLineIntoBuffer();
+		uint8_t* getVRAMBankPointer(uint8_t attributes);
 		uint16_t getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing);
 		void handleModeTransitionInterrupt(LCDInterrupt type);
 		constexpr int getModeDuration(LCDMode mode) const;
