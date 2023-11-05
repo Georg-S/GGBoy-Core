@@ -44,23 +44,17 @@ void ggb::MemoryBankController::loadRAM(const std::filesystem::path& path)
 	if (!m_hasRam)
 		return;
 
-	std::ifstream file(path, std::ios::binary);
-	if (!file.is_open())
-		return; // TODO handle error better
-
-	deserialize(file, m_ram);
+	Deserialize deserialize = Deserialize(path);
+	deserialize.read_write(m_ram);
 }
 
-void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path) const
+void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path)
 {
 	if (!m_hasRam)
 		return;
 
-	std::ofstream file(path, std::ios::binary);
-	if (!file.is_open())
-		return; // TODO handle error better
-
-	serialize(file, m_ram);
+	Serialize serialize = Serialize(path);
+	serialize.read_write(m_ram);
 }
 
 void ggb::MemoryBankController::initialize(std::vector<uint8_t>&& cartridgeData)

@@ -108,6 +108,16 @@ void ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 	}
 }
 
+void ggb::Emulator::saveRAM(const std::filesystem::path& outputPath)
+{
+	m_currentCartridge->saveRAM(outputPath);
+}
+
+void ggb::Emulator::loadRAM(const std::filesystem::path& inputPath)
+{
+	m_currentCartridge->loadRAM(inputPath);
+}
+
 SampleBuffer* ggb::Emulator::getSampleBuffer()
 {
 	return m_audio->getSampleBuffer();

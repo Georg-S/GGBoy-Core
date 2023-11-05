@@ -43,7 +43,7 @@ namespace ggb
 		int getRAMSize() const;
 		int getRAMBankCount() const;
 		void loadRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
-		void saveRAM(const std::filesystem::path& path) const; // Does nothing if MBC has no RAM
+		void saveRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		virtual void initialize(std::vector<uint8_t>&& cartridgeData);
 		virtual void serialization(Serialization* serialization);
 

@@ -60,6 +60,16 @@ void ggb::Cartridge::deserialize(Serialization* deserialize)
 	m_memoryBankController->serialization(deserialize);
 }
 
+void ggb::Cartridge::saveRAM(const std::filesystem::path& outputPath)
+{
+	m_memoryBankController->saveRAM(outputPath);
+}
+
+void ggb::Cartridge::loadRAM(const std::filesystem::path& inputPath)
+{
+	m_memoryBankController->loadRAM(inputPath);
+}
+
 void ggb::Cartridge::serialization(Serialization* serialize)
 {
 	serialize->read_write(m_mbcType);

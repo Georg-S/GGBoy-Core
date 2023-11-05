@@ -28,7 +28,9 @@ namespace ggb
 		void setInput(std::unique_ptr<Input> input);
 		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
 		void saveEmulatorState(const std::filesystem::path& outputPath); 
-		void loadEmulatorState(const std::filesystem::path& filePath); 
+		void loadEmulatorState(const std::filesystem::path& filePath);
+		void saveRAM(const std::filesystem::path& outputPath);
+		void loadRAM(const std::filesystem::path& inputPath);
 		SampleBuffer* getSampleBuffer();
 		Dimensions getTileDataDimensions() const;
 		Dimensions getGameWindowDimensions() const;

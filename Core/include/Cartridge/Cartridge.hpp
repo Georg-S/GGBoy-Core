@@ -17,6 +17,8 @@ namespace ggb
 		uint8_t read(uint16_t address) const;
 		void serialize(Serialization* serialize);
 		void deserialize(Serialization* deserialize);
+		void saveRAM(const std::filesystem::path& outputPath);
+		void loadRAM(const std::filesystem::path& inputPath);
 
 	private:
 		void serialization(Serialization* serialize);
