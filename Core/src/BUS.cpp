@@ -330,35 +330,21 @@ void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint8_t* destination, 
 	}
 }
 
-template <typename T>
-bool isAllEmpty(const T& vec) 
-{
-	for (const auto& elem : vec)
-		if (elem != 0)
-			return false;
-
-	return true;
-}
-
 void ggb::BUS::gbcVRAMDirectMemoryAccess()
 {
 	constexpr uint16_t clearFourLowerBitsMask = ~0b1111;
 	constexpr uint16_t clearUpperAndLowerFourBitsMask = ~(0b1111 << 12) & clearFourLowerBitsMask;
 	const bool hblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
-	const uint16_t sourceHigh = m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS];
-	const uint16_t sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS];
-	const uint16_t destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS];
-	const uint16_t destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS];
-	const uint16_t source = (sourceHigh << 8 | sourceLow) & clearFourLowerBitsMask; // Four lower bits are ignored
-	const uint16_t destination = (destinationHigh << 8 | destinationLow); // Four lower bits are ignored
+	const auto sourceHigh = m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS];
+	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS];
+	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS];
+	const auto destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS];
+	const uint16_t source = combineUpperAndLower(sourceHigh, sourceLow) & clearFourLowerBitsMask; // Four lower bits are ignored
+	const uint16_t destination = combineUpperAndLower(destinationHigh, destinationLow); // Four lower bits are ignored
 	const size_t length = static_cast<size_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
 	uint8_t* destinationPointer = &(m_vram[getActiveVRAMBank()][getVRAMIndexFromAddress(destination)]);
 
 	assert((getVRAMIndexFromAddress(destination) + length - 1) < std::size(m_vram[0]));
-	// TODO add some security checks to not read outside the buffer
-
-	auto test1 = isAllEmpty(m_vram[0]);
-	auto test2 = isAllEmpty(m_vram[1]);
 
 	directMemoryAccess(source, destinationPointer, length);
 	m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] = 0xFF;

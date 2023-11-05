@@ -21,7 +21,7 @@ namespace ggb
 
 	constexpr uint8_t getNumberFromBits(bool bitZero, bool bitOne)
 	{
-		return static_cast<uint8_t>((bitOne << 1) | static_cast<int>(bitZero));
+		return static_cast<uint8_t>((bitOne << 1) | static_cast<uint8_t>(bitZero));
 	}
 
 	template<typename T>
@@ -40,7 +40,7 @@ namespace ggb
 	}
 
 	template<typename T>
-	constexpr bool isBitSet(T number, int bit)
+	constexpr bool isBitSet(T number, unsigned int bit)
 	{
 		assert(bit < (sizeof(T) * 8));
 		const T bitToCheck = 1 << bit;

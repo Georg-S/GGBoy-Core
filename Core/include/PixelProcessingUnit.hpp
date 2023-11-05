@@ -101,6 +101,7 @@ namespace ggb
 		void writeCurrentScanLineIntoFrameBuffer();
 		void updateCurrentScanlineObjects();
 		void writeCurrentBackgroundLineIntoFrameBuffer();
+		void writeTileIntoBuffer(uint16_t tileIndexAddress, bool signedAddressingMode, int& tileRow, int& tileColumn, int& screenX);
 		void writeCurrentWindowLineIntoBuffer();
 		void writeCurrentObjectLineIntoBuffer();
 		uint16_t getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing);

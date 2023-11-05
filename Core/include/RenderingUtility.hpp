@@ -55,6 +55,7 @@ namespace ggb
 	struct ColorPalette 
 	{
 		std::array<RGBA, 4> m_color = {};
+		const RGBA& getColor(size_t index) const;
 	};
 
 	struct Tile 
@@ -66,7 +67,6 @@ namespace ggb
 	};
 
 	RGBA convertGBColorToRGB(GBColor color);
-	RGBA getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette);
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec);
 	void getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
 }

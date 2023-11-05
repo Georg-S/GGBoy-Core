@@ -237,13 +237,13 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 	if (isBitSet(*m_LCDControl, 1))
 		writeCurrentObjectLineIntoBuffer();
 
-	for (int x = 0; x < GAME_WINDOW_WIDTH; x++) 
+	for (int x = 0; x < GAME_WINDOW_WIDTH; x++)
 	{
 		const auto& backgroundAndWindowPixel = m_pixelBuffer[x];
 		const auto& objectPixel = m_currentObjectRowPixelBuffer[x];
 
 		m_gameFrameBuffer->setPixel(x, scanLine(), backgroundAndWindowPixel.rgb);
-		if (objectPixel.pixelSet) 
+		if (objectPixel.pixelSet)
 		{
 			if (objectPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0))
 				continue;
@@ -293,34 +293,42 @@ void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 	auto lineShift = ((yPosInBackground / TILE_HEIGHT) * TILE_MAP_WIDTH);
 	assert(lineShift < TILE_MAP_SIZE);
 
-	const auto tileRow = yPosInBackground % TILE_HEIGHT;
+	auto tileRow = yPosInBackground % TILE_HEIGHT;
 	auto tileColumn = *m_viewPortXPos % TILE_WIDTH;
 
-	for (int xWindow = 0; xWindow < GAME_WINDOW_WIDTH;)
+	for (int screenX = 0; screenX < GAME_WINDOW_WIDTH;)
 	{
-		auto xBuf = ((*m_viewPortXPos + xWindow) / TILE_WIDTH) & 0x1F;
+		auto xBuf = ((*m_viewPortXPos + screenX) / TILE_WIDTH) & 0x1F;
 		auto tileMapIndex = xBuf + lineShift;
 		assert(tileMapIndex < TILE_MAP_SIZE);
 		const auto tileIndexAddress = backgroundTileMap + tileMapIndex;
-		const auto GBCTileData = getBackgroundTileAttributes(tileIndexAddress);
-		const auto colorPaletteIndex = GBCTileData & 0b111;
-		// TODO only use color palette when in GBC mode
-		const auto& GBCPalette = m_GBCBackgroundColorRAM.getColorPalette(colorPaletteIndex);
 
-		const auto tileAddress = getTileAddress(tileIndexAddress, signedAddressingMode);
+		writeTileIntoBuffer(tileIndexAddress, signedAddressingMode, tileRow, tileColumn, screenX);
+	}
+}
 
 
-		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
-		while (tileColumn < TILE_WIDTH && xWindow < GAME_WINDOW_WIDTH)
+void ggb::PixelProcessingUnit::writeTileIntoBuffer(uint16_t tileIndexAddress, bool signedAddressingMode, int& tileRow, int& tileColumn, int& screenX)
+{
+	const auto GBCTileData = getBackgroundTileAttributes(tileIndexAddress);
+	const auto colorPaletteIndex = GBCTileData & 0b111;
+	// TODO only use color palette when in GBC mode
+	const auto& GBCPalette = m_GBCBackgroundColorRAM.getColorPalette(colorPaletteIndex);
+	const auto tileAddress = getTileAddress(tileIndexAddress, signedAddressingMode);
+
+	getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
+	while (tileColumn < TILE_WIDTH && screenX < GAME_WINDOW_WIDTH)
+	{
+		if (screenX >= 0)
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
-			const auto rgb = getRGBFromNumAndPalette(colorValue, GBCPalette);
-			m_pixelBuffer[xWindow] = { rgb, colorValue};
-			++tileColumn;
-			++xWindow;
+			const auto& rgb = GBCPalette.getColor(colorValue);
+			m_pixelBuffer[screenX] = { rgb, colorValue };
 		}
-		tileColumn = 0;
+		++tileColumn;
+		++screenX;
 	}
+	tileColumn = 0;
 }
 
 void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
@@ -346,33 +354,15 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	const auto yTileOffset = (yPos / TILE_HEIGHT) * TILE_MAP_WIDTH;
 	assert(yTileOffset < TILE_MAP_SIZE);
 	const auto screenX = convertWindowCoordinateToScreen(*m_windowXPos);
-	const auto tileRow = yPos % TILE_HEIGHT;
+	auto tileRow = yPos % TILE_HEIGHT;
 	auto tileColumn = screenX % TILE_WIDTH;
 
 	for (int xCoord = screenX; xCoord < GAME_WINDOW_WIDTH;)
 	{
 		auto tileIndexAddress = (convertScreenCoordinateToWindow(xCoord) / TILE_WIDTH) + yTileOffset;
 		tileIndexAddress = windowTileMap + tileIndexAddress;
-		const uint16_t tileAddress = getTileAddress(tileIndexAddress, readSigned);
-		const auto GBCTileData = getBackgroundTileAttributes(tileIndexAddress);
-		const auto colorPaletteIndex = GBCTileData & 0b111;
-		// TODO only use color palette when in GBC mode
-		const auto& GBCPalette = m_GBCBackgroundColorRAM.getColorPalette(colorPaletteIndex);
 
-		getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
-		while (tileColumn < TILE_WIDTH && xCoord < GAME_WINDOW_WIDTH)
-		{
-			if (xCoord >= 0) 
-			{
-				const auto colorValue = m_objColorBuffer[tileColumn];
-				const auto rgb = getRGBFromNumAndPalette(colorValue, GBCPalette);
-				m_pixelBuffer[xCoord] = { rgb, colorValue };
-			}
-
-			++tileColumn;
-			++xCoord;
-		}
-		tileColumn = 0;
+		writeTileIntoBuffer(tileIndexAddress, readSigned, tileRow, tileColumn, xCoord);
 	}
 }
 
@@ -389,8 +379,7 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 	{
 		uint16_t tileAddress = TILE_MAP_1_ADDRESS + (*obj.tileIndex * TILE_MEMORY_SIZE);
 		const auto objScreenYPos = *obj.yPosition - SCREEN_Y_OFFSET;
-		//const auto colorPalette = getObjectColorPalette(obj);
-		const auto colorPalette = m_GBCObjectColorRAM.getColorPalette(obj.getGBCPaletteIndex());
+		const auto& colorPalette = m_GBCObjectColorRAM.getColorPalette(obj.getGBCPaletteIndex());
 		const bool backgroundOverObj = obj.drawBackgroundOverObject();
 		auto objTileLine = scanLine() - objScreenYPos;
 
@@ -398,25 +387,25 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 			objTileLine = (getObjectHeight() - 1) - objTileLine;
 
 		// Kind of hacky for 8x16 tiles e.g. to just read the 14th tile row (even though tiles only have 8 rows)
-		// however since 8x16 objects have their tiles continuous in memory, this seems the cleanest way to handle them
+		// however since 8x16 objects have their tiles continuous in memory, this seems to be the cleanest way to handle them
 		getTileRowData(m_bus, tileAddress, objTileLine, m_objColorBuffer);
 		if (obj.isFlipXSet())
 			std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end());
 
 		for (int x = *obj.xPosition - SCREEN_X_OFFSET, objX = 0; objX < TILE_WIDTH && x < GAME_WINDOW_WIDTH; ++x, ++objX)
 		{
-			if (x < 0) 
+			if (x < 0)
 				continue;
 
 			const auto currentColorValue = m_objColorBuffer[objX];
 			if (currentColorValue == TRANSPARENT_PIXEL_VALUE)
 				continue;
 
-			m_currentObjectRowPixelBuffer[x] = { getRGBFromNumAndPalette(currentColorValue, colorPalette), backgroundOverObj, true };
+			m_currentObjectRowPixelBuffer[x] = { colorPalette.getColor(currentColorValue), backgroundOverObj, true };
 		}
 	}
 
-	for (int x = 0; x < GAME_WINDOW_WIDTH; x++) 
+	for (int x = 0; x < GAME_WINDOW_WIDTH; x++)
 	{
 		if (m_currentObjectRowPixelBuffer[x].pixelSet)
 			m_gameFrameBuffer->setPixel(x, scanLine(), m_currentObjectRowPixelBuffer[x].rgb);

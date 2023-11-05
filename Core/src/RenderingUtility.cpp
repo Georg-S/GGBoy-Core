@@ -48,11 +48,6 @@ RGBA ggb::convertGBColorToRGB(GBColor color)
 	}
 }
 
-RGBA ggb::getRGBFromNumAndPalette(uint8_t num, const ColorPalette& palette)
-{
-	return palette.m_color[num];
-}
-
 void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec)
 {
 	constexpr uint16_t tileDataStartAddress = 0x8000;
@@ -63,7 +58,7 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 		getTileRowData(bus, address,y, bufVec);
 
 		for (size_t i = 0; i < TILE_WIDTH; i++)
-			outTile->m_data[y][i] = getRGBFromNumAndPalette(bufVec[i], palette);
+			outTile->m_data[y][i] = palette.getColor(bufVec[i]);
 	}
 }
 
@@ -80,4 +75,9 @@ void ggb::getTileRowData(BUS* bus, uint16_t tileAddress, uint8_t tileRow, std::v
 		auto num = getNumberFromBits(lsb, msb);
 		outVec[7 - x] = num;
 	}
+}
+
+const RGBA& ggb::ColorPalette::getColor(size_t index) const
+{
+	return m_color[index];
 }
