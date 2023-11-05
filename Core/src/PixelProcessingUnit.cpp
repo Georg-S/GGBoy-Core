@@ -180,6 +180,10 @@ void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
 void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 {
 	// TODO emulator should probably save / serialize the last saved frame and render it (will be useful if the emulator is paused)
+	serialization->read_write(m_cycleCounter);
+	serialization->read_write(m_drawWholeBackground);
+	serialization->read_write(m_drawTileData);
+	serialization->read_write(m_GBCMode);
 	serialization->read_write(m_objects);
 	serialization->read_write(m_currentScanlineObjects);
 	serialization->read_write(m_vramTiles);
@@ -284,49 +288,50 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 
 void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 {
-	const auto palette = getBackgroundAndWindowColorPalette();
+	RenderingScanlineData data = {};
 	const uint16_t backgroundTileMap = isBitSet(*m_LCDControl, 3) ? 0x9C00 : 0x9800;
-	const bool signedAddressingMode = !isBitSet(*m_LCDControl, 4);
+	data.signedAddressingMode = !isBitSet(*m_LCDControl, 4);
 
 	// TODO is the % 256 correct?
 	const auto yPosInBackground = (scanLine() + *m_viewPortYPos) % 256;
 	auto lineShift = ((yPosInBackground / TILE_HEIGHT) * TILE_MAP_WIDTH);
 	assert(lineShift < TILE_MAP_SIZE);
 
-	auto tileRow = yPosInBackground % TILE_HEIGHT;
-	auto tileColumn = *m_viewPortXPos % TILE_WIDTH;
+	data.tileRow = yPosInBackground % TILE_HEIGHT;
+	data.tileColumn = *m_viewPortXPos % TILE_WIDTH;
 
-	for (int screenX = 0; screenX < GAME_WINDOW_WIDTH;)
+	for (data.screenXPos = 0; data.screenXPos < GAME_WINDOW_WIDTH;)
 	{
-		auto xBuf = ((*m_viewPortXPos + screenX) / TILE_WIDTH) & 0x1F;
+		auto xBuf = ((*m_viewPortXPos + data.screenXPos) / TILE_WIDTH) & 0x1F;
 		auto tileMapIndex = xBuf + lineShift;
 		assert(tileMapIndex < TILE_MAP_SIZE);
-		const auto tileIndexAddress = backgroundTileMap + tileMapIndex;
+		data.tileIndexAddress = backgroundTileMap + tileMapIndex;
 
-		writeTileIntoBuffer(tileIndexAddress, signedAddressingMode, tileRow, tileColumn, screenX);
+		writeTileIntoBuffer(&data);
 	}
 }
 
 
-void ggb::PixelProcessingUnit::writeTileIntoBuffer(uint16_t tileIndexAddress, bool signedAddressingMode, int& tileRow, int& tileColumn, int& screenX)
+void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutData)
 {
-	const auto GBCTileData = getBackgroundTileAttributes(tileIndexAddress);
+	auto& screenXPos = inOutData->screenXPos;
+	auto& tileColumn = inOutData->tileColumn;
+	const auto GBCTileData = getBackgroundTileAttributes(inOutData->tileIndexAddress);
 	const auto colorPaletteIndex = GBCTileData & 0b111;
-	// TODO only use color palette when in GBC mode
-	const auto& GBCPalette = m_GBCBackgroundColorRAM.getColorPalette(colorPaletteIndex);
-	const auto tileAddress = getTileAddress(tileIndexAddress, signedAddressingMode);
+	const auto& GBCPalette = GBCGetBackgroundAndWindowColorPalette(colorPaletteIndex);
+	const auto tileAddress = getTileAddress(inOutData->tileIndexAddress, inOutData->signedAddressingMode);
 
-	getTileRowData(m_bus, tileAddress, tileRow, m_objColorBuffer);
-	while (tileColumn < TILE_WIDTH && screenX < GAME_WINDOW_WIDTH)
+	getTileRowData(m_bus, tileAddress, inOutData->tileRow, m_objColorBuffer);
+	while (inOutData->tileColumn < TILE_WIDTH && screenXPos < GAME_WINDOW_WIDTH)
 	{
-		if (screenX >= 0)
+		if (screenXPos >= 0)
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
 			const auto& rgb = GBCPalette.getColor(colorValue);
-			m_pixelBuffer[screenX] = { rgb, colorValue };
+			m_pixelBuffer[screenXPos] = { rgb, colorValue };
 		}
 		++tileColumn;
-		++screenX;
+		++screenXPos;
 	}
 	tileColumn = 0;
 }
@@ -345,24 +350,23 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	if (scanLine() < *m_windowYPos)
 		return;
 
+	RenderingScanlineData data = {};
 	// TODO Refactor it into the same method as the background?
-	const auto palette = getBackgroundAndWindowColorPalette();
 	const uint16_t windowTileMap = isBitSet(*m_LCDControl, 6) ? 0x9C00 : 0x9800;
-	const bool readSigned = !isBitSet(*m_LCDControl, 4);
+	data.signedAddressingMode = !isBitSet(*m_LCDControl, 4);
 
 	const auto yPos = scanLine() - *m_windowYPos;
 	const auto yTileOffset = (yPos / TILE_HEIGHT) * TILE_MAP_WIDTH;
 	assert(yTileOffset < TILE_MAP_SIZE);
 	const auto screenX = convertWindowCoordinateToScreen(*m_windowXPos);
-	auto tileRow = yPos % TILE_HEIGHT;
-	auto tileColumn = screenX % TILE_WIDTH;
+	data.tileRow = yPos % TILE_HEIGHT;
+	data.tileColumn = screenX % TILE_WIDTH;
 
-	for (int xCoord = screenX; xCoord < GAME_WINDOW_WIDTH;)
+	for (data.screenXPos = screenX; data.screenXPos < GAME_WINDOW_WIDTH;)
 	{
-		auto tileIndexAddress = (convertScreenCoordinateToWindow(xCoord) / TILE_WIDTH) + yTileOffset;
-		tileIndexAddress = windowTileMap + tileIndexAddress;
-
-		writeTileIntoBuffer(tileIndexAddress, readSigned, tileRow, tileColumn, xCoord);
+		auto tileIndexAddress = (convertScreenCoordinateToWindow(data.screenXPos) / TILE_WIDTH) + yTileOffset;
+		data.tileIndexAddress = windowTileMap + tileIndexAddress;
+		writeTileIntoBuffer(&data);
 	}
 }
 
@@ -379,7 +383,7 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 	{
 		uint16_t tileAddress = TILE_MAP_1_ADDRESS + (*obj.tileIndex * TILE_MEMORY_SIZE);
 		const auto objScreenYPos = *obj.yPosition - SCREEN_Y_OFFSET;
-		const auto& colorPalette = m_GBCObjectColorRAM.getColorPalette(obj.getGBCPaletteIndex());
+		const auto& colorPalette = GBCGetObjectColorPalette(obj);
 		const bool backgroundOverObj = obj.drawBackgroundOverObject();
 		auto objTileLine = scanLine() - objScreenYPos;
 
@@ -485,6 +489,23 @@ ColorPalette ggb::PixelProcessingUnit::getBackgroundAndWindowColorPalette() cons
 	return getPalette(*m_backgroundPalette);
 }
 
+ColorPalette ggb::PixelProcessingUnit::GBCGetBackgroundAndWindowColorPalette(size_t index) const
+{
+	if (m_GBCMode)
+		return m_GBCBackgroundColorRAM.getColorPalette(index);
+	return getPalette(*m_backgroundPalette);
+}
+
+ColorPalette ggb::PixelProcessingUnit::GBCGetObjectColorPalette(const Object& obj) const
+{
+	if (m_GBCMode)
+		return m_GBCObjectColorRAM.getColorPalette(obj.getGBCPaletteIndex());
+
+	if (obj.usePalette1())
+		return getPalette(*m_objectPalette1);
+	return getPalette(*m_objectPalette0);
+}
+
 static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuffer, Renderer* renderer)
 {
 	int currX = 0;
@@ -510,13 +531,6 @@ static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuf
 		}
 	}
 	renderer->renderNewFrame(*frameBuffer);
-}
-
-ColorPalette ggb::PixelProcessingUnit::getObjectColorPalette(const Object& obj) const
-{
-	if (obj.usePalette1())
-		return getPalette(*m_objectPalette1);
-	return getPalette(*m_objectPalette0);
 }
 
 void ggb::PixelProcessingUnit::updateAndRenderTileData()

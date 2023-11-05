@@ -305,6 +305,7 @@ void ggb::BUS::resetTimerDivider()
 void ggb::BUS::serialization(Serialization* serialization)
 {
 	serialization->read_write(m_memory);
+	serialization->read_write(m_vram);
 }
 
 void ggb::BUS::directMemoryAccess(uint8_t value)

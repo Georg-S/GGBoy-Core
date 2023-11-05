@@ -97,11 +97,21 @@ namespace ggb
 		uint8_t GBCReadColorRAM(uint16_t address) const;
 
 	private:
+		// Helper struct for rendering the current scanline
+		struct RenderingScanlineData 
+		{
+			uint16_t tileIndexAddress = 0;
+			bool signedAddressingMode = false;
+			int tileRow = 0;
+			int tileColumn = 0;
+			int screenXPos = 0;
+		};
+
 		void renderGame();
 		void writeCurrentScanLineIntoFrameBuffer();
 		void updateCurrentScanlineObjects();
 		void writeCurrentBackgroundLineIntoFrameBuffer();
-		void writeTileIntoBuffer(uint16_t tileIndexAddress, bool signedAddressingMode, int& tileRow, int& tileColumn, int& screenX);
+		void writeTileIntoBuffer(RenderingScanlineData* inOutData);
 		void writeCurrentWindowLineIntoBuffer();
 		void writeCurrentObjectLineIntoBuffer();
 		uint16_t getTileAddress(uint16_t tileIndexAddress, bool useSignedAddressing);
@@ -110,7 +120,8 @@ namespace ggb
 		uint8_t scanLine() const;
 		uint8_t incrementScanline();
 		ColorPalette getBackgroundAndWindowColorPalette() const;
-		ColorPalette getObjectColorPalette(const Object& obj) const;
+		ColorPalette GBCGetBackgroundAndWindowColorPalette(size_t index) const;
+		ColorPalette GBCGetObjectColorPalette(const Object& obj) const;
 		void updateAndRenderTileData();
 		int getObjectHeight() const;
 		uint8_t getBackgroundTileAttributes(uint16_t address) const;
@@ -119,6 +130,7 @@ namespace ggb
 		int m_cycleCounter = 0;
 		bool m_drawWholeBackground = false;
 		bool m_drawTileData = false;
+		bool m_GBCMode = true;
 		std::vector<Object> m_objects;
 		std::vector<Object> m_currentScanlineObjects;
 		std::vector<Tile> m_vramTiles;
@@ -126,12 +138,12 @@ namespace ggb
 		std::vector<uint8_t> m_objColorBuffer;
 		std::vector<BackgroundAndWindowPixel> m_pixelBuffer;
 		std::vector<ObjectPixel> m_currentObjectRowPixelBuffer;
+		GBCColorRAM m_GBCBackgroundColorRAM = GBCColorRAM(GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS);
+		GBCColorRAM m_GBCObjectColorRAM = GBCColorRAM(GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS);
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;
 		std::unique_ptr<FrameBuffer> m_tileDataFrameBuffer;
-		GBCColorRAM m_GBCBackgroundColorRAM = GBCColorRAM(GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS);
-		GBCColorRAM m_GBCObjectColorRAM = GBCColorRAM(GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS);
 		uint8_t* m_LCDControl = nullptr;
 		uint8_t* m_LCDYCoordinate = nullptr;
 		uint8_t* m_LYCompare = nullptr;
