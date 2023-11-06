@@ -123,7 +123,7 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
-	constexpr auto sampleGeneratingRate = CPU_BASE_CLOCK / STANDARD_SAMPLE_RATE;
+	constexpr double sampleGeneratingRate = static_cast<double>(CPU_BASE_CLOCK) / static_cast<double>(STANDARD_SAMPLE_RATE);
 	const auto masterVolume = getMasterVolume();
 	Frame outFrame = {};
 

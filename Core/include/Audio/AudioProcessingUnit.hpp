@@ -40,7 +40,7 @@ namespace ggb
 		
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;
-		int m_cycleCounter = 0;
+		double m_cycleCounter = 0;
 		SampleBuffer m_sampleBuffer;
 		uint8_t* m_soundOn = nullptr;
 		uint8_t* m_soundPanning = nullptr;
