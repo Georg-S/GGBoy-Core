@@ -361,7 +361,7 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 	assert(yTileOffset < TILE_MAP_SIZE);
 	const auto screenX = convertWindowCoordinateToScreen(*m_windowXPos);
 	data.tileRow = yPos % TILE_HEIGHT;
-	data.tileColumn = screenX % TILE_WIDTH;
+	data.tileColumn = 0; // Window row rendering always starts at the beginning of a tile
 
 	for (data.screenXPos = screenX; data.screenXPos < GAME_WINDOW_WIDTH;)
 	{
