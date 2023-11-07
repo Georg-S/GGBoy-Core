@@ -147,6 +147,7 @@ void ggb::SquareWaveChannel::tickLengthShutdown()
 
 void ggb::SquareWaveChannel::tickFrequencySweep()
 {
+	// TODO Frequency sweep seems to be not quite correct yet
 	const auto individualStep = *m_sweep & 0b111;
 	if (individualStep == 0 && (m_frequencySweepPace == 0))
 	{

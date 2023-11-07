@@ -2,8 +2,18 @@
 project(GGBoyApp)
 #set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(SOURCES "src/main.cpp")
-set(HEADERS "")
+set(HEADERS 
+	"include/Audio.hpp"
+	"include/Video.hpp"
+	"include/Inputhandling.hpp"
+	)
+	
+set(SOURCES 
+	"src/Audio.cpp"
+	"src/Video.cpp"
+	"src/Inputhandling.cpp"
+	"src/main.cpp"
+	)
 
 #source_group("" FILES ${miscFiles})
 
@@ -16,8 +26,8 @@ add_executable(GGBoyApp
 	${SOURCES}
 	${HEADERS}
 	)
-target_include_directories(GGBoyApp PUBLIC "include" ${SDL2_INCLUDE_DIRS} ${SDL2IMAGE_INCLUDE_DIRS})
-target_link_libraries(GGBoyApp "GGBoyCore" ${SDL2_LIBRARIES} ${SDL2IMAGE_LIBRARIES})
+target_include_directories(GGBoyApp PUBLIC "include" ${SDL2_INCLUDE_DIRS})
+target_link_libraries(GGBoyApp "GGBoyCore" ${SDL2_LIBRARIES})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT GGBoyApp)
 
 if (MSVC)
