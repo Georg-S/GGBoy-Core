@@ -26,6 +26,7 @@ static bool isChannel4Memory(uint16_t address)
 ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 {
 	setBus(bus);
+	m_sampleBuffer = std::make_unique<SampleBuffer>();
 	m_channel1 = std::make_unique<SquareWaveChannel>(true, bus);
 	m_channel2 = std::make_unique<SquareWaveChannel>(false, bus);
 	m_channel3 = std::make_unique<WaveChannel>(bus);
@@ -107,7 +108,7 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 
 ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
 {
-	return &m_sampleBuffer;
+	return m_sampleBuffer.get();
 }
 
 void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
@@ -147,7 +148,7 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 		outFrame.leftSample = outFrame.leftSample * masterVolume;
 		outFrame.rightSample = outFrame.rightSample * masterVolume;
 
-		m_sampleBuffer.push(std::move(outFrame));
+		m_sampleBuffer->push(std::move(outFrame));
 	}
 }
 

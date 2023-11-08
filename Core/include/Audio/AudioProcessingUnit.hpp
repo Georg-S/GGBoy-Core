@@ -41,10 +41,10 @@ namespace ggb
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;
 		double m_cycleCounter = 0;
-		SampleBuffer m_sampleBuffer;
 		uint8_t* m_soundOn = nullptr;
 		uint8_t* m_soundPanning = nullptr;
 		uint8_t* m_masterVolume = nullptr;
+		std::unique_ptr<SampleBuffer> m_sampleBuffer = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel1 = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		std::unique_ptr<WaveChannel> m_channel3 = nullptr;
