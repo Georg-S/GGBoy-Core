@@ -20,6 +20,22 @@ SDLRenderer::~SDLRenderer()
 	SDL_DestroyTexture(m_texture);
 }
 
+static ggb::RGBA colorCorrection(ggb::RGBA rgb)
+{
+	int r = rgb.r;
+	int g = rgb.g;
+	int b = rgb.b;
+
+	r = 3.0 / 4 * rgb.r + 1.0 / 4 * rgb.g;
+	g = 3.0 / 5 * rgb.g + 1.0 / 5 * rgb.b + 1.0 / 5 * rgb.r;
+	b = 4.0 / 6 * rgb.b + 1.0 / 6 * rgb.r + 1.0 / 6 * rgb.g;
+
+	rgb.r = std::clamp(r, 0, 255);
+	rgb.g = std::clamp(g, 0, 255);
+	rgb.b = std::clamp(b, 0, 255);
+	return rgb;
+}
+
 void SDLRenderer::renderNewFrame(const ggb::FrameBuffer& framebuffer)
 {
 	startRendering();
@@ -28,7 +44,7 @@ void SDLRenderer::renderNewFrame(const ggb::FrameBuffer& framebuffer)
 	{
 		for (int y = 0; y < framebuffer.m_buffer[0].size(); y++)
 		{
-			const auto& rgba = framebuffer.m_buffer[x][y];
+			const auto& rgba = colorCorrection(framebuffer.m_buffer[x][y]);
 
 			const uint32_t pixelPosition = (y * m_pitch) + x * 3;
 			m_lockedPixels[pixelPosition] = rgba.r;

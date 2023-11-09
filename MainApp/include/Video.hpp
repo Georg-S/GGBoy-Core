@@ -7,12 +7,11 @@ class SDLRenderer : public ggb::Renderer
 public:
 	SDLRenderer(int width, int height, int scalingFactor = 1);
 	~SDLRenderer();
-
 	virtual void renderNewFrame(const ggb::FrameBuffer& framebuffer);
-	void startRendering();
-	void finishRendering();
 
 private:
+	void startRendering();
+	void finishRendering();
 	SDL_Window* m_window = nullptr;
 	SDL_Renderer* m_renderer = nullptr;
 	SDL_Texture* m_texture = nullptr;
