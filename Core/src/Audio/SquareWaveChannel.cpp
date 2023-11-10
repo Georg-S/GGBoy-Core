@@ -147,34 +147,50 @@ void ggb::SquareWaveChannel::tickLengthShutdown()
 
 void ggb::SquareWaveChannel::tickFrequencySweep()
 {
-	// TODO Frequency sweep seems to be not quite correct yet
+	if (!m_isOn)
+		return;
+
 	const auto individualStep = *m_sweep & 0b111;
+	const bool increase = !isBitSet(*m_sweep, 3);
 	if (individualStep == 0 && (m_frequencySweepPace == 0))
 	{
 		m_frequencySweepCounter = 0;
 		return;
 	}
 
-	m_frequencySweepCounter++;
-	if (m_frequencySweepCounter >= m_frequencySweepPace) 
+	auto calculateNewPeriodValue = [this, individualStep, increase]() -> int
 	{
-		m_frequencySweepPace = getInitialFrequencySweepPace();
-		m_frequencySweepCounter = 0;
-		const bool increase = !isBitSet(*m_sweep, 3);
 		const int periodValue = getPeriodValue();
 		auto newPeriodValue = periodValue >> individualStep;
 
 		if (increase)
-			newPeriodValue = periodValue + newPeriodValue;
+			return periodValue + newPeriodValue;
 		else
-			newPeriodValue = periodValue - newPeriodValue;
-		assert(newPeriodValue >= 0);
-		if (newPeriodValue > 0x7FF) 
+			return periodValue - newPeriodValue;
+	};
+
+	auto overflowCheck = [this](auto periodValue) -> bool
+	{
+		if (periodValue > 0x7FF)
 		{
 			m_isOn = false; // Overflow check -> disables channel
-			return;
+			return true;
 		}
+		return false;
+	};
+
+	m_frequencySweepCounter++;
+	if (m_frequencySweepCounter >= m_frequencySweepPace) 
+	{
+		m_frequencySweepCounter = 0;
+		m_frequencySweepPace = getInitialFrequencySweepPace();
+		auto newPeriodValue = calculateNewPeriodValue();
+		assert(newPeriodValue >= 0);
+		if (overflowCheck(newPeriodValue))
+			return;
 		setRawPeriodValue(newPeriodValue);
+		assert(newPeriodValue == getPeriodValue());
+		overflowCheck(calculateNewPeriodValue());
 	}
 }
 

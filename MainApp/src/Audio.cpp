@@ -47,7 +47,6 @@ bool Audio::initializeAudio(ggb::SampleBuffer* sampleBuffer)
 	return true;
 }
 
-
 void Audio::emulatorAudioCallback(void* userdata, uint8_t* stream, int len)
 {
 	AudioData* audioData = static_cast<AudioData*>(userdata);
