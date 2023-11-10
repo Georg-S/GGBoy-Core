@@ -7,6 +7,7 @@ set (AUDIO_HEADERS
 	"include/Audio/SquareWaveChannel.hpp"
 	"include/Audio/WaveChannel.hpp"
 	"include/Audio/NoiseChannel.hpp"
+	"include/Audio/AudioCommon.hpp"
 	)
 	
 set (CARTRIDGE_HEADERS
@@ -47,6 +48,7 @@ set (AUDIO_SOURCES
 	"src/Audio/SquareWaveChannel.cpp"
 	"src/Audio/WaveChannel.cpp"
 	"src/Audio/NoiseChannel.cpp"
+	"src/Audio/AudioCommon.cpp"
 	)
 
 set (CARTRIDGE_SOURCES

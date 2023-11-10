@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "AudioCommon.hpp"
 #include "Constants.hpp"
 #include "BUS.hpp"
 #include "Ringbuffer.hpp"
@@ -24,18 +25,19 @@ namespace ggb
 		{0,1,1,1,1,1,1,0}
 	};
 
-	struct SquareWaveChannel
+	class SquareWaveChannel : public AudioChannel
 	{
+	public:
 		SquareWaveChannel(bool hasSweep, BUS* bus);
-		void setBus(BUS* bus);
-		bool write(uint16_t memory, uint8_t value);
-		std::optional<uint8_t> read(uint16_t address) const;
-		void step(int cyclesPassed);
-		AUDIO_FORMAT getSample() const;
+		void setBus(BUS* bus) override;
+		bool write(uint16_t memory, uint8_t value) override;
+		std::optional<uint8_t> read(uint16_t address) const override;
+		void step(int cyclesPassed) override;
+		AUDIO_FORMAT getSample() const override;
+		bool isChannelAddress(uint16_t address) const override;
+		void tickLengthShutdown() override;
 		void tickVolumeEnvelope();
-		void tickLengthShutdown();
 		void tickFrequencySweep();
-		bool isOn() const;
 		void serialization(Serialization* serialization);
 
 	private:
@@ -58,7 +60,6 @@ namespace ggb
 		int m_frequencySweepCounter = 0;
 		int m_frequencySweepPace = 0;
 		bool m_hasSweep = true;
-		bool m_isOn = false;
 		bool m_volumeChange = false;
 		uint8_t* m_sweep = nullptr;
 		uint8_t* m_lengthTimerAndDutyCycle = nullptr;

@@ -98,6 +98,28 @@ ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const
 	return sample * m_volume;
 }
 
+bool ggb::SquareWaveChannel::isChannelAddress(uint16_t address) const
+{
+	if (m_hasSweep)
+		return (address >= ggb::AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS && address <= ggb::AUDIO_CHANNEL_1_PERIOD_HIGH_CONTROL_ADDRESS);
+	else 
+		return (address >= ggb::AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS && address <= ggb::AUDIO_CHANNEL_2_PERIOD_HIGH_CONTROL_ADDRESS);
+}
+
+void ggb::SquareWaveChannel::tickLengthShutdown()
+{
+	if (!isLengthShutdownEnabled())
+		return;
+
+	m_lengthCounter++;
+
+	if (m_lengthCounter >= 64)
+	{
+		m_lengthCounter = 0;
+		m_isOn = false;
+	}
+}
+
 void ggb::SquareWaveChannel::tickVolumeEnvelope()
 {
 	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
@@ -128,20 +150,6 @@ void ggb::SquareWaveChannel::tickVolumeEnvelope()
 	{
 		m_volume = std::clamp(m_volume, 0, 15);
 		m_volumeChange = false;
-	}
-}
-
-void ggb::SquareWaveChannel::tickLengthShutdown()
-{
-	if (!isLengthShutdownEnabled())
-		return;
-
-	m_lengthCounter++;
-
-	if (m_lengthCounter >= 64)
-	{
-		m_lengthCounter = 0;
-		m_isOn = false;
 	}
 }
 
@@ -194,13 +202,9 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 	}
 }
 
-bool ggb::SquareWaveChannel::isOn() const
-{
-	return m_isOn;
-}
-
 void ggb::SquareWaveChannel::serialization(Serialization* serialization)
 {
+	AudioChannel::serialization(serialization);
 	serialization->read_write(m_dutyCyclePosition);
 	serialization->read_write(m_baseAddres);
 	serialization->read_write(m_periodCounter);
@@ -210,7 +214,6 @@ void ggb::SquareWaveChannel::serialization(Serialization* serialization)
 	serialization->read_write(m_frequencySweepCounter);
 	serialization->read_write(m_frequencySweepPace);
 	serialization->read_write(m_hasSweep);
-	serialization->read_write(m_isOn);
 	serialization->read_write(m_volumeChange);
 }
 

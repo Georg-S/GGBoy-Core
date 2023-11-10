@@ -5,20 +5,21 @@
 #include "BUS.hpp"
 #include "Constants.hpp"
 #include "Serialization.hpp"
+#include "AudioCommon.hpp"
 
 namespace ggb 
 {
-	class WaveChannel 
+	class WaveChannel : public AudioChannel
 	{
 	public:
 		WaveChannel(BUS* bus);
-		void setBus(BUS* bus);
-		void step(int cyclesPassed);
-		bool write(uint16_t address, uint8_t value);
-		std::optional<uint8_t> read(uint16_t address) const;
-		AUDIO_FORMAT getSample() const;
-		void tickLengthShutdown();
-		bool isOn() const;
+		void setBus(BUS* bus) override;
+		void step(int cyclesPassed) override;
+		bool write(uint16_t address, uint8_t value) override;
+		std::optional<uint8_t> read(uint16_t address) const override;
+		AUDIO_FORMAT getSample() const override;
+		bool isChannelAddress(uint16_t address) const override;
+		void tickLengthShutdown() override;
 		void serialization(Serialization* serialization);
 
 	private:
@@ -28,7 +29,6 @@ namespace ggb
 		uint8_t getInitialLengthCounter() const;
 		int getOutputLevel() const;
 
-		bool m_isOn = false;
 		int m_sampleIndex = 0;
 		int m_periodCounter = 0;
 		int m_lengthCounter = 0;

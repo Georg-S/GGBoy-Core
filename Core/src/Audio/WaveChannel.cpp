@@ -97,6 +97,12 @@ ggb::AUDIO_FORMAT ggb::WaveChannel::getSample() const
 	return sample >> rightShift;
 }
 
+bool ggb::WaveChannel::isChannelAddress(uint16_t address) const
+{
+	return (address >= ggb::AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS)
+		|| (address >= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_END_ADDRESS);
+}
+
 void ggb::WaveChannel::tickLengthShutdown()
 {
 	if (!isLengthShutdownEnabled())
@@ -110,14 +116,9 @@ void ggb::WaveChannel::tickLengthShutdown()
 	}
 }
 
-bool ggb::WaveChannel::isOn() const
-{
-	return m_isOn;
-}
-
 void ggb::WaveChannel::serialization(Serialization* serialization)
 {
-	serialization->read_write(m_isOn);
+	AudioChannel::serialization(serialization);
 	serialization->read_write(m_sampleIndex);
 	serialization->read_write(m_periodCounter);
 	serialization->read_write(m_lengthCounter);

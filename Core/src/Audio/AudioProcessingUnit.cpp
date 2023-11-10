@@ -2,35 +2,18 @@
 
 #include "Utility.hpp"
 
-static bool isChannel1Memory(uint16_t address)
-{
-	return (address >= ggb::AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS && address <= ggb::AUDIO_CHANNEL_1_PERIOD_HIGH_CONTROL_ADDRESS);
-}
-
-static bool isChannel2Memory(uint16_t address)
-{
-	return (address >= ggb::AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS && address <= ggb::AUDIO_CHANNEL_2_PERIOD_HIGH_CONTROL_ADDRESS);
-}
-
-static bool isChannel3Memory(uint16_t address)
-{
-	return (address >= ggb::AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS)
-		|| (address >= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS && address <= ggb::AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_END_ADDRESS);
-}
-
-static bool isChannel4Memory(uint16_t address)
-{
-	return (address >= ggb::AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS) && (address <= ggb::AUDIO_CHANNEL_4_CONTROL_ADDRESS);
-}
-
 ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 {
-	setBus(bus);
 	m_sampleBuffer = std::make_unique<SampleBuffer>();
 	m_channel1 = std::make_unique<SquareWaveChannel>(true, bus);
 	m_channel2 = std::make_unique<SquareWaveChannel>(false, bus);
 	m_channel3 = std::make_unique<WaveChannel>(bus);
 	m_channel4 = std::make_unique<NoiseChannel>(bus);
+	m_channels[0] = m_channel1.get();
+	m_channels[1] = m_channel2.get();
+	m_channels[2] = m_channel3.get();
+	m_channels[3] = m_channel4.get();
+	setBus(bus);
 }
 
 void ggb::AudioProcessingUnit::setBus(BUS* bus)
@@ -38,26 +21,17 @@ void ggb::AudioProcessingUnit::setBus(BUS* bus)
 	m_masterVolume = bus->getPointerIntoMemory(AUDIO_MASTER_VOLUME_VIN_PANNING_ADDRESS);
 	m_soundPanning = bus->getPointerIntoMemory(AUDIO_SOUND_PANNING_ADDRESS);
 	m_soundOn = bus->getPointerIntoMemory(AUDIO_MASTER_CONTROL_ADDRESS);
-	if (m_channel1)
-		m_channel1->setBus(bus);
-	if (m_channel2)
-		m_channel2->setBus(bus);
-	if (m_channel3)
-		m_channel3->setBus(bus);
-	if (m_channel4)
-		m_channel4->setBus(bus);
+	for (auto channel : m_channels)
+		channel->setBus(bus);
 }
 
 bool ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 {
-	if (isChannel1Memory(address))
-		return m_channel1->write(address, value);
-	if (isChannel2Memory(address))
-		return m_channel2->write(address, value);
-	if (isChannel3Memory(address))
-		return m_channel3->write(address, value);
-	if (isChannel4Memory(address))
-		return m_channel4->write(address, value);
+	for (auto channel : m_channels)
+	{
+		if (channel->isChannelAddress(address))
+			return channel->write(address, value);
+	}
 
 	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
@@ -69,24 +43,21 @@ bool ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 
 std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 {
-	uint8_t result = 0;
-	if (isChannel1Memory(address))
-		return m_channel1->read(address);
-	if (isChannel2Memory(address))
-		return m_channel2->read(address);
-	if (isChannel3Memory(address))
-		return m_channel3->read(address);
-	if (isChannel4Memory(address))
-		return m_channel4->read(address);
+	for (auto channel : m_channels)
+	{
+		if (channel->isChannelAddress(address))
+			return channel->read(address);
+	}
 
 	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
-		// TODO maybe all channels should use the audio master register directly when turning the channel on/off
+		uint8_t result = 0;
 		setBitToValue(result, 7, isBitSet(*m_soundOn, 7));
-		setBitToValue(result, 3, m_channel4->isOn());
-		setBitToValue(result, 2, m_channel3->isOn());
-		setBitToValue(result, 1, m_channel2->isOn());
-		setBitToValue(result, 0, m_channel1->isOn());
+
+		// TODO maybe all channels should use the audio master register directly when turning the channel on/off
+		for (int i = 0; i < std::size(m_channels); i++)
+			setBitToValue(result, i, m_channels[i]);
+
 		return result;
 	}
 
@@ -98,10 +69,9 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 	if (!isBitSet(*m_soundOn, 7))
 		return; // TODO reset state?
 
-	m_channel1->step(cyclesPassed);
-	m_channel2->step(cyclesPassed);
-	m_channel3->step(cyclesPassed);
-	m_channel4->step(cyclesPassed);
+	for (auto channel : m_channels)
+		channel->step(cyclesPassed);
+
 	frameSequencerStep(cyclesPassed);
 	sampleGeneratorStep(cyclesPassed);
 }
@@ -116,10 +86,8 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_frameSequencerStep);
 	serialization->read_write(m_frameFrequencerCounter);
 	serialization->read_write(m_cycleCounter);
-	m_channel1->serialization(serialization);
-	m_channel2->serialization(serialization);
-	m_channel3->serialization(serialization);
-	m_channel4->serialization(serialization);
+	for (auto channel : m_channels)
+		channel->serialization(serialization);
 }
 
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
@@ -188,10 +156,8 @@ void ggb::AudioProcessingUnit::frameSequencerStep(int cyclesPassed)
 
 void ggb::AudioProcessingUnit::tickChannelsLengthShutdown()
 {
-	m_channel1->tickLengthShutdown();
-	m_channel2->tickLengthShutdown();
-	m_channel3->tickLengthShutdown();
-	m_channel4->tickLengthShutdown();
+	for (auto channel : m_channels)
+		channel->tickLengthShutdown();
 }
 
 int ggb::AudioProcessingUnit::getMasterVolume() const

@@ -62,7 +62,7 @@ void ggb::NoiseChannel::step(int cyclesPassed)
 	}
 }
 
-ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample()
+ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample() const
 {
 	if (!m_isOn)
 		return 0;
@@ -71,6 +71,24 @@ ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample()
 		return 0;
 
 	return m_volume;
+}
+
+bool ggb::NoiseChannel::isChannelAddress(uint16_t address) const
+{
+	return (address >= ggb::AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS) && (address <= ggb::AUDIO_CHANNEL_4_CONTROL_ADDRESS);
+}
+
+void ggb::NoiseChannel::tickLengthShutdown()
+{
+	if (!isLengthShutdownEnabled())
+		return;
+
+	m_lengthCounter++;
+	if (m_lengthCounter >= 64)
+	{
+		m_lengthCounter = 0;
+		m_isOn = false;
+	}
 }
 
 void ggb::NoiseChannel::tickVolumeEnvelope()
@@ -106,30 +124,12 @@ void ggb::NoiseChannel::tickVolumeEnvelope()
 	}
 }
 
-void ggb::NoiseChannel::tickLengthShutdown()
-{
-	if (!isLengthShutdownEnabled())
-		return;
-
-	m_lengthCounter++;
-	if (m_lengthCounter >= 64)
-	{
-		m_lengthCounter = 0;
-		m_isOn = false;
-	}
-}
-
-bool ggb::NoiseChannel::isOn() const
-{
-	return m_isOn;
-}
-
 void ggb::NoiseChannel::serialization(Serialization* serialization)
 {
+	AudioChannel::serialization(serialization);
 	serialization->read_write(m_volumeSweepCounter);
 	serialization->read_write(m_volume);
 	serialization->read_write(m_lengthCounter);
-	serialization->read_write(m_isOn);
 	serialization->read_write(m_cycleCounter);
 	serialization->read_write(m_volumeChange);
 }

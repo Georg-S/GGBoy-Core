@@ -4,21 +4,22 @@
 #include "BUS.hpp"
 #include "Constants.hpp"
 #include "Serialization.hpp"
+#include "AudioCommon.hpp"
 
 namespace ggb
 {
-	class NoiseChannel
+	class NoiseChannel : public AudioChannel
 	{
 	public:
 		NoiseChannel(BUS* bus);
-		void setBus(BUS* bus);
-		bool write(uint16_t address, uint8_t value);
-		std::optional<uint8_t> read(uint16_t address) const;
-		void step(int cyclesPassed);
-		AUDIO_FORMAT getSample();
+		void setBus(BUS* bus) override;
+		bool write(uint16_t address, uint8_t value) override;
+		std::optional<uint8_t> read(uint16_t address) const override;
+		void step(int cyclesPassed) override;
+		AUDIO_FORMAT getSample() const override;
+		bool isChannelAddress(uint16_t address) const override;
+		void tickLengthShutdown() override;
 		void tickVolumeEnvelope();
-		void tickLengthShutdown();
-		bool isOn() const;
 		void serialization(Serialization* serialization);
 
 	private:
@@ -35,7 +36,6 @@ namespace ggb
 		int m_volumeSweepCounter = 0;
 		int m_volume = 0;
 		int m_lengthCounter = 0;
-		bool m_isOn = false;
 		int m_cycleCounter = 0;
 		bool m_volumeChange = false;
 		uint16_t m_lfsr = 0xFFFFu; // LFSR = Linear-feedback shift register

@@ -44,6 +44,7 @@ namespace ggb
 		uint8_t* m_soundOn = nullptr;
 		uint8_t* m_soundPanning = nullptr;
 		uint8_t* m_masterVolume = nullptr;
+		AudioChannel* m_channels[4] = {};
 		std::unique_ptr<SampleBuffer> m_sampleBuffer = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel1 = nullptr;
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
