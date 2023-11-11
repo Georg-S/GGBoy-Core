@@ -42,7 +42,10 @@ bool ggb::WaveChannel::write(uint16_t address, uint8_t value)
 	if (address == AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS)
 	{
 		*m_enabled = value;
-		m_isOn = isBitSet(*m_enabled, 7);
+		// Turning of the DAC disables the channel, but enabling the DAC doesn't seem to enable the channel again,
+		// therefore don't enable it here
+		if (!isBitSet(*m_enabled, 7))
+			m_isOn = false;
 		return true;
 	}
 
