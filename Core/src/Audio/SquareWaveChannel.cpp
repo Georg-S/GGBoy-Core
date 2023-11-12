@@ -57,7 +57,7 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 
 		return true;
 	}
-
+	// TODO implement turning the DAC off when writing to volume and envelope
 	return false;
 }
 

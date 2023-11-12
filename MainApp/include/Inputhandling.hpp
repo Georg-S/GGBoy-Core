@@ -20,16 +20,22 @@ public:
 	void update(long long nanoSecondsPassed);
 
 private:
+	void updateControllerInput();
+	void updateKeyboardInput();
 	bool controllerButtonPressed(SDL_GameControllerButton button);
-	bool m_aButtonDown = false;
-	bool m_bButtonDown = false;
-	bool m_startButtonDown = false;
-	bool m_selectButtonDown = false;
-	bool m_upButtonDown = false;
-	bool m_downButtonDown = false;
-	bool m_leftButtonDown = false;
-	bool m_rightButtonDown = false;
+	struct InputState
+	{
+		bool aButtonDown = false;
+		bool bButtonDown = false;
+		bool startButtonDown = false;
+		bool selectButtonDown = false;
+		bool upButtonDown = false;
+		bool downButtonDown = false;
+		bool leftButtonDown = false;
+		bool rightButtonDown = false;
+	};
 
+	InputState m_inputState = {};
 	const Uint8* m_keyStates = SDL_GetKeyboardState(nullptr);
 	SDL_GameController* m_controller = nullptr;
 };
