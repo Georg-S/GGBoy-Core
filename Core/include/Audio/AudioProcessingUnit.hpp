@@ -41,6 +41,7 @@ namespace ggb
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;
 		double m_cycleCounter = 0;
+		double m_sampleGeneratingRate = baseSampleGeneratingRate;
 		uint8_t* m_soundOn = nullptr;
 		uint8_t* m_soundPanning = nullptr;
 		uint8_t* m_masterVolume = nullptr;
@@ -50,5 +51,6 @@ namespace ggb
 		std::unique_ptr<SquareWaveChannel> m_channel2 = nullptr;
 		std::unique_ptr<WaveChannel> m_channel3 = nullptr;
 		std::unique_ptr<NoiseChannel> m_channel4 = nullptr;
+		static constexpr double baseSampleGeneratingRate = static_cast<double>(CPU_BASE_CLOCK) / static_cast<double>(STANDARD_SAMPLE_RATE);
 	};
 }

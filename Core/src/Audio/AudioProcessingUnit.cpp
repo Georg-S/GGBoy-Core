@@ -92,10 +92,7 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
-	constexpr double sampleGeneratingRate = static_cast<double>(CPU_BASE_CLOCK) / static_cast<double>(STANDARD_SAMPLE_RATE);
-	const auto masterVolume = getMasterVolume();
 	Frame outFrame = {};
-
 	auto soundPanning = [this, &outFrame](int leftBit, int rightBit, AUDIO_FORMAT channelSample)
 	{
 		if (isBitSet(*m_soundPanning, leftBit))
@@ -105,18 +102,27 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 	};
 
 	m_cycleCounter += cyclesPassed;
-	if (m_cycleCounter >= sampleGeneratingRate)
+	if (m_cycleCounter >= m_sampleGeneratingRate)
 	{
-		m_cycleCounter -= sampleGeneratingRate;
+		m_cycleCounter -= m_sampleGeneratingRate;
 		soundPanning(4, 0, m_channel1->getSample());
 		soundPanning(5, 1, m_channel2->getSample());
 		soundPanning(6, 2, m_channel3->getSample());
 		soundPanning(7, 3, m_channel4->getSample());
+
+		const auto masterVolume = getMasterVolume();
 		// Mixing is done by simply adding up the channel outputs
 		outFrame.leftSample = outFrame.leftSample * masterVolume;
 		outFrame.rightSample = outFrame.rightSample * masterVolume;
 
-		m_sampleBuffer->push(std::move(outFrame));
+		// Try to stay in the "middle" of the sampling buffer
+		constexpr double upperSampleGeneratingRate = baseSampleGeneratingRate * 1.0001;
+		constexpr double lowerSampleGeneratingRate = baseSampleGeneratingRate * 0.9999;
+		const auto remainingSize = m_sampleBuffer->push(std::move(outFrame));
+		if (remainingSize >= (m_sampleBuffer->size() / 2))
+			m_sampleGeneratingRate = lowerSampleGeneratingRate;
+		else
+			m_sampleGeneratingRate = upperSampleGeneratingRate;
 	}
 }
 
