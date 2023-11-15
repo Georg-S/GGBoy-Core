@@ -22,7 +22,7 @@ InputHandler::InputHandler()
 
 InputHandler::~InputHandler()
 {
-	// TODO close SDL gamecontroller
+	SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
 bool InputHandler::isAPressed()

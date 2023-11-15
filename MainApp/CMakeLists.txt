@@ -6,6 +6,7 @@ set(HEADERS
 	"include/Audio.hpp"
 	"include/Video.hpp"
 	"include/Inputhandling.hpp"
+	"include/EmulatorMain.hpp"
 	)
 	
 set(SOURCES 
@@ -13,6 +14,7 @@ set(SOURCES
 	"src/Video.cpp"
 	"src/Inputhandling.cpp"
 	"src/main.cpp"
+	"src/EmulatorMain.cpp"
 	)
 
 #source_group("" FILES ${miscFiles})
