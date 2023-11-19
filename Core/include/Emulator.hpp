@@ -27,10 +27,12 @@ namespace ggb
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setInput(std::unique_ptr<Input> input);
 		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
-		void saveEmulatorState(const std::filesystem::path& outputPath); 
+		void saveEmulatorState(const std::filesystem::path& outputPath);
 		void loadEmulatorState(const std::filesystem::path& filePath);
 		void saveRAM(const std::filesystem::path& outputPath);
 		void loadRAM(const std::filesystem::path& inputPath);
+		void setEmulationSpeed(double emulationSpeed); // 1.0 is the normal and default speed, the higher - the faster the emulator runs
+		double emulationSpeed() const;
 		SampleBuffer* getSampleBuffer();
 		Dimensions getTileDataDimensions() const;
 		Dimensions getGameWindowDimensions() const;

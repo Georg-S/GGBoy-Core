@@ -1,7 +1,5 @@
 #include "Audio.hpp"
 
-#include <SDL.h>
-
 static constexpr int CHANNEL_COUNT = 2;
 
 Audio::Audio(ggb::SampleBuffer* sampleBuffer)
@@ -12,6 +10,20 @@ Audio::Audio(ggb::SampleBuffer* sampleBuffer)
 Audio::~Audio()
 {
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+}
+
+void Audio::setAudioPlaying(bool value)
+{
+	if (value && !m_audioPlaying)
+		SDL_PauseAudioDevice(m_deviceID, 0);
+	else if (!value && m_audioPlaying)
+		SDL_PauseAudioDevice(m_deviceID, 1);
+	m_audioPlaying = value;
+}
+
+bool Audio::audioPlaying() const
+{
+	return m_audioPlaying;
 }
 
 bool Audio::initializeAudio(ggb::SampleBuffer* sampleBuffer)
@@ -34,15 +46,16 @@ bool Audio::initializeAudio(ggb::SampleBuffer* sampleBuffer)
 	audio_spec_want.callback = emulatorAudioCallback;
 	audio_spec_want.userdata = static_cast<void*>(&m_data);
 
-	SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(nullptr, 0, &audio_spec_want, &audio_spec, 0);
+	m_deviceID = SDL_OpenAudioDevice(nullptr, 0, &audio_spec_want, &audio_spec, 0);
 
-	if (!audio_device_id)
+	if (!m_deviceID)
 	{
 		fprintf(stderr, "Error creating SDL audio device. SDL_Error: %s\n", SDL_GetError());
 		SDL_Quit();
 		return false;
 	}
-	SDL_PauseAudioDevice(audio_device_id, 0);
+	SDL_PauseAudioDevice(m_deviceID, 0);
+	m_audioPlaying = true;
 
 	return true;
 }

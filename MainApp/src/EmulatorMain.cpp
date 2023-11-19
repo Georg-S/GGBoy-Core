@@ -27,7 +27,6 @@ int EmulatorApplication::run()
 {
 	long long lastTimeStamp = ggb::getCurrentTimeInNanoSeconds();
 	static constexpr long long INPUT_UPDATE_AFTER_NANOSECONDS = 10000000;
-	static constexpr int UPDATE_INPUT_TICKS = 10;
 	long long nanoSecondsCounter = 0;
 	int counter = 0;
 	while (true)
@@ -67,9 +66,22 @@ void EmulatorApplication::handleEmulatorKeyPresses()
 		m_emulator->loadEmulatorState("Savestate3.bin");
 	if (m_keyStates[SDL_SCANCODE_F8])
 		m_emulator->loadEmulatorState("Savestate4.bin");
-
 	if (m_keyStates[SDL_SCANCODE_ESCAPE])
 		m_emulator->saveRAM(RAM_BASE_PATH / cartridgePath.filename());
+	if (m_keyStates[SDL_SCANCODE_T])
+	{
+		if (m_emulator->emulationSpeed() == 1.0)
+		{
+			m_emulator->setEmulationSpeed(10.0);
+			m_audioHandler->setAudioPlaying(false);
+		}
+		else
+		{
+			m_emulator->setEmulationSpeed(1.0);
+			m_audioHandler->setAudioPlaying(true);
+		}
+	}
+
 }
 
 void EmulatorApplication::loadCartridge()

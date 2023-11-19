@@ -118,6 +118,16 @@ void ggb::Emulator::loadRAM(const std::filesystem::path& inputPath)
 	m_currentCartridge->loadRAM(inputPath);
 }
 
+void ggb::Emulator::setEmulationSpeed(double emulationSpeed)
+{
+	m_emulationSpeed = emulationSpeed;
+}
+
+double ggb::Emulator::emulationSpeed() const
+{
+	return m_emulationSpeed;
+}
+
 SampleBuffer* ggb::Emulator::getSampleBuffer()
 {
 	return m_audio->getSampleBuffer();
