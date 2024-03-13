@@ -85,7 +85,6 @@ std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController
 		return std::make_unique<MemoryBankControllerOne>();
 	case ggb::MBC1_RAM:
 		return std::make_unique<MemoryBankControllerOne>();
-		break;
 	case ggb::MBC1_RAM_BATTERY:
 		return std::make_unique<MemoryBankControllerOne>();
 	case ggb::MC5_RAM_BATTERY:

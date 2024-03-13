@@ -25,5 +25,13 @@ namespace ggb
 		int m_upperROMBank = 0;
 		int m_romBankNumber = 1;
 		int m_ramBankNumber = 0;
+
+		static constexpr AddressRange<0x0000, 0x3FFF>  isFirstROMBankAddress = {};
+		static constexpr AddressRange<0x0000, 0x1FFF>  isRAMEnableAddress = {};
+		static constexpr AddressRange<0x2000, 0x3FFF>  isLowerROMBankingAddress = {};
+		static constexpr AddressRange<0x4000, 0x5FFF>  isRAMorUpperROMBankingAddress = {};
+		static constexpr AddressRange<0x4000, 0x7FFF>  isROMBankAddress = {};
+		static constexpr AddressRange<0x6000, 0x7FFF>  isBankingModeAddress = {};
+		static constexpr AddressRange<0xA000, 0xBFFF>  isCartridgeRAM = {};
 	};
 }

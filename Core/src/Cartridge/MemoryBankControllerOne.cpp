@@ -4,41 +4,6 @@
 
 #include "Utility.hpp"
 
-static constexpr bool isFirstBankAddress(uint16_t address) 
-{
-	return address >= 0x0000 && address <= 0x3FFF;
-}
-
-static constexpr bool isRAMEnableAddress(uint16_t address)
-{
-	return address >= 0x0000 && address <= 0x1FFF;
-}
-
-static constexpr bool isROMBankingAddress(uint16_t address)
-{
-	return address >= 0x2000 && address <= 0x3FFF;
-}
-
-static constexpr bool isRAMorUpperROMBankingAddress(uint16_t address)
-{
-	return address >= 0x4000 && address <= 0x5FFF;
-}
-
-static constexpr bool isROMBankAddress(uint16_t address)
-{
-	return address >= 0x4000 && address <= 0x7FFF;
-}
-
-static constexpr bool isBankingModeAddress(uint16_t address)
-{
-	return address >= 0x6000 && address <= 0x7FFF;
-}
-
-constexpr static bool isCartridgeRAM(uint16_t address)
-{
-	return (address >= 0xA000 && address <= 0xBFFF);
-}
-
 static const std::string filePath = "RAM.bin";
 
 void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
@@ -49,7 +14,7 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 		return;
 	}
 
-	if (isROMBankingAddress(address))
+	if (isLowerROMBankingAddress(address))
 	{
 		m_lowerROMBank = value & 0x1F;
 		setROMBank();
@@ -88,7 +53,7 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 
 uint8_t ggb::MemoryBankControllerOne::read(uint16_t address) const
 {
-	if (isFirstBankAddress(address))
+	if (isFirstROMBankAddress(address))
 		return m_cartridgeData[address];
 
 	if (isROMBankAddress(address))

@@ -16,6 +16,7 @@ namespace ggb
 		MBC1_RAM_BATTERY = 0x03,
 		MBC2 = 0x05,
 		MBC2_BATTERY = 0x06,
+		MBC3_TIMER_RAM_BATTERY = 0x10,
 		MBC5 = 0x19,
 		MBC5_RAM = 0x1A,
 		MC5_RAM_BATTERY = 0x1B,
@@ -29,6 +30,16 @@ namespace ggb
 	int convertRawAddressToBankAddress(uint16_t address, int romBankNumber);
 	int convertRawAddressToRAMBankAddress(uint16_t address, int ramBankNumber);
 	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
+
+	template <uint16_t first, uint16_t last>
+	struct AddressRange 
+	{
+	public:
+		constexpr bool operator()(uint16_t address) const 
+		{
+			return (first <= address) && (address <= last);
+		}
+	};
 
 	class MemoryBankController // Often abbreviated as MBC
 	{
