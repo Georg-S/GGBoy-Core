@@ -11,6 +11,18 @@ namespace ggb
 	void swap(uint8_t& num);
 	long long getCurrentTimeInNanoSeconds();
 
+	/// Returns the lower 4 bits
+	constexpr uint8_t lowerNibble(uint8_t number) 
+	{
+		return number & 0xF;
+	}
+
+	/// Returns the upper 4 bits
+	constexpr uint8_t upperNibble(uint8_t number) 
+	{
+		return number & 0xF0;
+	}
+
 	template<typename T>
 	constexpr void setBit(T& number, int bit) 
 	{

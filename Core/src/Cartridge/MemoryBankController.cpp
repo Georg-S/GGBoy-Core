@@ -74,6 +74,12 @@ void ggb::MemoryBankController::serialization(Serialization* serialization)
 	serialization->read_write(m_RAMBankCount);
 }
 
+bool ggb::MemoryBankController::shouldEnableRAM(uint8_t value)
+{
+	// Enable if in the lower 4 bits are 0xA else disable
+	return lowerNibble(value) == 0xA;
+}
+
 void ggb::MemoryBankController::executeDMATransfer(const uint8_t* cartridgeData, uint8_t* oam, size_t sizeInBytes) const
 {
 	for (size_t i = 0; i < sizeInBytes; i++)

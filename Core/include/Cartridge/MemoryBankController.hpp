@@ -57,6 +57,7 @@ namespace ggb
 		void saveRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		virtual void initialize(std::vector<uint8_t>&& cartridgeData);
 		virtual void serialization(Serialization* serialization);
+		static bool shouldEnableRAM(uint8_t value);
 
 	protected:
 		void executeDMATransfer(const uint8_t* cartridgeData, uint8_t* oam, size_t sizeInBytes) const;

@@ -10,7 +10,7 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 {
 	if (isRAMEnableAddress(address)) 
 	{
-		m_ramEnabled = ((value & 0xF) == 0xA);
+		m_ramEnabled = shouldEnableRAM(value);
 		return;
 	}
 

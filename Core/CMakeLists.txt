@@ -15,6 +15,7 @@ set (CARTRIDGE_HEADERS
 	"include/Cartridge/MemoryBankController.hpp"
 	"include/Cartridge/MemoryBankControllerNone.hpp"
 	"include/Cartridge/MemoryBankControllerOne.hpp"
+	"include/Cartridge/MemoryBankControllerThree.hpp"
 	"include/Cartridge/MemoryBankControllerFive.hpp"
 	)
 
@@ -56,6 +57,7 @@ set (CARTRIDGE_SOURCES
 	"src/Cartridge/MemoryBankController.cpp"
 	"src/Cartridge/MemoryBankControllerNone.cpp"
 	"src/Cartridge/MemoryBankControllerOne.cpp"
+	"src/Cartridge/MemoryBankControllerThree.cpp"
 	"src/Cartridge/MemoryBankControllerFive.cpp"
 	)
 	

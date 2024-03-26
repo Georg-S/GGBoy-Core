@@ -7,6 +7,7 @@
 #include "Constants.hpp"
 #include "Cartridge/MemoryBankControllerNone.hpp"
 #include "Cartridge/MemoryBankControllerOne.hpp"
+#include "Cartridge/MemoryBankControllerThree.hpp"
 #include "Cartridge/MemoryBankControllerFive.hpp"
 
 using namespace ggb;
@@ -87,6 +88,8 @@ std::unique_ptr<MemoryBankController> ggb::Cartridge::createMemoryBankController
 		return std::make_unique<MemoryBankControllerOne>();
 	case ggb::MBC1_RAM_BATTERY:
 		return std::make_unique<MemoryBankControllerOne>();
+	case ggb::MBC3_TIMER_RAM_BATTERY:
+		return std::make_unique<MemoryBankControllerThree>();
 	case ggb::MC5_RAM_BATTERY:
 		return std::make_unique<MemoryBankControllerFive>();
 	default:
