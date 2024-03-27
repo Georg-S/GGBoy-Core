@@ -23,12 +23,16 @@ namespace ggb
 			uint8_t hours = 0;
 			uint8_t daysLower = 0;
 			uint8_t daysUpperAndFlags = 0;
+			bool isLatched = false;
+			uint8_t lastLatchValue = 0x1;
+
+			void serialize(Serialization* serialization);
 		};
 
 		bool m_ramAndTimerEnabled = false;
 		int m_romBank = 0;
 		int m_ramBank = 0;
-		uint8_t* m_selectedRegister = nullptr;
+		uint8_t* m_selectedRTCRegister = nullptr;
 		RealTimeClock m_rtc = {};
 
 		static constexpr AddressRange<0x0000, 0x3FFF>  isFirstROMBankAddress = {};

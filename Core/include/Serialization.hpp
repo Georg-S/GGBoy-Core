@@ -46,6 +46,8 @@ namespace ggb {
 		template<typename T>
 		void read_write(T& data)
 		{
+			static_assert(!std::is_pointer_v<T>, "Pointers are not allowed for serialization");
+
 			if (m_serialize)
 				serialize(m_serializeStream, data);
 			else 
