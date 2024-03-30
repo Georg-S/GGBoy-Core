@@ -29,7 +29,6 @@ bool Audio::audioPlaying() const
 bool Audio::initializeAudio(ggb::SampleBuffer* sampleBuffer)
 {
 	m_data.sampleBuffer = sampleBuffer;
-	uint64_t samples_played = 0;
 
 	if (SDL_Init(SDL_INIT_AUDIO) < 0)
 	{

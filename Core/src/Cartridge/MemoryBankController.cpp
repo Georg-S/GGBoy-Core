@@ -106,5 +106,5 @@ int ggb::convertRawAddressToRAMBankAddress(uint16_t address, int ramBankNumber)
 ggb::MBCTYPE ggb::getMBCType(const std::vector<uint8_t>& cartRidgeData)
 {
 	auto val = cartRidgeData[MBC_TYPE_ADDRESS];
-	return MBCTYPE(val);
+	return static_cast<MBCTYPE>(val);
 }

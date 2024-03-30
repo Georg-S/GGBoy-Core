@@ -143,7 +143,7 @@ bool ggb::PixelProcessingUnit::isEnabled() const
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 {
 	const uint8_t buf = *m_LCDStatus & 0b11;
-	return LCDMode(buf);
+	return static_cast<LCDMode>(buf);
 }
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
@@ -489,10 +489,10 @@ uint8_t ggb::PixelProcessingUnit::incrementScanline()
 static ColorPalette getPalette(uint8_t value)
 {
 	ColorPalette result = {};
-	result.m_color[0] = convertGBColorToRGB(GBColor(value & 0b11));
-	result.m_color[1] = convertGBColorToRGB(GBColor((value >> 2) & 0b11));
-	result.m_color[2] = convertGBColorToRGB(GBColor((value >> 4) & 0b11));
-	result.m_color[3] = convertGBColorToRGB(GBColor((value >> 6) & 0b11));
+	result.m_color[0] = convertGBColorToRGB(static_cast<GBColor>(value & 0b11));
+	result.m_color[1] = convertGBColorToRGB(static_cast<GBColor>((value >> 2) & 0b11));
+	result.m_color[2] = convertGBColorToRGB(static_cast<GBColor>((value >> 4) & 0b11));
+	result.m_color[3] = convertGBColorToRGB(static_cast<GBColor>((value >> 6) & 0b11));
 	return result;
 }
 

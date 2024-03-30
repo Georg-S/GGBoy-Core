@@ -31,11 +31,6 @@ static uint16_t readTwoBytes(CPUState* cpu, BUS* bus)
 	return combineUpperAndLower(upper, lower);
 }
 
-static void pushOnStack(CPUState* cpu, BUS* bus, uint8_t num)
-{
-	assert(!"NOT implemented");
-}
-
 static uint16_t popFromStack(CPUState* cpu, BUS* bus) 
 {
 	uint8_t lower = bus->read(cpu->StackPointer()++);

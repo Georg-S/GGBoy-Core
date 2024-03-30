@@ -102,7 +102,6 @@ void ggb::MemoryBankControllerFive::serialization(Serialization* serialization)
 
 void ggb::MemoryBankControllerFive::setROMBank()
 {
-	const int ramBankCount = getRAMBankCount();
 	const int count = getROMBankCount() - 1;
 	int bank = (m_upperROMBank << 8) | m_lowerROMBank;
 	bank &= count;

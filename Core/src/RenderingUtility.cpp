@@ -50,9 +50,9 @@ RGBA ggb::convertGBColorToRGB(GBColor color)
 
 void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec)
 {
-	constexpr uint16_t tileDataStartAddress = 0x8000;
-	uint16_t address = tileDataStartAddress + (tileIndex * TILE_MEMORY_SIZE);
 	// TODO adjust to GBC
+	//constexpr uint16_t tileDataStartAddress = 0x8000;
+	//uint16_t address = tileDataStartAddress + (tileIndex * TILE_MEMORY_SIZE);
 	//for (uint8_t y = 0; y < TILE_HEIGHT; y++) 
 	//{
 	//	getTileRowData(bus, address,y, bufVec);

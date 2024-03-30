@@ -40,7 +40,7 @@ namespace ggb
 			uint8_t m_daysUpperAndFlags = 0;
 			bool m_isLatched = false;
 			uint8_t m_lastLatchValue = 0x1;
-			Register m_selectedRegister;
+			Register m_selectedRegister = Register::NONE;
 		};
 
 		bool m_ramAndTimerEnabled = false;

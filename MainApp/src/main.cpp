@@ -1,6 +1,4 @@
-#pragma once
 #include "EmulatorMain.hpp"
-
 
 // Needed because of SDL
 #undef main

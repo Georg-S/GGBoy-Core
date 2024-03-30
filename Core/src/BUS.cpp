@@ -33,11 +33,6 @@ constexpr static bool isCartridgeRAM(uint16_t address)
 	return (address >= 0xA000 && address <= 0xBFFF);
 }
 
-constexpr static bool isObjectAttributeMemory(uint16_t address)
-{
-	return (address >= 0xFE00 && address <= 0xFE9F);
-}
-
 constexpr static bool isAudioMemory(uint16_t address)
 {
 	return (address >= 0xFF10 && address <= 0xFF3F);
@@ -91,7 +86,7 @@ constexpr static bool isUnimplementedGBCReadAddress(uint16_t address)
 
 void ggb::BUS::reset()
 {
-	m_memory = std::vector<uint8_t>(uint16_t(0xFFFF) + 1, 0);
+	m_memory = std::vector<uint8_t>(uint16_t{ 0xFFFF } + 1, 0);
 	for (auto& elem : m_vram)
 		std::fill(std::begin(elem), std::end(elem), 0);
 
@@ -334,8 +329,6 @@ void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint8_t* destination, 
 void ggb::BUS::gbcVRAMDirectMemoryAccess()
 {
 	constexpr uint16_t clearFourLowerBitsMask = ~0b1111;
-	constexpr uint16_t clearUpperAndLowerFourBitsMask = ~(0b1111 << 12) & clearFourLowerBitsMask;
-	const bool hblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
 	const auto sourceHigh = m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS];
 	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS];
 	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS];
