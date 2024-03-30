@@ -2,15 +2,85 @@
 
 #include <cassert>
 
+const uint8_t& ggb::MemoryBankControllerThree::RealTimeClock::getRegister(Register selectedRegister) const
+{
+	if (selectedRegister == Register::SECONDS)
+		return m_seconds;
+	if (selectedRegister == Register::MINUTES)
+		return m_minutes;
+	if (selectedRegister == Register::HOURS)
+		return m_hours;
+	if (selectedRegister == Register::DAYSLOWER)
+		return m_daysLower;
+	if (selectedRegister == Register::DAYSUPPERFLAGS)
+		return m_daysUpperAndFlags;
+	assert(!"Invalid Register");
+	return m_daysUpperAndFlags;
+}
+
+uint8_t& ggb::MemoryBankControllerThree::RealTimeClock::getRegister(Register selectedRegister)
+{
+	return const_cast<uint8_t&>(const_cast<const MemoryBankControllerThree::RealTimeClock*>(this)->getRegister(selectedRegister));
+}
+
+ggb::MemoryBankControllerThree::RealTimeClock::Register ggb::MemoryBankControllerThree::RealTimeClock::getRegisterFromValue(uint8_t value)
+{
+	if (value == 0x08)
+		return Register::SECONDS;
+	if (value == 0x09)
+		return Register::MINUTES;
+	if (value == 0x0A)
+		return Register::HOURS;
+	if (value == 0x0B)
+		return Register::DAYSLOWER;
+	if (value == 0x0C)
+		return Register::DAYSUPPERFLAGS;
+	return Register::NONE;
+}
+
 void ggb::MemoryBankControllerThree::RealTimeClock::serialize(Serialization* serialization)
 {
-	serialization->read_write(seconds);
-	serialization->read_write(minutes);
-	serialization->read_write(hours);
-	serialization->read_write(daysLower);
-	serialization->read_write(daysUpperAndFlags);
-	serialization->read_write(isLatched);
-	serialization->read_write(lastLatchValue);
+	serialization->read_write(m_seconds);
+	serialization->read_write(m_minutes);
+	serialization->read_write(m_hours);
+	serialization->read_write(m_daysLower);
+	serialization->read_write(m_daysUpperAndFlags);
+	serialization->read_write(m_isLatched);
+	serialization->read_write(m_lastLatchValue);
+	serialization->read_write(m_selectedRegister);
+}
+
+void ggb::MemoryBankControllerThree::RealTimeClock::selectRegister(uint8_t value)
+{
+	m_selectedRegister = getRegisterFromValue(value);
+}
+
+void ggb::MemoryBankControllerThree::RealTimeClock::writeToSelectedRegister(uint8_t value)
+{
+	auto& reg = getRegister(m_selectedRegister);
+	reg = value;
+}
+
+uint8_t ggb::MemoryBankControllerThree::RealTimeClock::getSelectedRegisterValue() const
+{
+	return getRegister(m_selectedRegister);
+}
+
+bool ggb::MemoryBankControllerThree::RealTimeClock::registerSelected() const
+{
+	return m_selectedRegister != Register::NONE;
+}
+
+void ggb::MemoryBankControllerThree::RealTimeClock::resetRegisterSelection()
+{
+	m_selectedRegister = Register::NONE;
+}
+
+void ggb::MemoryBankControllerThree::RealTimeClock::handleLatching(uint8_t value)
+{
+	if ((m_lastLatchValue == 0) && (value == 0x1))
+		m_isLatched = !m_isLatched;
+	m_lastLatchValue = value;
 }
 
 void ggb::MemoryBankControllerThree::write(uint16_t address, uint8_t value)
@@ -31,40 +101,30 @@ void ggb::MemoryBankControllerThree::write(uint16_t address, uint8_t value)
 	{
 		if ((0x0 <= value) && (value <= 0x3)) 
 		{
-			m_selectedRTCRegister = nullptr;
+			m_rtc.resetRegisterSelection();
 			m_ramBank = value;
 			return;
 		}
-
-		if (value == 0x08)
-			m_selectedRTCRegister = &m_rtc.seconds;
-		else if (value == 0x09)
-			m_selectedRTCRegister = &m_rtc.minutes;
-		else if (value == 0x0A)
-			m_selectedRTCRegister = &m_rtc.hours;
-		else if (value == 0x0B)
-			m_selectedRTCRegister = &m_rtc.daysLower;
-		else if (value == 0x0C)
-			m_selectedRTCRegister = &m_rtc.daysUpperAndFlags;
+		
+		m_rtc.selectRegister(value);
 		return;
 	}
 
 	if (isLatchClockDataAddress(address)) 
 	{
-		if ((m_rtc.lastLatchValue == 0) && (value == 0x1)) 
-			m_rtc.isLatched = !m_rtc.isLatched;
-		m_rtc.lastLatchValue = value;
+		m_rtc.handleLatching(value);
 		return;
 	}
 
 	assert(isCartridgeRAMOrRTCRegister(address));
-	if (m_selectedRTCRegister) 
+	if (m_rtc.registerSelected())
 	{
-		*m_selectedRTCRegister = value;
+		m_rtc.writeToSelectedRegister(value);
 		return;
 	}
 
-	m_ram[convertRawAddressToRAMBankAddress(address, m_ramBank)] = value;
+	auto ramAddr = convertRawAddressToRAMBankAddress(address, m_ramBank);
+	m_ram[ramAddr] = value;
 }
 
 uint8_t ggb::MemoryBankControllerThree::read(uint16_t address) const
@@ -75,15 +135,15 @@ uint8_t ggb::MemoryBankControllerThree::read(uint16_t address) const
 		return m_cartridgeData[convertRawAddressToBankAddress(address, m_romBank)];
 	if (!m_ramAndTimerEnabled)
 		return 0xFF;
-	if (m_selectedRTCRegister) 
+	if (m_rtc.registerSelected()) 
 	{
 		// TODO handle RTC reading correctly,
 		// time needs to increase maybe by using unix timestamps 
 		// and using the difference to a previous time stamp??
-		return *m_selectedRTCRegister; 
+		return m_rtc.getSelectedRegisterValue(); 
 	}
 
-	assert(isRAMBankingOrRTCRegisterSelectAddress(address));
+	assert(isCartridgeRAMOrRTCRegister(address));
 	return m_ram[convertRawAddressToRAMBankAddress(address, m_ramBank)];
 }
 
@@ -105,7 +165,7 @@ void ggb::MemoryBankControllerThree::executeDMATransfer(uint16_t startAddress, u
 
 void ggb::MemoryBankControllerThree::initialize(std::vector<uint8_t>&& cartridgeData)
 {
-	m_cartridgeData = std::move(cartridgeData);
+	MemoryBankController::initialize(std::move(cartridgeData));
 	if (m_hasRam)
 		m_ram = std::vector<uint8_t>(std::max(static_cast<int>(RAM_BANK_SIZE), getRAMSize()), 0);
 }
@@ -115,7 +175,6 @@ void ggb::MemoryBankControllerThree::serialization(Serialization* serialization)
 	serialization->read_write(m_ramAndTimerEnabled);
 	serialization->read_write(m_romBank);
 	serialization->read_write(m_ramBank);
-	serialization->read_write(m_selectedRTCRegister);
 	m_rtc.serialize(serialization);
 }
 

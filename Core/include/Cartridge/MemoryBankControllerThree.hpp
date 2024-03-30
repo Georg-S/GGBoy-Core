@@ -16,23 +16,36 @@ namespace ggb
 	private:
 		void setROMBank(uint8_t value);
 
-		struct RealTimeClock 
+		class RealTimeClock 
 		{
-			uint8_t seconds = 0;
-			uint8_t minutes = 0;
-			uint8_t hours = 0;
-			uint8_t daysLower = 0;
-			uint8_t daysUpperAndFlags = 0;
-			bool isLatched = false;
-			uint8_t lastLatchValue = 0x1;
-
+		public:
 			void serialize(Serialization* serialization);
+			void selectRegister(uint8_t value);
+			void writeToSelectedRegister(uint8_t value);
+			uint8_t getSelectedRegisterValue() const;
+			bool registerSelected() const;
+			void resetRegisterSelection();
+			void handleLatching(uint8_t value);
+
+		private:
+			enum class Register { NONE, SECONDS, MINUTES, HOURS, DAYSLOWER, DAYSUPPERFLAGS };
+			const uint8_t& getRegister(Register selectedRegister) const;
+			uint8_t& getRegister(Register selectedRegister);
+			Register getRegisterFromValue(uint8_t value);
+
+			uint8_t m_seconds = 0;
+			uint8_t m_minutes = 0;
+			uint8_t m_hours = 0;
+			uint8_t m_daysLower = 0;
+			uint8_t m_daysUpperAndFlags = 0;
+			bool m_isLatched = false;
+			uint8_t m_lastLatchValue = 0x1;
+			Register m_selectedRegister;
 		};
 
 		bool m_ramAndTimerEnabled = false;
 		int m_romBank = 0;
 		int m_ramBank = 0;
-		uint8_t* m_selectedRTCRegister = nullptr;
 		RealTimeClock m_rtc = {};
 
 		static constexpr AddressRange<0x0000, 0x3FFF>  isFirstROMBankAddress = {};
