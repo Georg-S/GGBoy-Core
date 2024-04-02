@@ -305,24 +305,20 @@ void ggb::BUS::serialization(Serialization* serialization)
 
 void ggb::BUS::directMemoryAccess(uint8_t value)
 {
-	auto oamStart = &m_memory[OAM_ADDRESS];
 	uint16_t sourceStartAddress = value << 8;
 	assert(sourceStartAddress <= 0xDF00);
-	directMemoryAccess(sourceStartAddress, oamStart, OAM_MEMORY_SIZE);
+	directMemoryAccess(sourceStartAddress, OAM_ADDRESS, OAM_MEMORY_SIZE);
 }
 
-void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint8_t* destination, size_t sizeInBytes)
+void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAddress, uint16_t sizeInBytes)
 {
-	if (isCartridgeROM(sourceAddress) || isCartridgeRAM(sourceAddress))
+	// This is not really the most performant way to perform the DMA but it is the most easy to understand and most robust
+	for (uint16_t i = 0; i < sizeInBytes; i++) 
 	{
-		m_cartridge->executeDMATransfer(sourceAddress, destination, sizeInBytes);
-		return;
-	}
-
-	for (size_t i = 0; i < sizeInBytes; i++)
-	{
-		// TODO does this get optimized by the compiler? if not should probably use memcpy
-		destination[i] = m_memory[sourceAddress + i];
+		uint16_t from = sourceAddress + i;
+		uint16_t to = destinationAddress + i;
+		auto value = read(from);
+		write(to, value);
 	}
 }
 
@@ -335,12 +331,11 @@ void ggb::BUS::gbcVRAMDirectMemoryAccess()
 	const auto destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS];
 	const uint16_t source = combineUpperAndLower(sourceHigh, sourceLow) & clearFourLowerBitsMask; // Four lower bits are ignored
 	const uint16_t destination = combineUpperAndLower(destinationHigh, destinationLow); // Four lower bits are ignored
-	const size_t length = static_cast<size_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
-	uint8_t* destinationPointer = &(m_vram[getActiveVRAMBank()][getVRAMIndexFromAddress(destination)]);
+	const uint16_t length = static_cast<uint16_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
 
 	assert((getVRAMIndexFromAddress(destination) + length - 1) < std::size(m_vram[0]));
 
-	directMemoryAccess(source, destinationPointer, length);
+	directMemoryAccess(source, destination, length);
 	m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] = 0xFF;
 }
 

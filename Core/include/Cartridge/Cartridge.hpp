@@ -13,7 +13,6 @@ namespace ggb
 		Cartridge() = default;
 		bool load(const std::filesystem::path& romPath);
 		void write(uint16_t address, uint8_t value);
-		void executeDMATransfer(uint16_t startAddress, uint8_t* out, size_t sizeInBytes);
 		uint8_t read(uint16_t address) const;
 		void serialize(Serialization* serialize);
 		void deserialize(Serialization* deserialize);

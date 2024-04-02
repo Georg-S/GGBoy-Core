@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <array>
 
 #include "Cartridge/Cartridge.hpp"
 #include "Serialization.hpp"
@@ -31,7 +32,7 @@ namespace ggb
 
 	private:
 		void directMemoryAccess(uint8_t value);
-		void directMemoryAccess(uint16_t sourceAddress, uint8_t* destination, size_t sizeInBytes);
+		void directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAddress, uint16_t sizeInBytes);
 		void gbcVRAMDirectMemoryAccess();
 		int getActiveVRAMBank() const;
 
@@ -40,7 +41,7 @@ namespace ggb
 		AudioProcessingUnit* m_audio = nullptr;
 		PixelProcessingUnit* m_ppu = nullptr;
 		std::vector<uint8_t> m_memory = std::vector<uint8_t>(0xFFFF + 1, 0);
-		uint8_t m_vram[GBC_VRAM_BANK_COUNT][VRAM_BANK_MEMORY_SIZE] = {};
+		std::array<std::array<uint8_t, VRAM_BANK_MEMORY_SIZE>, GBC_VRAM_BANK_COUNT> m_vram = {};
 	};
 	int getVRAMIndexFromAddress(uint16_t address);
 }

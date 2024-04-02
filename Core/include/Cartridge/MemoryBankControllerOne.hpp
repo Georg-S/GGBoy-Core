@@ -9,7 +9,6 @@ namespace ggb
 	public:
 		void write(uint16_t address, uint8_t value) override;
 		uint8_t read(uint16_t address) const override;
-		void executeDMATransfer(uint16_t startAddress, uint8_t* oam, size_t sizeInBytes) const override;
 		void initialize(std::vector<uint8_t>&& cartridgeData) override;
 		virtual void serialization(Serialization* serialization) override;
 

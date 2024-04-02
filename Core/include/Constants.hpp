@@ -100,7 +100,9 @@ namespace ggb
 	constexpr uint16_t TILE_MAP_HEIGHT = 32;
 	constexpr uint16_t TILE_MAP_SIZE = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
 	constexpr uint16_t VRAM_BANK_MEMORY_SIZE = 0x1FFF + 1;
+	constexpr uint16_t WRAM_BANK_MEMORY_SIZE = 0x1000;
 	constexpr uint16_t GBC_VRAM_BANK_COUNT = 2;
+	constexpr uint16_t GBC_WRAM_BANK_COUNT = 8;
 	constexpr uint16_t GBC_COLOR_RAM_MEMORY_SIZE = 64; // in bytes
 	constexpr uint16_t GBC_COLOR_PALETTE_COUNT = 8;
 	using AUDIO_FORMAT = int16_t;

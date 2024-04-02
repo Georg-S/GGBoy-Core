@@ -80,15 +80,6 @@ bool ggb::MemoryBankController::shouldEnableRAM(uint8_t value)
 	return lowerNibble(value) == 0xA;
 }
 
-void ggb::MemoryBankController::executeDMATransfer(const uint8_t* cartridgeData, uint8_t* oam, size_t sizeInBytes) const
-{
-	for (size_t i = 0; i < sizeInBytes; i++)
-	{
-		// TODO maybe use memcpy instead
-		oam[i] = cartridgeData[i];
-	}
-}
-
 int ggb::convertRawAddressToBankAddress(uint16_t address, int romBankNumber)
 {
 	auto startAddress = romBankNumber * ROM_BANK_SIZE;

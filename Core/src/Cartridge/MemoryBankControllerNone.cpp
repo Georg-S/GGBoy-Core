@@ -9,9 +9,3 @@ uint8_t ggb::MemoryBankControllerNone::read(uint16_t address) const
 {
 	return m_cartridgeData[address];
 }
-
-void ggb::MemoryBankControllerNone::executeDMATransfer(uint16_t startAddress, uint8_t* oam, size_t sizeInBytes) const
-{
-	auto convertedAddress = startAddress - 0x4000;
-	MemoryBankController::executeDMATransfer(&m_cartridgeData[convertedAddress], oam, sizeInBytes);
-}
