@@ -4,16 +4,28 @@
 namespace ggb
 {
 	// ADDRESSES
+	constexpr uint16_t CARTRIDGE_ROM_START_ADDRESS = 0x0000;
 	constexpr uint16_t VBLANK_INTERRUPT_ADDRESS = 0x40;
 	constexpr uint16_t LCD_STAT_INTERRUPT_ADDRESS = 0x48;
 	constexpr uint16_t TIMER_INTERRUPT_ADDRESS = 0x50;
 	constexpr uint16_t SERIAL_INTERRUPT_ADDRESS = 0x58;
 	constexpr uint16_t JOYPAD_INTERRUPT_ADDRESS = 0x60;
 	constexpr uint16_t MBC_TYPE_ADDRESS = 0x0147;
+	constexpr uint16_t CARTRIDGE_ROM_END_ADDRESS = 0x7FFF;
 	constexpr uint16_t VRAM_START_ADDRESS = 0x8000;
 	constexpr uint16_t TILE_MAP_1_ADDRESS = VRAM_START_ADDRESS;
 	constexpr uint16_t TILE_MAP_2_ADDRESS = 0x9000;
+	constexpr uint16_t VRAM_END_ADDRESS = 0x9FFF;
+	constexpr uint16_t CARTRIDGE_RAM_START_ADDRESS = 0xA000;
+	constexpr uint16_t CARTRIDGE_RAM_END_ADDRESS = 0xBFFF;
+	constexpr uint16_t WRAM_START_ADDRESS = 0xC000;
+	constexpr uint16_t WRAM_BANK1_START_ADDRESS = 0xD000;
+	constexpr uint16_t WRAM_END_ADDRESS = 0xDFFF;
+	constexpr uint16_t ECHO_RAM_START_ADDRESS = 0xE000;
+	constexpr uint16_t ECHO_RAM_END_ADDRESS = 0xFDFF;
 	constexpr uint16_t OAM_ADDRESS = 0xFE00; // OAM = object attribute memory
+	constexpr uint16_t UNUSED_MEMORY_START_ADDRESS = 0xFEA0;
+	constexpr uint16_t UNUSED_MEMORY_END_ADDRESS = 0xFEFF;
 	constexpr uint16_t INPUT_REGISTER_ADDRESS = 0xFF00;
 	constexpr uint16_t SERIAL_TRANSFER_ADDRESS = 0xFF01;
 	constexpr uint16_t SERIAL_TRANSFER_CONTROL_ADDRESS = 0xFF02;
@@ -23,6 +35,7 @@ namespace ggb
 	constexpr uint16_t TIMER_CONTROL_ADDRESS = 0xFF07;
 	constexpr uint16_t INTERRUPT_REQUEST_ADDRESS = 0xFF0F;
 	constexpr uint16_t AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS = 0xFF10;
+	constexpr uint16_t AUDIO_MEMORY_START_ADDRESS= AUDIO_CHANNEL_1_FREQUENCY_SWEEP_ADDRESS;
 	constexpr uint16_t AUDIO_CHANNEL_1_LENGTH_DUTY_ADDRESS = 0xFF11;
 	constexpr uint16_t AUDIO_CHANNEL_1_VOLUME_ENVELOPE_ADDRESS = 0xFF12;
 	constexpr uint16_t AUDIO_CHANNEL_1_PERIOD_LOW_ADDRESS = 0xFF13;
@@ -45,6 +58,7 @@ namespace ggb
 	constexpr uint16_t AUDIO_MASTER_CONTROL_ADDRESS = 0xFF26;
 	constexpr uint16_t AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS = 0xFF30;
 	constexpr uint16_t AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_END_ADDRESS = 0xFF3F;
+	constexpr uint16_t AUDIO_MEMORY_END_ADDRESS = AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_END_ADDRESS;
 	constexpr uint16_t LCD_CONTROL_REGISTER_ADDRESS = 0xFF40;
 	constexpr uint16_t LCD_STATUS_REGISTER_ADDRESS = 0xFF41;
 	constexpr uint16_t LCD_VIEWPORT_Y_ADDRESS = 0xFF42;
@@ -106,4 +120,22 @@ namespace ggb
 	constexpr uint16_t GBC_COLOR_RAM_MEMORY_SIZE = 64; // in bytes
 	constexpr uint16_t GBC_COLOR_PALETTE_COUNT = 8;
 	using AUDIO_FORMAT = int16_t;
+
+	template <uint16_t from, uint16_t to>
+	struct AddressRange
+	{
+		constexpr bool operator()(uint16_t address) const
+		{
+			static_assert(from <= to, "Invalid range: from is greater than to");
+			return (from <= address) && (address <= to);
+		}
+	};
+	// Memory map
+	constexpr AddressRange<CARTRIDGE_ROM_START_ADDRESS, CARTRIDGE_ROM_END_ADDRESS> isCartridgeROMAddress = {};
+	constexpr AddressRange<VRAM_START_ADDRESS, VRAM_END_ADDRESS> isVRAMAddress = {};
+	constexpr AddressRange<CARTRIDGE_RAM_START_ADDRESS, CARTRIDGE_RAM_END_ADDRESS> isCartridgeRAMAddress = {};
+	constexpr AddressRange<WRAM_START_ADDRESS, WRAM_END_ADDRESS> isWRAMAddress = {};
+	constexpr AddressRange<ECHO_RAM_START_ADDRESS, ECHO_RAM_END_ADDRESS> isEchoRAMAddress = {};
+	constexpr AddressRange<UNUSED_MEMORY_START_ADDRESS, UNUSED_MEMORY_END_ADDRESS> isUnusedMemoryAddress = {};
+	constexpr AddressRange<AUDIO_MEMORY_START_ADDRESS, AUDIO_MEMORY_END_ADDRESS> isAudioAddress = {};
 }

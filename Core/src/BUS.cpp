@@ -8,36 +8,6 @@
 #include "Timer.hpp"
 #include "PixelProcessingUnit.hpp"
 
-constexpr static bool isVRAMAddress(uint16_t address)
-{
-	return (address >= 0x8000 && address <= 0x9FFF);
-}
-
-constexpr static bool isCartridgeROM(uint16_t address)
-{
-	return (address >= 0x000 && address <= 0x7FFF);
-}
-
-constexpr static bool isEchoMemory(uint16_t address)
-{
-	return (address >= 0xE000 && address <= 0xFDFF);
-}
-
-constexpr static bool isUnusedMemory(uint16_t address)
-{
-	return (address >= 0xFEA0 && address <= 0xFEFF);
-}
-
-constexpr static bool isCartridgeRAM(uint16_t address)
-{
-	return (address >= 0xA000 && address <= 0xBFFF);
-}
-
-constexpr static bool isAudioMemory(uint16_t address)
-{
-	return (address >= 0xFF10 && address <= 0xFF3F);
-}
-
 constexpr static bool isUnimplementedGBCWriteAddress(uint16_t address)
 {
 	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
@@ -169,15 +139,15 @@ void ggb::BUS::setPixelProcessingUnit(PixelProcessingUnit* ppu)
 
 uint8_t ggb::BUS::read(uint16_t address) const
 {
-	if (isEchoMemory(address))
-		address -= 0x2000;
-	if (isCartridgeROM(address) || isCartridgeRAM(address))
+	if (isEchoRAMAddress(address))
+		address -= (ECHO_RAM_START_ADDRESS - WRAM_START_ADDRESS);
+	if (isCartridgeROMAddress(address) || isCartridgeRAMAddress(address))
 		return m_cartridge->read(address);
-	if (isUnusedMemory(address))
+	if (isUnusedMemoryAddress(address))
 		return 0xFF; // Reading from unused/invalid memory
 	if (address == START_DIRECT_MEMORY_ACCESS_ADDRESS)
 		return 0xFF; // DMA Transfer address is write only
-	if (isAudioMemory(address))
+	if (isAudioAddress(address))
 	{
 		auto value = m_audio->read(address);
 		if (value)
@@ -207,16 +177,16 @@ int8_t ggb::BUS::readSigned(uint16_t address) const
 
 void ggb::BUS::write(uint16_t address, uint8_t value)
 {
-	if (isEchoMemory(address))
+	if (isEchoRAMAddress(address))
 		address -= 0x2000;
 
-	if (isCartridgeROM(address))
+	if (isCartridgeROMAddress(address))
 	{
 		m_cartridge->write(address, value);
 		return;
 	}
 
-	if (isCartridgeRAM(address))
+	if (isCartridgeRAMAddress(address))
 	{
 		m_cartridge->write(address, value);
 		return;
@@ -234,12 +204,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 		return;
 	}
 
-	if (isAudioMemory(address))
+	if (isAudioAddress(address))
 	{
 		if (m_audio->write(address, value))
 			return;
 	}
-	else if (isUnusedMemory(address))
+	else if (isCartridgeRAMAddress(address))
 	{
 		return; // Writing to unused/invalid memory does nothing
 	}

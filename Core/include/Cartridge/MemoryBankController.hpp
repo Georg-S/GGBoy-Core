@@ -31,16 +31,6 @@ namespace ggb
 	int convertRawAddressToRAMBankAddress(uint16_t address, int ramBankNumber);
 	MBCTYPE getMBCType(const std::vector<uint8_t>& cartRidgeData);
 
-	template <uint16_t first, uint16_t last>
-	struct AddressRange 
-	{
-	public:
-		constexpr bool operator()(uint16_t address) const 
-		{
-			return (first <= address) && (address <= last);
-		}
-	};
-
 	class MemoryBankController // Often abbreviated as MBC
 	{
 	public:
