@@ -12,8 +12,6 @@ constexpr static bool isUnimplementedGBCWriteAddress(uint16_t address)
 {
 	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
 		return true;
-	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
-		return true;
 	if (address == ggb::GBC_OBJECT_PRIORITY_MODE_ADDRESS)
 		return true;
 	return false;
@@ -33,11 +31,7 @@ constexpr static bool isUnimplementedGBCReadAddress(uint16_t address)
 		return true;
 	if (address == ggb::GBC_VRAM_DMA_SOURCE_LOW_ADDRESS)
 		return true;
-	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
-		return true;
 	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
-		return true;
-	if (address == ggb::GBC_WRAM_BANKING_ADDRESS)
 		return true;
 	if (address == ggb::GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS)
 		return true;
@@ -113,7 +107,7 @@ void ggb::BUS::reset()
 	m_memory[GBC_BACKGROUND_PALETTE_DATA_ADDRESS] = 0xFF;
 	m_memory[GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS] = 0xFF;
 	m_memory[GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS] = 0xFF;
-	m_memory[GBC_WRAM_BANKING_ADDRESS] = 0xFF;
+	m_memory[GBC_WRAM_BANKING_ADDRESS] = 0xF8; // 0xFF for DMG
 	m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
 }
 
@@ -162,6 +156,8 @@ uint8_t ggb::BUS::read(uint16_t address) const
 	}
 	if (isVRAMAddress(address))
 		return m_vram[getActiveVRAMBank()][getVRAMIndexFromAddress(address)];
+	if (isWRAMAddress(address))
+		return m_wram[getWRAMBank(address)][getWRAMAddress(address)];
 
 	if (isUnimplementedGBCReadAddress(address))
 		assert(!"");
@@ -236,6 +232,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 		return;
 	}
 
+	if (isWRAMAddress(address))
+	{
+		m_wram[getWRAMBank(address)][getWRAMAddress(address)] = value;
+		return;
+	}
+
 	m_memory[address] = value;
 }
 
@@ -270,6 +272,7 @@ void ggb::BUS::resetTimerDivider()
 void ggb::BUS::serialization(Serialization* serialization)
 {
 	serialization->read_write(m_memory);
+	serialization->read_write(m_wram);
 	serialization->read_write(m_vram);
 }
 
@@ -314,6 +317,22 @@ int ggb::BUS::getActiveVRAMBank() const
 	if (isBitSet(m_memory[GBC_VRAM_BANKING_ADDRESS], 0))
 		return 1;
 	return 0;
+}
+
+int ggb::BUS::getWRAMBank(uint16_t address) const
+{
+	assert(isWRAMAddress(address));
+	if (address < WRAM_SWITCHABLE_BANK_START_ADDRESS)
+		return 0;
+	return std::max(m_memory[GBC_WRAM_BANKING_ADDRESS] & 0b111, 1);
+}
+
+uint16_t ggb::BUS::getWRAMAddress(uint16_t address) const
+{
+	assert(isWRAMAddress(address));
+	if (address >= WRAM_SWITCHABLE_BANK_START_ADDRESS)
+		return address - WRAM_SWITCHABLE_BANK_START_ADDRESS;
+	return address - WRAM_START_ADDRESS;
 }
 
 int ggb::getVRAMIndexFromAddress(uint16_t address)

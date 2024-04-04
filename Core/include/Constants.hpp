@@ -19,7 +19,7 @@ namespace ggb
 	constexpr uint16_t CARTRIDGE_RAM_START_ADDRESS = 0xA000;
 	constexpr uint16_t CARTRIDGE_RAM_END_ADDRESS = 0xBFFF;
 	constexpr uint16_t WRAM_START_ADDRESS = 0xC000;
-	constexpr uint16_t WRAM_BANK1_START_ADDRESS = 0xD000;
+	constexpr uint16_t WRAM_SWITCHABLE_BANK_START_ADDRESS = 0xD000;
 	constexpr uint16_t WRAM_END_ADDRESS = 0xDFFF;
 	constexpr uint16_t ECHO_RAM_START_ADDRESS = 0xE000;
 	constexpr uint16_t ECHO_RAM_END_ADDRESS = 0xFDFF;
