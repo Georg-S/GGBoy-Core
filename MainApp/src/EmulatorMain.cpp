@@ -3,6 +3,7 @@
 static std::filesystem::path cartridgePath = "";
 static const std::filesystem::path RAM_BASE_PATH = "RAM/";
 static const std::filesystem::path GAMES_BASE_PATH = "Roms/Games/";
+static const std::filesystem::path TESTROMS_BASE_PATH = "Roms/TestROMs/";
 static const std::filesystem::path SAVESTATES_BASE_PATH = "SAVESTATES/";
 
 EmulatorApplication::EmulatorApplication()
@@ -28,7 +29,6 @@ int EmulatorApplication::run()
 	long long lastTimeStamp = ggb::getCurrentTimeInNanoSeconds();
 	static constexpr long long INPUT_UPDATE_AFTER_NANOSECONDS = 10000000;
 	long long nanoSecondsCounter = 0;
-	int counter = 0;
 	while (true)
 	{
 		m_emulator->step();
@@ -86,28 +86,35 @@ void EmulatorApplication::handleEmulatorKeyPresses()
 
 void EmulatorApplication::loadCartridge()
 {
-	//cartridgePath = GAMES_BASE_PATH / "Dr.Mario.gb";
-	//cartridgePath = GAMES_BASE_PATH + "Tetris.gb";
-	//cartridgePath = "Roms/Games/Super_Mario_Land.gb";
-	//cartridgePath = GAMES_BASE_PATH / "Legend_of_Zelda_Link's_Awakening.gb";
-	cartridgePath = GAMES_BASE_PATH / "Pokemon_Gelbe_Edition.gb";
-	//cartridgePath = "Roms/TestROMs/interrupt_time.gb";
-	//cartridgePath = "Roms/TestROMs/instr_timing.gb";
-	//cartridgePath = "Roms/TestROMs/cpu_instrs.gb";
-	//cartridgePath = "Roms/TestROMs/01-special.gb";
-	//cartridgePath = "Roms/TestROMs/02-interrupts.gb";
-	//cartridgePath = "Roms/TestROMs/03-op sp,hl.gb";
-	//cartridgePath = "Roms/TestROMs/04-op r,imm.gb";
-	//cartridgePath = "Roms/TestROMs/05-op rp.gb";
-	//cartridgePath = "Roms/TestROMs/06-ld r,r.gb";
-	//cartridgePath = "Roms/TestROMs/07-jr,jp,call,ret,rst.gb";
-	//cartridgePath = "Roms/TestROMs/08-misc instrs.gb";
-	//cartridgePath = "Roms/TestROMs/09-op r,r.gb";
-	//cartridgePath = "Roms/TestROMs/10-bit ops.gb";
-	//cartridgePath = "Roms/TestROMs/11-op a,(hl).gb";
-	//cartridgePath = "Roms/TestROMs/halt_bug.gb";
-	//cartridgePath = "Roms/TestROMs/cgb_sound.gb";
-	//emulator.setTileDataRenderer(std::move(tileDataRenderer));
+	std::string fileName = "";
+
+	//fileName = "Dr.Mario.gb";
+	//fileName = "Tetris.gb";
+	//fileName = "Legend_of_Zelda_Link's_Awakening.gb";
+	//fileName = "Pokemon_Gelbe_Edition.gb";
+	fileName = "Pokemon_Kristall.gbc";
+	//fileName = "DragonBallZ.gbc";
+	//fileName = "Pokemon_Silberne_Edition.gbc";
+	//fileName = "Roms/TestROMs/interrupt_time.gb";
+	//fileName = "Roms/TestROMs/instr_timing.gb";
+	//fileName = "cpu_instrs.gb";
+	//fileName = "01-special.gb";
+	//fileName = "02-interrupts.gb";
+	//fileName = "03-op sp,hl.gb";
+	//fileName = "04-op r,imm.gb";
+	//fileName = "05-op rp.gb";
+	//fileName = "06-ld r,r.gb";
+	//fileName = "07-jr,jp,call,ret,rst.gb";
+	//fileName = "08-misc instrs.gb";
+	//fileName = "09-op r,r.gb";
+	//fileName = "10-bit ops.gb";
+	//fileName = "11-op a,(hl).gb";
+	//fileName = "halt_bug.gb";
+	//fileName = "cgb_sound.gb";
+
+	//m_emulator->setTileDataRenderer(std::move(m_tileDataRenderer));
+	cartridgePath = GAMES_BASE_PATH.string() + fileName;
+	//cartridgePath = TESTROMS_BASE_PATH.string() + fileName;
 	m_emulator->loadCartridge(cartridgePath);
-	m_emulator->loadRAM(RAM_BASE_PATH / cartridgePath.filename());
+	//m_emulator->loadRAM(RAM_BASE_PATH / cartridgePath.filename());
 }

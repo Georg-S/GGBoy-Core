@@ -38,12 +38,18 @@ void ggb::Emulator::run()
 
 void ggb::Emulator::step()
 {
+	bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();
+
 	int cycles = m_cpu->step();
-	m_ppu->step(cycles);
+	assert((cycles % 2) == 0);
+	int gbcDoubleSpeedAdjustedCycles = cycles;
+	if (doubleSpeed)
+		gbcDoubleSpeedAdjustedCycles = cycles / 2;
+	m_ppu->step(gbcDoubleSpeedAdjustedCycles);
 	m_timer->step(cycles);
 	m_input->update();
-	m_audio->step(cycles);
-	synchronizeEmulatorMasterClock(cycles);
+	m_audio->step(gbcDoubleSpeedAdjustedCycles);
+	synchronizeEmulatorMasterClock(gbcDoubleSpeedAdjustedCycles);
 }
 
 void ggb::Emulator::reset()

@@ -19,19 +19,13 @@ constexpr static bool isUnimplementedGBCWriteAddress(uint16_t address)
 
 constexpr static bool isUnimplementedGBCReadAddress(uint16_t address)
 {
-	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
-		return true;
 	if (address == ggb::GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS)
 		return true;
 	if (address == ggb::GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS)
 		return true;
-	if (address == ggb::GBC_VRAM_DMA_LENGTH_START_ADDRESS)
-		return true;
 	if (address == ggb::GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS)
 		return true;
 	if (address == ggb::GBC_VRAM_DMA_SOURCE_LOW_ADDRESS)
-		return true;
-	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
 		return true;
 	if (address == ggb::GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS)
 		return true;
@@ -52,6 +46,8 @@ void ggb::BUS::reset()
 {
 	m_memory = std::vector<uint8_t>(uint16_t{ 0xFFFF } + 1, 0);
 	for (auto& elem : m_vram)
+		std::fill(std::begin(elem), std::end(elem), 0);
+	for (auto& elem : m_wram)
 		std::fill(std::begin(elem), std::end(elem), 0);
 
 	m_memory[INPUT_REGISTER_ADDRESS] = 0xCF;
@@ -95,7 +91,7 @@ void ggb::BUS::reset()
 	m_memory[OBJECT_PALETTE_1_ADDRESS] = 0x00; // Value is actually random
 	m_memory[LCD_WINDOW_Y_ADDRESS] = 0x00;
 	m_memory[LCD_WINDOW_X_ADDRESS] = 0x00;
-	m_memory[GBC_SPEED_SWITCH_ADDRESS] = 0xFF;
+	m_memory[GBC_SPEED_SWITCH_ADDRESS] = 0x7E;
 	m_memory[GBC_VRAM_BANKING_ADDRESS] = 0xFF;
 	m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS] = 0xFF;
 	m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS] = 0xFF;
@@ -205,7 +201,7 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 		if (m_audio->write(address, value))
 			return;
 	}
-	else if (isCartridgeRAMAddress(address))
+	else if (isUnusedMemoryAddress(address))
 	{
 		return; // Writing to unused/invalid memory does nothing
 	}
@@ -217,6 +213,12 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 		return;
 	}
 
+	if (address == GBC_SPEED_SWITCH_ADDRESS) 
+	{
+		if (isBitSet(value, 0))
+			toggleGBCDoubleSpeed();
+		return;
+	}
 	if (isUnimplementedGBCWriteAddress(address))
 		assert(!"Not implemented");
 
@@ -276,6 +278,18 @@ void ggb::BUS::serialization(Serialization* serialization)
 	serialization->read_write(m_vram);
 }
 
+bool ggb::BUS::isGBCDoubleSpeedOn() const
+{
+	return isBitSet(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7);
+}
+
+void ggb::BUS::toggleGBCDoubleSpeed()
+{
+	setBitToValue(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7, !isGBCDoubleSpeedOn());
+	m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
+	m_memory[INPUT_REGISTER_ADDRESS] = 0x30;
+}
+
 void ggb::BUS::directMemoryAccess(uint8_t value)
 {
 	uint16_t sourceStartAddress = value << 8;
@@ -295,16 +309,22 @@ void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAd
 	}
 }
 
+// The timings of gbcDMA are currently not correct (maybe correct timings are mandatory for some games?)
 void ggb::BUS::gbcVRAMDirectMemoryAccess()
 {
-	constexpr uint16_t clearFourLowerBitsMask = ~0b1111;
+	constexpr uint8_t clearLowerFourBitsMask = ~0b1111;
+	constexpr uint8_t clearUpperThreeBits = ~0b11100000;
 	const auto sourceHigh = m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS];
-	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS];
-	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS];
-	const auto destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS];
-	const uint16_t source = combineUpperAndLower(sourceHigh, sourceLow) & clearFourLowerBitsMask; // Four lower bits are ignored
-	const uint16_t destination = combineUpperAndLower(destinationHigh, destinationLow); // Four lower bits are ignored
+	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS] & clearLowerFourBitsMask;
+	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS] & clearUpperThreeBits;
+	const auto destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS] & clearLowerFourBitsMask;
+	const uint16_t source = combineUpperAndLower(sourceHigh, sourceLow); // Four lower bits are ignored
+	const uint16_t destination = (VRAM_START_ADDRESS + combineUpperAndLower(destinationHigh, destinationLow)); // Four lower bits are ignored
 	const uint16_t length = static_cast<uint16_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
+
+	bool isHblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
+	if (isHblankDMA)
+		int b = 3; 
 
 	assert((getVRAMIndexFromAddress(destination) + length - 1) < std::size(m_vram[0]));
 
@@ -330,15 +350,15 @@ int ggb::BUS::getWRAMBank(uint16_t address) const
 uint16_t ggb::BUS::getWRAMAddress(uint16_t address) const
 {
 	assert(isWRAMAddress(address));
-	if (address >= WRAM_SWITCHABLE_BANK_START_ADDRESS)
-		return address - WRAM_SWITCHABLE_BANK_START_ADDRESS;
-	return address - WRAM_START_ADDRESS;
+	if (address < WRAM_SWITCHABLE_BANK_START_ADDRESS)
+		return address - WRAM_START_ADDRESS;
+	return address - WRAM_SWITCHABLE_BANK_START_ADDRESS;
 }
 
 int ggb::getVRAMIndexFromAddress(uint16_t address)
 {
-	auto result = address - VRAM_START_ADDRESS;
 	assert(isVRAMAddress(address));
+	auto result = address - VRAM_START_ADDRESS;
 	assert(result < VRAM_BANK_MEMORY_SIZE);
 	return result;
 }

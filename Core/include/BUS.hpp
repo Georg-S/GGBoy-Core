@@ -30,8 +30,10 @@ namespace ggb
 		void requestInterrupt(int interrupt);
 		void resetTimerDivider();
 		void serialization(Serialization* serialization); // Used for both serialize / deserialize
+		bool isGBCDoubleSpeedOn() const;
 
 	private:
+		void toggleGBCDoubleSpeed();
 		void directMemoryAccess(uint8_t value);
 		void directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAddress, uint16_t sizeInBytes);
 		void gbcVRAMDirectMemoryAccess();
