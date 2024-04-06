@@ -230,18 +230,21 @@ void ggb::PixelProcessingUnit::renderGame()
 
 void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 {
-	if (!isBitSet(*m_LCDControl, 0))
-		return;
-
 	if (m_GBCMode) 
 	{
 		m_GBCBackgroundColorRAM.updateColorPalettes();
 		m_GBCObjectColorRAM.updateColorPalettes();
 	}
+
+	if (m_GBCMode || isBitSet(*m_LCDControl, 0)) 
+	{
+		// Not quite correct, instead of turning the background and window off, it should be white
+		writeCurrentBackgroundLineIntoFrameBuffer();
+		if (isBitSet(*m_LCDControl, 5))
+			writeCurrentWindowLineIntoBuffer();
+	}
+
 	updateCurrentScanlineObjects();
-	writeCurrentBackgroundLineIntoFrameBuffer();
-	if (isBitSet(*m_LCDControl, 5))
-		writeCurrentWindowLineIntoBuffer();
 	if (isBitSet(*m_LCDControl, 1))
 		writeCurrentObjectLineIntoBuffer();
 
@@ -328,6 +331,7 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 {
 	auto& screenXPos = inOutData->screenXPos;
 	auto& tileColumn = inOutData->tileColumn;
+	// TODO implement X-flip / Y-flip and priority
 	const auto GBCTileData = getBackgroundTileAttributes(inOutData->tileIndexAddress);
 	const auto colorPaletteIndex = GBCTileData & 0b111;
 	const auto& GBCPalette = GBCGetBackgroundAndWindowColorPalette(colorPaletteIndex);
