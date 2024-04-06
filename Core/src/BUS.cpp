@@ -174,10 +174,9 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 		if (m_audio->write(address, value))
 			return;
 	}
-	else if (isUnusedMemoryAddress(address))
-	{
+
+	if (isUnusedMemoryAddress(address))
 		return; // Writing to unused/invalid memory does nothing
-	}
 
 	if (address == GBC_VRAM_DMA_LENGTH_START_ADDRESS)
 	{
@@ -247,6 +246,22 @@ void ggb::BUS::serialization(Serialization* serialization)
 	serialization->read_write(m_memory);
 	serialization->read_write(m_wram);
 	serialization->read_write(m_vram);
+	serialization->read_write(m_hBlankDMA);
+}
+
+void ggb::BUS::handleHBlank()
+{
+	if ((m_hBlankDMA.length == 0) || !isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7))
+		return;
+
+	const auto source = (m_hBlankDMA.source) + m_hBlankDMA.index * 0x10;
+	const auto destination = (m_hBlankDMA.destination) + m_hBlankDMA.index * 0x10;
+	directMemoryAccess(source, destination, 0x10);
+	m_hBlankDMA.index++;
+	m_hBlankDMA.length -= 0x10;
+
+	m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] &= 0b10000000;
+	m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] |= ((m_hBlankDMA.length / 0x10) - 1);
 }
 
 bool ggb::BUS::isGBCDoubleSpeedOn() const
@@ -289,17 +304,29 @@ void ggb::BUS::gbcVRAMDirectMemoryAccess()
 	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS] & clearLowerFourBitsMask;
 	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS] & clearUpperThreeBits;
 	const auto destinationLow = m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS] & clearLowerFourBitsMask;
-	const uint16_t source = combineUpperAndLower(sourceHigh, sourceLow); // Four lower bits are ignored
-	const uint16_t destination = (VRAM_START_ADDRESS + combineUpperAndLower(destinationHigh, destinationLow)); // Four lower bits are ignored
-	const uint16_t length = static_cast<uint16_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
+	HBlankDMA dma = {};
+	dma.source = combineUpperAndLower(sourceHigh, sourceLow); // Four lower bits are ignored
+	dma.destination = (VRAM_START_ADDRESS + combineUpperAndLower(destinationHigh, destinationLow)); // Four lower bits are ignored
+	dma.length = static_cast<uint16_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
 
-	bool isHblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
-	if (isHblankDMA)
-		return; // TODO correctly implement hblank DMA
+	const bool isHblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
+	if (isHblankDMA) 
+	{
+		m_hBlankDMA = std::move(dma);
+		return;
+	}
 
-	assert((getVRAMIndexFromAddress(destination) + length - 1) < std::size(m_vram[0]));
+	if (m_hBlankDMA.length != 0) 
+	{
+		// Not sure if this is correct or a non HBlank DMA should be made in this case
+		// For now -> terminate HBlank DMA and don't make a general purpose DMA
+		m_hBlankDMA = {}; 
+		return;
+	}
 
-	directMemoryAccess(source, destination, length);
+	assert((getVRAMIndexFromAddress(dma.destination) + dma.length - 1) < std::size(m_vram[0]));
+
+	directMemoryAccess(dma.source, dma.destination, dma.length);
 	m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] = 0xFF;
 }
 

@@ -12,6 +12,14 @@ namespace ggb
 	class AudioProcessingUnit;
 	class PixelProcessingUnit;
 
+	struct HBlankDMA
+	{
+		uint16_t source = 0;
+		uint16_t destination = 0;
+		uint16_t length = 0;
+		uint16_t index = 0;
+	};
+
 	class BUS
 	{
 	public:
@@ -30,6 +38,7 @@ namespace ggb
 		void requestInterrupt(int interrupt);
 		void resetTimerDivider();
 		void serialization(Serialization* serialization); // Used for both serialize / deserialize
+		void handleHBlank();
 		bool isGBCDoubleSpeedOn() const;
 
 	private:
@@ -48,6 +57,7 @@ namespace ggb
 		std::vector<uint8_t> m_memory = std::vector<uint8_t>(0xFFFF + 1, 0);
 		std::array<std::array<uint8_t, WRAM_BANK_MEMORY_SIZE>, GBC_WRAM_BANK_COUNT> m_wram = {};
 		std::array<std::array<uint8_t, VRAM_BANK_MEMORY_SIZE>, GBC_VRAM_BANK_COUNT> m_vram = {};
+		HBlankDMA m_hBlankDMA = {};
 	};
 	int getVRAMIndexFromAddress(uint16_t address);
 }

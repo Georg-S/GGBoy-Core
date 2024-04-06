@@ -101,6 +101,7 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		setLCDMode(LCDMode::HBLank);
 		handleModeTransitionInterrupt(LCDInterrupt::HBlank);
 		writeCurrentScanLineIntoFrameBuffer();
+		m_bus->handleHBlank();
 		return;
 	}
 	case ggb::LCDMode::HBLank:
