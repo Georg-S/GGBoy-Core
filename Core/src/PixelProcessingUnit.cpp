@@ -48,10 +48,11 @@ void ggb::PixelProcessingUnit::setBus(BUS* bus)
 	m_GBCObjectColorRAM.setBus(m_bus);
 	m_VRAMBank0Ptr = m_bus->getVRAMStartPointer(0);
 	m_VRAMBank1Ptr = m_bus->getVRAMStartPointer(1);
+	m_GBCObjectPriorityMode = m_bus->getPointerIntoMemory(GBC_OBJECT_PRIORITY_MODE_ADDRESS);
 
 	static constexpr uint8_t objectSize = 4; // bytes
 	m_objects.resize(OBJECT_COUNT);
-	for (int i = 0; i < OBJECT_COUNT; i++)
+	for (auto i = 0; i < OBJECT_COUNT; i++)
 	{
 		uint16_t objectAddress = OAM_ADDRESS + (i * objectSize);
 		m_objects[i].yPosition = m_bus->getPointerIntoMemory(objectAddress);
@@ -231,9 +232,11 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 	if (!isBitSet(*m_LCDControl, 0))
 		return;
 
-	// TODO only update palettes when in GBC mode
-	m_GBCBackgroundColorRAM.updateColorPalettes();
-	m_GBCObjectColorRAM.updateColorPalettes();
+	if (m_GBCMode) 
+	{
+		m_GBCBackgroundColorRAM.updateColorPalettes();
+		m_GBCObjectColorRAM.updateColorPalettes();
+	}
 	updateCurrentScanlineObjects();
 	writeCurrentBackgroundLineIntoFrameBuffer();
 	if (isBitSet(*m_LCDControl, 5))
@@ -276,13 +279,21 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 			break;
 	}
 
-	// If obj1.x == obj2.x the obj which is first in memory should overlap the one coming after it -> therefore use stable_sort
-	std::stable_sort(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end(), [](const Object& lhs, const Object& rhs)
-		{
-			return *lhs.xPosition < *rhs.xPosition;
-		});
-	// Use reverse order, so that a obj with lower x coordinate
-	// will overlap the one with a higher x coordinate
+	if (!m_GBCMode || isBitSet(*m_GBCObjectPriorityMode, 0)) 
+	{
+		// Order objects by x-coordinate
+		// If obj1.x == obj2.x the obj which is first in memory should overlap the one coming after it -> therefore use stable_sort
+		std::stable_sort(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end(), [](const Object& lhs, const Object& rhs)
+			{
+				return *lhs.xPosition < *rhs.xPosition;
+			});
+	}
+	else 
+	{
+		// Objects are already oredered by appearance in OAM, so nothing to do here
+	}
+	// Use reverse order, so that we can just iterate over the objects 
+	// and paint one after another and the overlapping is handled correctly
 	std::reverse(m_currentScanlineObjects.begin(), m_currentScanlineObjects.end());
 }
 

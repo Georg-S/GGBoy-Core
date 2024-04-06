@@ -158,5 +158,6 @@ namespace ggb
 		uint8_t* m_windowYPos = nullptr;
 		uint8_t* m_VRAMBank0Ptr = nullptr;
 		uint8_t* m_VRAMBank1Ptr = nullptr;
+		uint8_t* m_GBCObjectPriorityMode = nullptr;
 	};
 }

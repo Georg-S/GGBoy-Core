@@ -8,40 +8,6 @@
 #include "Timer.hpp"
 #include "PixelProcessingUnit.hpp"
 
-constexpr static bool isUnimplementedGBCWriteAddress(uint16_t address)
-{
-	if (address == ggb::GBC_SPEED_SWITCH_ADDRESS)
-		return true;
-	if (address == ggb::GBC_OBJECT_PRIORITY_MODE_ADDRESS)
-		return true;
-	return false;
-}
-
-constexpr static bool isUnimplementedGBCReadAddress(uint16_t address)
-{
-	if (address == ggb::GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS)
-		return true;
-	if (address == ggb::GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS)
-		return true;
-	if (address == ggb::GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS)
-		return true;
-	if (address == ggb::GBC_VRAM_DMA_SOURCE_LOW_ADDRESS)
-		return true;
-	if (address == ggb::GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS)
-		return true;
-	if (address == ggb::GBC_BACKGROUND_PALETTE_DATA_ADDRESS)
-		return true;
-	if (address == ggb::GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS)
-		return true;
-	if (address == ggb::GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS)
-		return true;
-	if (address == ggb::GBC_OBJECT_PRIORITY_MODE_ADDRESS)
-		return true;
-
-	return false;
-}
-
-
 void ggb::BUS::reset()
 {
 	m_memory = std::vector<uint8_t>(uint16_t{ 0xFFFF } + 1, 0);
@@ -92,7 +58,7 @@ void ggb::BUS::reset()
 	m_memory[LCD_WINDOW_Y_ADDRESS] = 0x00;
 	m_memory[LCD_WINDOW_X_ADDRESS] = 0x00;
 	m_memory[GBC_SPEED_SWITCH_ADDRESS] = 0x7E;
-	m_memory[GBC_VRAM_BANKING_ADDRESS] = 0xFF;
+	m_memory[GBC_VRAM_BANKING_ADDRESS] = 0xFF; // TODO for DMG mode VRAM bank must always be zero
 	m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS] = 0xFF;
 	m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS] = 0xFF;
 	m_memory[GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS] = 0xFF;
@@ -154,10 +120,17 @@ uint8_t ggb::BUS::read(uint16_t address) const
 		return m_vram[getActiveVRAMBank()][getVRAMIndexFromAddress(address)];
 	if (isWRAMAddress(address))
 		return m_wram[getWRAMBank(address)][getWRAMAddress(address)];
+	if (address == GBC_BACKGROUND_PALETTE_DATA_ADDRESS || address == GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS)
+		return m_ppu->GBCReadColorRAM(address);
 
-	if (isUnimplementedGBCReadAddress(address))
-		assert(!"");
-
+	if (address == GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS)
+		return 0xFF;
+	if (address == ggb::GBC_VRAM_DMA_DESTINATION_LOW_ADDRESS)
+		return 0xFF;
+	if (address == ggb::GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS)
+		return 0xFF;
+	if (address == ggb::GBC_VRAM_DMA_SOURCE_LOW_ADDRESS)
+		return 0xFF;
 	return m_memory[address];
 }
 
@@ -219,8 +192,6 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 			toggleGBCDoubleSpeed();
 		return;
 	}
-	if (isUnimplementedGBCWriteAddress(address))
-		assert(!"Not implemented");
 
 	if (address == GBC_BACKGROUND_PALETTE_DATA_ADDRESS || address == GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS) 
 	{
@@ -324,7 +295,7 @@ void ggb::BUS::gbcVRAMDirectMemoryAccess()
 
 	bool isHblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
 	if (isHblankDMA)
-		int b = 3; 
+		return; // TODO correctly implement hblank DMA
 
 	assert((getVRAMIndexFromAddress(destination) + length - 1) < std::size(m_vram[0]));
 
