@@ -33,6 +33,15 @@ bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 		return true;
 	}
 
+	// TODO refactor volume handling into class
+	if (address == AUDIO_CHANNEL_4_VOLUME_ENVELOPE_ADDRESS)
+	{
+		*m_volumeAndEnvelope = value;
+		if ((*m_volumeAndEnvelope & 0b11111000) == 0)
+			m_isOn = false;
+		return true;
+	}
+
 	return false;
 }
 
@@ -93,12 +102,6 @@ void ggb::NoiseChannel::tickLengthShutdown()
 
 void ggb::NoiseChannel::tickVolumeEnvelope()
 {
-	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
-	{
-		m_isOn = false;
-		return;
-	}
-
 	m_volumeSweepCounter++;
 	const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
 	const auto m_sweepPace = *m_volumeAndEnvelope & 0b111;

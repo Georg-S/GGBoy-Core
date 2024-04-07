@@ -91,8 +91,9 @@ void EmulatorApplication::loadCartridge()
 	//fileName = "Dr.Mario.gb";
 	//fileName = "Tetris.gb";
 	//fileName = "Legend_of_Zelda_Link's_Awakening.gb";
-	//fileName = "Pokemon_Gelbe_Edition.gb";
-	fileName = "Pokemon_Kristall.gbc";
+	//fileName = "Legend_of_Zelda_Link's_Awakening.gbc";
+	fileName = "Pokemon_Gelbe_Edition.gb";
+	//fileName = "Pokemon_Kristall.gbc";
 	//fileName = "DragonBallZ.gbc";
 	//fileName = "Pokemon_Silberne_Edition.gbc";
 	//fileName = "Roms/TestROMs/interrupt_time.gb";
@@ -111,6 +112,8 @@ void EmulatorApplication::loadCartridge()
 	//fileName = "11-op a,(hl).gb";
 	//fileName = "halt_bug.gb";
 	//fileName = "cgb_sound.gb";
+	//fileName = "bg_oam_priority.gbc";
+	//fileName = "oam_internal_priority.gbc";
 
 	//m_emulator->setTileDataRenderer(std::move(m_tileDataRenderer));
 	cartridgePath = GAMES_BASE_PATH.string() + fileName;

@@ -57,7 +57,16 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 
 		return true;
 	}
-	// TODO implement turning the DAC off when writing to volume and envelope
+
+	// TODO refactor volume handling into class
+	if (offset == VOLUME_OFFSET) 
+	{
+		*m_volumeAndEnvelope = value;
+		if ((*m_volumeAndEnvelope & 0b11111000) == 0)
+			m_isOn = false;
+		return true;
+	}
+
 	return false;
 }
 
@@ -122,12 +131,6 @@ void ggb::SquareWaveChannel::tickLengthShutdown()
 
 void ggb::SquareWaveChannel::tickVolumeEnvelope()
 {
-	if ((*m_volumeAndEnvelope & 0b11111000) == 0)
-	{
-		m_isOn = false;
-		return;
-	}
-
 	m_volumeSweepCounter++;
 	const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
 	const auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
