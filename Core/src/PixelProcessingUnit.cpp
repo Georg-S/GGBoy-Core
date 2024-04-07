@@ -331,14 +331,21 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 {
 	auto& screenXPos = inOutData->screenXPos;
 	auto& tileColumn = inOutData->tileColumn;
-	// TODO implement X-flip / Y-flip and priority
+	// TODO implement priority
 	const auto GBCTileData = getBackgroundTileAttributes(inOutData->tileIndexAddress);
 	const auto colorPaletteIndex = GBCTileData & 0b111;
 	const auto& GBCPalette = GBCGetBackgroundAndWindowColorPalette(colorPaletteIndex);
 	const auto tileAddress = getTileAddress(inOutData->tileIndexAddress, inOutData->signedAddressingMode);
 	uint8_t* vramBank = getVRAMBankPointer(GBCTileData);
+	int tileRow = inOutData->tileRow;
 
-	getTileRowData(vramBank, tileAddress, inOutData->tileRow, m_objColorBuffer);
+	if (isBitSet(GBCTileData, 6))
+		tileRow = (TILE_HEIGHT - 1) - tileRow; // Flip Y
+
+	getTileRowData(vramBank, tileAddress, tileRow, m_objColorBuffer);
+	if (isBitSet(GBCTileData, 5))
+		std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end()); // Flip X
+
 	while (inOutData->tileColumn < TILE_WIDTH && screenXPos < GAME_WINDOW_WIDTH)
 	{
 		if (screenXPos >= 0)

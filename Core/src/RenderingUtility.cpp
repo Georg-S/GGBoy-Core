@@ -65,7 +65,7 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
 	assert(outVec.size() >= 8);
-	auto vramIndex = getVRAMIndexFromAddress((tileAddress + (tileRow * 2)));
+	auto vramIndex = getVRAMIndexFromAddress(tileAddress + (tileRow * 2));
 	auto low = vramPtr[vramIndex];
 	auto high = vramPtr[vramIndex + 1];
 
