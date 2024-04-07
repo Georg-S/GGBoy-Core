@@ -68,12 +68,14 @@ namespace ggb
 	{
 		RGBA rgb = {};
 		uint8_t rawColorValue = 0;
+		// GBC only: Basically does the same as the object setting with the same name, always false for DMG
+		bool backgroundOverObj = false;  
 	};
 
 	struct ObjectPixel 
 	{
 		RGBA rgb = {};
-		bool backgroundOverObj = false;
+		bool backgroundOverObj = false; 
 		bool pixelSet = false;
 	};
 
@@ -137,7 +139,7 @@ namespace ggb
 		std::vector<Tile> m_vramTiles;
 		std::vector<RGBA> m_currentRowBuffer;
 		std::vector<uint8_t> m_objColorBuffer;
-		std::vector<BackgroundAndWindowPixel> m_pixelBuffer;
+		std::vector<BackgroundAndWindowPixel> m_backgroundAndWindowPixelBuffer;
 		std::vector<ObjectPixel> m_currentObjectRowPixelBuffer;
 		GBCColorRAM m_GBCBackgroundColorRAM = GBCColorRAM(GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS);
 		GBCColorRAM m_GBCObjectColorRAM = GBCColorRAM(GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS);

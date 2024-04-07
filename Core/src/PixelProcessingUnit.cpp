@@ -17,7 +17,7 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 	m_currentRowBuffer = std::vector<RGBA>(8, { 0,0,0,0 });
 	m_objColorBuffer = std::vector<uint8_t>(8, 0);
 	m_currentObjectRowPixelBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
-	m_pixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
+	m_backgroundAndWindowPixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
 	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
@@ -191,7 +191,7 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_vramTiles);
 	serialization->read_write(m_currentRowBuffer);
 	serialization->read_write(m_objColorBuffer);
-	serialization->read_write(m_pixelBuffer);
+	serialization->read_write(m_backgroundAndWindowPixelBuffer);
 	serialization->read_write(m_currentObjectRowPixelBuffer);
 
 	m_gameFrameBuffer->serialization(serialization);
@@ -248,18 +248,20 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 	if (isBitSet(*m_LCDControl, 1))
 		writeCurrentObjectLineIntoBuffer();
 
+	const bool objectAlwaysOnTop = m_GBCMode && !isBitSet(*m_LCDControl, 0);
+
 	for (int x = 0; x < GAME_WINDOW_WIDTH; x++)
 	{
-		const auto& backgroundAndWindowPixel = m_pixelBuffer[x];
+		const auto& backgroundAndWindowPixel = m_backgroundAndWindowPixelBuffer[x];
 		const auto& objectPixel = m_currentObjectRowPixelBuffer[x];
 
+		const bool objectSettingBackgroundOverObject = objectPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0);
+		const bool backgroundSettingBackgroundOverObject = m_GBCMode && backgroundAndWindowPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0);
+		const bool drawObject = objectPixel.pixelSet && (objectAlwaysOnTop || (!objectSettingBackgroundOverObject && !backgroundSettingBackgroundOverObject));
+
 		m_gameFrameBuffer->setPixel(x, scanLine(), backgroundAndWindowPixel.rgb);
-		if (objectPixel.pixelSet)
-		{
-			if (objectPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0))
-				continue;
+		if (drawObject)
 			m_gameFrameBuffer->setPixel(x, scanLine(), objectPixel.rgb);
-		}
 	}
 }
 
@@ -338,6 +340,7 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 	const auto tileAddress = getTileAddress(inOutData->tileIndexAddress, inOutData->signedAddressingMode);
 	uint8_t* vramBank = getVRAMBankPointer(GBCTileData);
 	int tileRow = inOutData->tileRow;
+	const bool tileOverObject = m_GBCMode && isBitSet(GBCTileData, 7);
 
 	if (isBitSet(GBCTileData, 6))
 		tileRow = (TILE_HEIGHT - 1) - tileRow; // Flip Y
@@ -352,7 +355,8 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
 			const auto& rgb = GBCPalette.getColor(colorValue);
-			m_pixelBuffer[screenXPos] = { rgb, colorValue };
+			const bool tileOverObjectVal = tileOverObject;
+			m_backgroundAndWindowPixelBuffer[screenXPos] = { rgb, colorValue, tileOverObjectVal };
 		}
 		++tileColumn;
 		++screenXPos;
