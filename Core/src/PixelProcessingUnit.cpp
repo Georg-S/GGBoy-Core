@@ -333,7 +333,6 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 {
 	auto& screenXPos = inOutData->screenXPos;
 	auto& tileColumn = inOutData->tileColumn;
-	// TODO implement priority
 	const auto GBCTileData = getBackgroundTileAttributes(inOutData->tileIndexAddress);
 	const auto colorPaletteIndex = GBCTileData & 0b111;
 	const auto& GBCPalette = GBCGetBackgroundAndWindowColorPalette(colorPaletteIndex);

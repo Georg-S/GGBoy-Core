@@ -54,9 +54,8 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 		uint8_t result = 0;
 		setBitToValue(result, 7, isBitSet(*m_soundOn, 7));
 
-		// TODO maybe all channels should use the audio master register directly when turning the channel on/off
 		for (int i = 0; i < std::size(m_channels); i++)
-			setBitToValue(result, i, m_channels[i]);
+			setBitToValue(result, i, m_channels[i]->isOn());
 
 		return result;
 	}
