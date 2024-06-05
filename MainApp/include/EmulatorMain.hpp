@@ -21,6 +21,7 @@ private:
 	void loadCartridge();
 
 	const Uint8* m_keyStates = nullptr;
+	bool m_previousKeyStates[SDL_NUM_SCANCODES] = {};
 	std::unique_ptr<ggb::Emulator> m_emulator = nullptr;
 	std::unique_ptr<Audio> m_audioHandler = nullptr;
 	InputHandler* m_inputHandler = nullptr;

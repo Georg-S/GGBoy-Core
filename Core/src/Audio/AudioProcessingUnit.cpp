@@ -89,11 +89,25 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 		channel->serialization(serialization);
 }
 
+void ggb::AudioProcessingUnit::muteChannel(size_t channelID, bool mute)
+{
+	m_channels[channelID]->mute(mute);
+}
+
+bool ggb::AudioProcessingUnit::isChannelMuted(size_t channelID) const
+{
+	return m_channels[channelID]->isMuted();
+}
+
 void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 {
 	Frame outFrame = {};
-	auto soundPanning = [this, &outFrame](int leftBit, int rightBit, AUDIO_FORMAT channelSample)
+	auto soundPanning = [this, &outFrame](int leftBit, int rightBit, const AudioChannel* channel)
 	{
+		if (channel->isMuted())
+			return;
+
+		auto channelSample = channel->getSample();
 		if (isBitSet(*m_soundPanning, leftBit))
 			outFrame.leftSample += channelSample;
 		if (isBitSet(*m_soundPanning, rightBit))
@@ -104,10 +118,10 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 	if (m_cycleCounter >= m_sampleGeneratingRate)
 	{
 		m_cycleCounter -= m_sampleGeneratingRate;
-		soundPanning(4, 0, m_channel1->getSample());
-		soundPanning(5, 1, m_channel2->getSample());
-		soundPanning(6, 2, m_channel3->getSample());
-		soundPanning(7, 3, m_channel4->getSample());
+		soundPanning(4, 0, m_channel1.get());
+		soundPanning(5, 1, m_channel2.get());
+		soundPanning(6, 2, m_channel3.get());
+		soundPanning(7, 3, m_channel4.get());
 
 		const auto masterVolume = getMasterVolume();
 		// Mixing is done by simply adding up the channel outputs

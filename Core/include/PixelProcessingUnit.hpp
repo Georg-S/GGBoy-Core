@@ -137,7 +137,6 @@ namespace ggb
 		std::vector<Object> m_objects;
 		std::vector<Object> m_currentScanlineObjects;
 		std::vector<Tile> m_vramTiles;
-		std::vector<RGBA> m_currentRowBuffer;
 		std::vector<uint8_t> m_objColorBuffer;
 		std::vector<BackgroundAndWindowPixel> m_backgroundAndWindowPixelBuffer;
 		std::vector<ObjectPixel> m_currentObjectRowPixelBuffer;

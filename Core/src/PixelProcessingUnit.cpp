@@ -14,7 +14,6 @@ static constexpr int VRAM_TILE_COUNT = 384;
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 {
 	setBus(bus);
-	m_currentRowBuffer = std::vector<RGBA>(8, { 0,0,0,0 });
 	m_objColorBuffer = std::vector<uint8_t>(8, 0);
 	m_currentObjectRowPixelBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
 	m_backgroundAndWindowPixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
@@ -50,11 +49,10 @@ void ggb::PixelProcessingUnit::setBus(BUS* bus)
 	m_VRAMBank1Ptr = m_bus->getVRAMStartPointer(1);
 	m_GBCObjectPriorityMode = m_bus->getPointerIntoMemory(GBC_OBJECT_PRIORITY_MODE_ADDRESS);
 
-	static constexpr uint8_t objectSize = 4; // bytes
 	m_objects.resize(OBJECT_COUNT);
 	for (auto i = 0; i < OBJECT_COUNT; i++)
 	{
-		uint16_t objectAddress = OAM_ADDRESS + (i * objectSize);
+		uint16_t objectAddress = OAM_ADDRESS + (i * OBJECT_MEMORY_SIZE);
 		m_objects[i].yPosition = m_bus->getPointerIntoMemory(objectAddress);
 		m_objects[i].xPosition = m_bus->getPointerIntoMemory(objectAddress + 1);
 		m_objects[i].tileIndex = m_bus->getPointerIntoMemory(objectAddress + 2);
@@ -189,7 +187,6 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_objects);
 	serialization->read_write(m_currentScanlineObjects);
 	serialization->read_write(m_vramTiles);
-	serialization->read_write(m_currentRowBuffer);
 	serialization->read_write(m_objColorBuffer);
 	serialization->read_write(m_backgroundAndWindowPixelBuffer);
 	serialization->read_write(m_currentObjectRowPixelBuffer);

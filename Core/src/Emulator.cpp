@@ -149,6 +149,16 @@ Dimensions ggb::Emulator::getGameWindowDimensions() const
 	return Dimensions{ GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT };
 }
 
+void ggb::Emulator::muteChannel(size_t channelID, bool mute)
+{
+	m_audio->muteChannel(channelID, mute);
+}
+
+bool ggb::Emulator::isChannelMuted(size_t channelID) const
+{
+	return m_audio->isChannelMuted(channelID);
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);

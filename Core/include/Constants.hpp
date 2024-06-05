@@ -106,6 +106,7 @@ namespace ggb
 	constexpr uint16_t ROM_BANK_SIZE = 0x4000;
 	constexpr uint16_t OAM_MEMORY_SIZE = 0xA0;
 	constexpr uint16_t OBJECT_COUNT = 40;
+	constexpr uint16_t OBJECT_MEMORY_SIZE = 4; // in bytes
 	constexpr uint16_t MAX_ALLOWED_OBJS_PER_SCANLINE = 40;
 	constexpr uint16_t TILE_MEMORY_SIZE = 16; // in bytes
 	constexpr uint16_t TILE_WIDTH = 8; // in pixel

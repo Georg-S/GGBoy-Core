@@ -31,6 +31,8 @@ namespace ggb
 		void step(int cyclesPassed);
 		SampleBuffer* getSampleBuffer();
 		void serialization(Serialization* serialization);
+		void muteChannel(size_t channelID, bool mute);
+		bool isChannelMuted(size_t channelID) const;
 
 	private:
 		void sampleGeneratorStep(int cyclesPassed);

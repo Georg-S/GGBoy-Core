@@ -36,6 +36,8 @@ namespace ggb
 		SampleBuffer* getSampleBuffer();
 		Dimensions getTileDataDimensions() const;
 		Dimensions getGameWindowDimensions() const;
+		void muteChannel(size_t channelID, bool mute);
+		bool isChannelMuted(size_t channelID) const;
 
 	private:
 		void rewire();

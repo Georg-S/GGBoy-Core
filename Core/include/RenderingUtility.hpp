@@ -38,12 +38,6 @@ namespace ggb
 		virtual void renderNewFrame(const FrameBuffer& frameBuffer) = 0;
 	};
 
-	struct TileRawData 
-	{
-		uint8_t lsBits;
-		uint8_t msBits;
-	};
-
 	enum class GBColor
 	{
 		WHITE = 0,

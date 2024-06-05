@@ -48,27 +48,46 @@ int EmulatorApplication::run()
 
 void EmulatorApplication::handleEmulatorKeyPresses()
 {
-	if (m_keyStates[SDL_SCANCODE_R])
+	/// Returns whether a new key press occured
+	auto handleKeyPress = [this](SDL_Scancode scanCode)
+	{
+		bool lastTickPressed = m_previousKeyStates[scanCode];
+		m_previousKeyStates[scanCode] = m_keyStates[scanCode];
+
+		return m_keyStates[scanCode] && !lastTickPressed;
+	};
+
+
+	if (handleKeyPress(SDL_SCANCODE_R))
 		m_emulator->reset();
-	if (m_keyStates[SDL_SCANCODE_F1])
+	if (handleKeyPress(SDL_SCANCODE_F1))
 		m_emulator->saveEmulatorState("Savestate1.bin");
-	if (m_keyStates[SDL_SCANCODE_F2])
+	if (handleKeyPress(SDL_SCANCODE_F2))
 		m_emulator->saveEmulatorState("Savestate2.bin");
-	if (m_keyStates[SDL_SCANCODE_F3])
+	if (handleKeyPress(SDL_SCANCODE_F3))
 		m_emulator->saveEmulatorState("Savestate3.bin");
-	if (m_keyStates[SDL_SCANCODE_F4])
+	if (handleKeyPress(SDL_SCANCODE_F4))
 		m_emulator->saveEmulatorState("Savestate4.bin");
-	if (m_keyStates[SDL_SCANCODE_F5])
+	if (handleKeyPress(SDL_SCANCODE_F5))
 		m_emulator->loadEmulatorState("Savestate1.bin");
-	if (m_keyStates[SDL_SCANCODE_F6])
+	if (handleKeyPress(SDL_SCANCODE_F6))
 		m_emulator->loadEmulatorState("Savestate2.bin");
-	if (m_keyStates[SDL_SCANCODE_F7])
+	if (handleKeyPress(SDL_SCANCODE_F7))
 		m_emulator->loadEmulatorState("Savestate3.bin");
-	if (m_keyStates[SDL_SCANCODE_F8])
+	if (handleKeyPress(SDL_SCANCODE_F8))
 		m_emulator->loadEmulatorState("Savestate4.bin");
-	if (m_keyStates[SDL_SCANCODE_ESCAPE])
+	if (handleKeyPress(SDL_SCANCODE_F9))
+		m_emulator->muteChannel(0, !m_emulator->isChannelMuted(0));
+	if (handleKeyPress(SDL_SCANCODE_F10))
+		m_emulator->muteChannel(1, !m_emulator->isChannelMuted(1));
+	if (handleKeyPress(SDL_SCANCODE_F11))
+		m_emulator->muteChannel(2, !m_emulator->isChannelMuted(2));
+	if (handleKeyPress(SDL_SCANCODE_F12))
+		m_emulator->muteChannel(3, !m_emulator->isChannelMuted(3));
+	
+	if (handleKeyPress(SDL_SCANCODE_ESCAPE))
 		m_emulator->saveRAM(RAM_BASE_PATH / cartridgePath.filename());
-	if (m_keyStates[SDL_SCANCODE_T])
+	if (handleKeyPress(SDL_SCANCODE_T))
 	{
 		if (m_emulator->emulationSpeed() == 1.0)
 		{
