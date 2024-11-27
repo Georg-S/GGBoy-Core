@@ -4,8 +4,8 @@
 #include <fstream>
 #include <filesystem>
 
-namespace ggb {
-
+namespace ggb 
+{
 	template<typename T>
 	void serialize(std::ostream& outStream, const T& pod)
 	{

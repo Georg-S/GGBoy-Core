@@ -2,49 +2,108 @@
 
 #include <cassert>
 
-const uint8_t& ggb::MemoryBankControllerThree::RealTimeClock::getRegister(Register selectedRegister) const
+#include "Utility.hpp"
+
+uint8_t& ggb::MemoryBankControllerThree::RealTimeClock::getRegister(Registers& registers, RegisterType selectedRegister) const
 {
-	if (selectedRegister == Register::SECONDS)
-		return m_seconds;
-	if (selectedRegister == Register::MINUTES)
-		return m_minutes;
-	if (selectedRegister == Register::HOURS)
-		return m_hours;
-	if (selectedRegister == Register::DAYSLOWER)
-		return m_daysLower;
-	if (selectedRegister == Register::DAYSUPPERFLAGS)
-		return m_daysUpperAndFlags;
+	if (selectedRegister == RegisterType::SECONDS)
+		return registers.m_seconds;
+	if (selectedRegister == RegisterType::MINUTES)
+		return registers.m_minutes;
+	if (selectedRegister == RegisterType::HOURS)
+		return registers.m_hours;
+	if (selectedRegister == RegisterType::DAYSLOWER)
+		return registers.m_daysLower;
+	if (selectedRegister == RegisterType::DAYSUPPERFLAGS)
+		return registers.m_daysUpperAndFlags;
 	assert(!"Invalid Register");
-	return m_daysUpperAndFlags;
+	return registers.m_daysUpperAndFlags;
 }
 
-uint8_t& ggb::MemoryBankControllerThree::RealTimeClock::getRegister(Register selectedRegister)
-{
-	return const_cast<uint8_t&>(const_cast<const MemoryBankControllerThree::RealTimeClock*>(this)->getRegister(selectedRegister));
-}
-
-ggb::MemoryBankControllerThree::RealTimeClock::Register ggb::MemoryBankControllerThree::RealTimeClock::getRegisterFromValue(uint8_t value)
+ggb::MemoryBankControllerThree::RealTimeClock::RegisterType ggb::MemoryBankControllerThree::RealTimeClock::getRegisterFromValue(uint8_t value)
 {
 	if (value == 0x08)
-		return Register::SECONDS;
+		return RegisterType::SECONDS;
 	if (value == 0x09)
-		return Register::MINUTES;
+		return RegisterType::MINUTES;
 	if (value == 0x0A)
-		return Register::HOURS;
+		return RegisterType::HOURS;
 	if (value == 0x0B)
-		return Register::DAYSLOWER;
+		return RegisterType::DAYSLOWER;
 	if (value == 0x0C)
-		return Register::DAYSUPPERFLAGS;
-	return Register::NONE;
+		return RegisterType::DAYSUPPERFLAGS;
+	return RegisterType::NONE;
+}
+
+bool ggb::MemoryBankControllerThree::RealTimeClock::isStopped() const
+{
+	return isBitSet(m_registers.m_daysUpperAndFlags, 6);
+}
+
+void ggb::MemoryBankControllerThree::RealTimeClock::update() const
+{
+	if (isStopped())
+		return;
+
+	if (!m_lastTimeStamp) 
+	{
+		m_lastTimeStamp = getCurrentTimeInNanoSeconds();
+		return;
+	}
+
+	constexpr int SECONDS_PER_MINUTE = 60;
+	constexpr int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60;
+	constexpr int SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
+	constexpr int NANO_SECONDS_PER_SECOND = 1000000000;
+
+	auto setRegistersWithSeconds = [this, SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE](long long secondsPassed)
+	{
+		uint32_t days = static_cast<int>(secondsPassed / SECONDS_PER_DAY);
+		if (days > 0x1FF)
+			setBit(m_registers.m_daysUpperAndFlags, 7);
+		setBitToValue(m_registers.m_daysUpperAndFlags, 0, isBitSet(days, 8));
+		m_registers.m_daysLower = static_cast<uint8_t>(days & 0XFF);
+		secondsPassed -= (days * SECONDS_PER_DAY);
+		m_registers.m_seconds = secondsPassed % 60;
+		secondsPassed -= m_registers.m_seconds;
+		m_registers.m_hours = static_cast<uint8_t>(secondsPassed / SECONDS_PER_HOUR);
+		secondsPassed -= m_registers.m_hours * SECONDS_PER_HOUR;
+		m_registers.m_minutes = static_cast<uint8_t>(secondsPassed / SECONDS_PER_MINUTE);
+	};
+
+	const auto currentTime = getCurrentTimeInNanoSeconds();
+	auto timePassed = currentTime - m_lastTimeStamp + m_subSeconds;
+	m_subSeconds = timePassed % NANO_SECONDS_PER_SECOND;
+	auto secondsPassed = timePassed / NANO_SECONDS_PER_SECOND;
+
+	uint32_t days = m_registers.m_daysLower;
+	bool mostSignificantDayBitSet = isBitSet(m_registers.m_daysUpperAndFlags, 0);
+	setBitToValue(days, 8, mostSignificantDayBitSet);
+
+	secondsPassed += m_registers.m_seconds;
+	secondsPassed += m_registers.m_minutes * SECONDS_PER_MINUTE;
+	secondsPassed += m_registers.m_hours * SECONDS_PER_HOUR;
+	secondsPassed += days * SECONDS_PER_DAY;
+
+	setRegistersWithSeconds(secondsPassed);
+	m_lastTimeStamp = currentTime;
 }
 
 void ggb::MemoryBankControllerThree::RealTimeClock::serialize(Serialization* serialization)
 {
-	serialization->read_write(m_seconds);
-	serialization->read_write(m_minutes);
-	serialization->read_write(m_hours);
-	serialization->read_write(m_daysLower);
-	serialization->read_write(m_daysUpperAndFlags);
+	auto serializeRegisters = [](Registers& registers, Serialization* serialization)
+	{
+		serialization->read_write(registers.m_seconds);
+		serialization->read_write(registers.m_minutes);
+		serialization->read_write(registers.m_hours);
+		serialization->read_write(registers.m_daysLower);
+		serialization->read_write(registers.m_daysUpperAndFlags);
+	};
+
+	serializeRegisters(m_latchedRegisters, serialization);
+	serializeRegisters(m_registers, serialization);
+	serialization->read_write(m_lastTimeStamp);
+	serialization->read_write(m_subSeconds);
 	serialization->read_write(m_isLatched);
 	serialization->read_write(m_lastLatchValue);
 	serialization->read_write(m_selectedRegister);
@@ -57,29 +116,46 @@ void ggb::MemoryBankControllerThree::RealTimeClock::selectRegister(uint8_t value
 
 void ggb::MemoryBankControllerThree::RealTimeClock::writeToSelectedRegister(uint8_t value)
 {
-	auto& reg = getRegister(m_selectedRegister);
+	const bool stopped = isStopped();
+	update();
+
+	auto& reg = getRegister(m_registers, m_selectedRegister);
 	reg = value;
+
+	const bool stoppedNow = isStopped();
+	if (stopped && !stoppedNow) 
+		m_lastTimeStamp = getCurrentTimeInNanoSeconds();
 }
 
 uint8_t ggb::MemoryBankControllerThree::RealTimeClock::getSelectedRegisterValue() const
 {
-	return getRegister(m_selectedRegister);
+	if (!isStopped())
+		update();
+
+	if (m_isLatched)
+		return getRegister(m_latchedRegisters, m_selectedRegister);
+
+	return getRegister(m_registers, m_selectedRegister);
 }
 
 bool ggb::MemoryBankControllerThree::RealTimeClock::registerSelected() const
 {
-	return m_selectedRegister != Register::NONE;
+	return m_selectedRegister != RegisterType::NONE;
 }
 
 void ggb::MemoryBankControllerThree::RealTimeClock::resetRegisterSelection()
 {
-	m_selectedRegister = Register::NONE;
+	m_selectedRegister = RegisterType::NONE;
 }
 
 void ggb::MemoryBankControllerThree::RealTimeClock::handleLatching(uint8_t value)
 {
-	if ((m_lastLatchValue == 0) && (value == 0x1))
+	if ((m_lastLatchValue == 0) && (value == 0x1)) 
+	{
 		m_isLatched = !m_isLatched;
+		if (m_isLatched)
+			m_latchedRegisters = m_registers;
+	}
 	m_lastLatchValue = value;
 }
 
@@ -156,6 +232,7 @@ void ggb::MemoryBankControllerThree::initialize(std::vector<uint8_t>&& cartridge
 
 void ggb::MemoryBankControllerThree::serialization(Serialization* serialization)
 {
+	MemoryBankController::serialization(serialization);
 	serialization->read_write(m_ramAndTimerEnabled);
 	serialization->read_write(m_romBank);
 	serialization->read_write(m_ramBank);

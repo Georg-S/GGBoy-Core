@@ -145,13 +145,7 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 	if (isEchoRAMAddress(address))
 		address -= 0x2000;
 
-	if (isCartridgeROMAddress(address))
-	{
-		m_cartridge->write(address, value);
-		return;
-	}
-
-	if (isCartridgeRAMAddress(address))
+	if (isCartridgeROMAddress(address) || isCartridgeRAMAddress(address))
 	{
 		m_cartridge->write(address, value);
 		return;
@@ -215,6 +209,7 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 
 void ggb::BUS::write(uint16_t address, uint16_t value)
 {
+	// Unsupported write two 8bit values instead
 	assert(!"DON'T USE THIS AS OF NOW");
 }
 

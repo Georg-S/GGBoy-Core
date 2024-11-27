@@ -57,7 +57,6 @@ void EmulatorApplication::handleEmulatorKeyPresses()
 		return m_keyStates[scanCode] && !lastTickPressed;
 	};
 
-
 	if (handleKeyPress(SDL_SCANCODE_R))
 		m_emulator->reset();
 	if (handleKeyPress(SDL_SCANCODE_F1))
@@ -100,7 +99,6 @@ void EmulatorApplication::handleEmulatorKeyPresses()
 			m_audioHandler->setAudioPlaying(true);
 		}
 	}
-
 }
 
 void EmulatorApplication::loadCartridge()
@@ -111,8 +109,8 @@ void EmulatorApplication::loadCartridge()
 	//fileName = "Tetris.gb";
 	//fileName = "Legend_of_Zelda_Link's_Awakening.gb";
 	//fileName = "Legend_of_Zelda_Link's_Awakening.gbc";
-	fileName = "Pokemon_Gelbe_Edition.gb";
-	//fileName = "Pokemon_Kristall.gbc";
+	//fileName = "Pokemon_Gelbe_Edition.gb";
+	fileName = "Pokemon_Kristall.gbc";
 	//fileName = "DragonBallZ.gbc";
 	//fileName = "Pokemon_Silberne_Edition.gbc";
 	//fileName = "Roms/TestROMs/interrupt_time.gb";
