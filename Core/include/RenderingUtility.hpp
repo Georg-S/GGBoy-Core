@@ -60,6 +60,9 @@ namespace ggb
 		RGBA m_data[TILE_HEIGHT][TILE_WIDTH] = {};
 	};
 
+	// The colors on a gameboy color screen appear different than on a VGA / HDMI PC monitor
+	// Therefore color correction is needed to get (closer to) the look of a gameboy color
+	RGBA colorCorrection(ggb::RGBA rgb);
 	RGBA convertGBColorToRGB(GBColor color);
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec);
 	void getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);

@@ -222,6 +222,14 @@ void ggb::PixelProcessingUnit::renderGame()
 	if (!m_gameRenderer)
 		return;
 
+	for (auto& row : m_gameFrameBuffer->m_buffer) 
+	{
+		for (auto& value : row)
+		{
+			value = colorCorrection(value);
+		}
+	}
+
 	m_gameRenderer->renderNewFrame(*m_gameFrameBuffer);
 }
 

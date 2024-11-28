@@ -40,7 +40,7 @@ bool ggb::MemoryBankControllerThree::RealTimeClock::isStopped() const
 	return isBitSet(m_registers.m_daysUpperAndFlags, 6);
 }
 
-void ggb::MemoryBankControllerThree::RealTimeClock::update() const
+void ggb::MemoryBankControllerThree::RealTimeClock::update()
 {
 	if (isStopped())
 		return;
@@ -127,7 +127,7 @@ void ggb::MemoryBankControllerThree::RealTimeClock::writeToSelectedRegister(uint
 		m_lastTimeStamp = getCurrentTimeInNanoSeconds();
 }
 
-uint8_t ggb::MemoryBankControllerThree::RealTimeClock::getSelectedRegisterValue() const
+uint8_t ggb::MemoryBankControllerThree::RealTimeClock::getSelectedRegisterValue()
 {
 	if (!isStopped())
 		update();

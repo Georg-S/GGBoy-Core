@@ -34,6 +34,19 @@ void ggb::Tile::serialization(Serialization* serialization)
 	serialization->read_write(m_data);
 }
 
+RGBA ggb::colorCorrection(ggb::RGBA rgb)
+{
+	// Color correction factors where found by bruteforcing the factors so that the result is somewhat similiar to BGB
+	int r = static_cast<int>(0.9 * rgb.r + 0.1 * rgb.g + 0.1 * rgb.b);
+	int g = static_cast<int>(0.2 * rgb.r + 0.6 * rgb.g + 0.3 * rgb.b);
+	int b = static_cast<int>(0.1 * rgb.r + 0.1 * rgb.g + 0.9 * rgb.b);
+
+	rgb.r = std::clamp(r, 0, 255);
+	rgb.g = std::clamp(g, 0, 255);
+	rgb.b = std::clamp(b, 0, 255);
+	return rgb;
+}
+
 RGBA ggb::convertGBColorToRGB(GBColor color)
 {
 	switch (color)

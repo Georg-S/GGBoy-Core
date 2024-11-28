@@ -21,7 +21,7 @@ namespace ggb
 			void serialize(Serialization* serialization);
 			void selectRegister(uint8_t value);
 			void writeToSelectedRegister(uint8_t value);
-			uint8_t getSelectedRegisterValue() const;
+			uint8_t getSelectedRegisterValue();
 			bool registerSelected() const;
 			void resetRegisterSelection();
 			void handleLatching(uint8_t value);
@@ -41,14 +41,12 @@ namespace ggb
 			//uint8_t& getRegister(RegisterType selectedRegister);
 			RegisterType getRegisterFromValue(uint8_t value);
 			bool isStopped() const;
-			void update() const;
+			void update();
 
-			// TODO not the best design decision to make those mutable, change it so only the rtc is mutable
-			// or that update is called from the emulator
-			mutable long long m_lastTimeStamp = 0;
-			mutable long long m_subSeconds = 0;
-			mutable Registers m_latchedRegisters;
-			mutable Registers m_registers;
+			long long m_lastTimeStamp = 0;
+			long long m_subSeconds = 0;
+			Registers m_latchedRegisters;
+			Registers m_registers;
 			bool m_isLatched = false;
 			uint8_t m_lastLatchValue = 0x1;
 			RegisterType m_selectedRegister = RegisterType::NONE;
@@ -57,7 +55,9 @@ namespace ggb
 		bool m_ramAndTimerEnabled = false;
 		int m_romBank = 0;
 		int m_ramBank = 0;
-		RealTimeClock m_rtc = {};
+		// TODO not the best design decision to make this mutable
+		// maybe change it so that update is called from the emulator
+		mutable RealTimeClock m_rtc = {};
 
 		static constexpr AddressRange<0x0000, 0x3FFF>  isFirstROMBankAddress = {};
 		static constexpr AddressRange<0x4000, 0x7FFF>  isROMBankAddress = {};
