@@ -249,10 +249,13 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 		if (isBitSet(*m_LCDControl, 5))
 			writeCurrentWindowLineIntoBuffer();
 	}
-
-	updateCurrentScanlineObjects();
-	if (isBitSet(*m_LCDControl, 1))
+	
+	const bool fillObjectBuffer = isBitSet(*m_LCDControl, 1);
+	if (fillObjectBuffer) 
+	{
+		updateCurrentScanlineObjects();
 		writeCurrentObjectLineIntoBuffer();
+	}
 
 	const auto currentScanline = scanLine();
 	auto frameBufferRow = m_gameFrameBuffer->getRow(currentScanline);
@@ -265,7 +268,7 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 
 		const bool objectSettingBackgroundOverObject = objectPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0);
 		const bool backgroundSettingBackgroundOverObject = m_GBCMode && backgroundAndWindowPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0);
-		const bool drawObject = objectPixel.pixelSet && (objectAlwaysOnTop || (!objectSettingBackgroundOverObject && !backgroundSettingBackgroundOverObject));
+		const bool drawObject = fillObjectBuffer && objectPixel.pixelSet && (objectAlwaysOnTop || (!objectSettingBackgroundOverObject && !backgroundSettingBackgroundOverObject));
 
 		if (drawObject)
 			frameBufferRow[x] = objectPixel.rgb;
