@@ -3,17 +3,17 @@
 #include <iostream>
 #include <bitset>
 
-void ggb::logWarning(const std::string& message)
+void ggb::logWarning(std::string_view message)
 {
 	std::cout << "WARNING: " << message << std::endl;
 }
 
-void ggb::logError(const std::string& message)
+void ggb::logError(std::string_view message)
 {
 	std::cout << "ERROR: " << message << std::endl;
 }
 
-void ggb::logInfo(const std::string& message)
+void ggb::logInfo(std::string_view message)
 {
 	std::cout << "INFO: " << message << "\n";
 }

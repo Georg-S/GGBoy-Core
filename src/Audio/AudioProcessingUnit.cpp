@@ -68,8 +68,11 @@ void ggb::AudioProcessingUnit::step(int cyclesPassed)
 	if (!isBitSet(*m_soundOn, 7))
 		return; // TODO reset state?
 
-	for (auto channel : m_channels)
-		channel->step(cyclesPassed);
+	// Call step directly without dynamic dispatch to improve performance
+	m_channel1->step(cyclesPassed);
+	m_channel2->step(cyclesPassed);
+	m_channel3->step(cyclesPassed);
+	m_channel4->step(cyclesPassed);
 
 	frameSequencerStep(cyclesPassed);
 	sampleGeneratorStep(cyclesPassed);

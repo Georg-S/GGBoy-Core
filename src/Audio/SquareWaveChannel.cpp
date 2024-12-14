@@ -15,6 +15,21 @@ ggb::SquareWaveChannel::SquareWaveChannel(bool hasSweep, BUS* bus)
 	setBus(bus);
 }
 
+void ggb::SquareWaveChannel::step(int cyclesPassed)
+{
+	if (!m_isOn)
+		return;
+
+	// This counter ticks with a quarter of the cpu frequency
+	m_periodCounter -= cyclesPassed;
+
+	if (m_periodCounter <= 0)
+	{
+		m_periodCounter = getInitialPeriodCounter() + m_periodCounter;
+		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
+	}
+}
+
 void ggb::SquareWaveChannel::setBus(BUS* bus)
 {
 	if (m_hasSweep)
@@ -79,21 +94,6 @@ std::optional<uint8_t> ggb::SquareWaveChannel::read(uint16_t address) const
 		return *m_periodHighAndControl & 0b01000000;
 
 	return std::nullopt;
-}
-
-void ggb::SquareWaveChannel::step(int cyclesPassed)
-{
-	if (!m_isOn)
-		return;
-
-	// This counter ticks with a quarter of the cpu frequency
-	m_periodCounter -= cyclesPassed;
-
-	if (m_periodCounter <= 0)
-	{
-		m_periodCounter = getInitialPeriodCounter() + m_periodCounter;
-		m_dutyCyclePosition = (m_dutyCyclePosition + 1) % DUTY_CYCLE_LENGTH;
-	}
 }
 
 ggb::AUDIO_FORMAT ggb::SquareWaveChannel::getSample() const

@@ -1,11 +1,11 @@
 #pragma once
-#include <string>
+#include <string_view>
 
 namespace ggb
 {
-	void logWarning(const std::string& message);
-	void logError(const std::string& message);
-	void logInfo(const std::string& message);
+	void logWarning(std::string_view message);
+	void logError(std::string_view message);
+	void logInfo(std::string_view message);
 	void logNumBinary(uint8_t num);
 	void logNumBinary(uint16_t num);
 }

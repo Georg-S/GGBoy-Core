@@ -12,10 +12,10 @@ namespace ggb
 	{
 	public:
 		NoiseChannel(BUS* bus);
+		void step(int cyclesPassed);
 		void setBus(BUS* bus) override;
 		bool write(uint16_t address, uint8_t value) override;
 		std::optional<uint8_t> read(uint16_t address) const override;
-		void step(int cyclesPassed) override;
 		AUDIO_FORMAT getSample() const override;
 		bool isChannelAddress(uint16_t address) const override;
 		void tickLengthShutdown() override;

@@ -9,26 +9,35 @@
 
 namespace ggb 
 {
-	struct RGBA
+	struct /*alignas(4)*/ RGB
 	{
 		uint8_t r;
 		uint8_t g;
 		uint8_t b;
-		uint8_t a;
+		// As the name suggests, only here for padding
+		// seems to have a somewhat significant performance impact (roughly 10%)
+		// 'alignas' doesn't give the same performance benefit
+		uint8_t padding; 
 	};
 
 	class FrameBuffer
 	{
 	public:
-		FrameBuffer(int xSize, int ySize);
-		void setPixel(int x, int y, const RGBA& pixelValue);
-		RGBA getPixel(int x, int y) const;
+		FrameBuffer(size_t width, size_t height);
+		RGB* getRow(size_t y);
+		void setPixel(size_t x, size_t y, const RGB& pixelValue);
+		RGB getPixel(size_t x, size_t y) const;
 		void serialization(Serialization* serialization);
+		std::vector<RGB>& getRawData();
+		size_t width() const;
+		size_t height() const;
 
-		std::vector<std::vector<RGBA>> m_buffer;
 	private:
-		int m_xSize;
-		int m_ySize;
+		size_t calculateIndex(size_t x, size_t y) const;
+
+		size_t m_width;
+		size_t m_height;
+		std::vector<RGB> m_buffer;
 	};
 
 	class Renderer
@@ -48,8 +57,8 @@ namespace ggb
 
 	struct ColorPalette 
 	{
-		std::array<RGBA, 4> m_color = {};
-		const RGBA& getColor(size_t index) const;
+		std::array<RGB, 4> m_color = {};
+		const RGB& getColor(size_t index) const;
 	};
 
 	struct Tile 
@@ -57,13 +66,13 @@ namespace ggb
 		explicit Tile() = default;
 		void serialization(Serialization* serialization);
 
-		RGBA m_data[TILE_HEIGHT][TILE_WIDTH] = {};
+		RGB m_data[TILE_HEIGHT][TILE_WIDTH] = {};
 	};
 
 	// The colors on a gameboy color screen appear different than on a VGA / HDMI PC monitor
 	// Therefore color correction is needed to get (closer to) the look of a gameboy color
-	RGBA colorCorrection(ggb::RGBA rgb);
-	RGBA convertGBColorToRGB(GBColor color);
+	RGB colorCorrection(ggb::RGB rgb);
+	RGB convertGBColorToRGB(GBColor color);
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec);
 	void getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
 }

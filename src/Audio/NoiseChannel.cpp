@@ -8,6 +8,24 @@ ggb::NoiseChannel::NoiseChannel(BUS* bus)
 	resetLFSR();
 }
 
+void ggb::NoiseChannel::step(int cyclesPassed)
+{
+	if (!m_isOn)
+		return;
+
+	static constexpr int indexToDivisorMapping[] = { 8, 16, 32, 48, 64, 80, 96, 112 };
+	const auto divider = getClockDivider();
+	const auto shift = getClockShift();
+
+	const auto timer = indexToDivisorMapping[divider] << shift;
+	m_cycleCounter += cyclesPassed;
+	if (m_cycleCounter >= timer)
+	{
+		m_cycleCounter -= timer;
+		stepLFSR();
+	}
+}
+
 void ggb::NoiseChannel::setBus(BUS* bus)
 {
 	m_lengthTimer = bus->getPointerIntoMemory(AUDIO_CHANNEL_4_LENGTH_TIMER_ADDRESS);
@@ -51,24 +69,6 @@ std::optional<uint8_t> ggb::NoiseChannel::read(uint16_t address) const
 		return *m_control & 0b01000000;
 
 	return std::nullopt;
-}
-
-void ggb::NoiseChannel::step(int cyclesPassed)
-{
-	if (!m_isOn)
-		return;
-
-	static constexpr int indexToDivisorMapping[] = { 8, 16, 32, 48, 64, 80, 96, 112 };
-	const auto divider = getClockDivider();
-	const auto shift = getClockShift();
-
-	const auto timer = indexToDivisorMapping[divider] << shift;
-	m_cycleCounter += cyclesPassed;
-	if (m_cycleCounter >= timer) 
-	{
-		m_cycleCounter -= timer;
-		stepLFSR();
-	}
 }
 
 ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample() const

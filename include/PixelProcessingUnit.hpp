@@ -66,7 +66,7 @@ namespace ggb
 
 	struct BackgroundAndWindowPixel 
 	{
-		RGBA rgb = {};
+		RGB rgb = {};
 		uint8_t rawColorValue = 0;
 		// GBC only: Basically does the same as the object setting with the same name, always false for DMG
 		bool backgroundOverObj = false;  
@@ -74,7 +74,7 @@ namespace ggb
 
 	struct ObjectPixel 
 	{
-		RGBA rgb = {};
+		RGB rgb = {};
 		bool backgroundOverObj = false; 
 		bool pixelSet = false;
 	};

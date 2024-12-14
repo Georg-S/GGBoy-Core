@@ -4,29 +4,53 @@
 
 using namespace ggb;
 
-ggb::FrameBuffer::FrameBuffer(int xSize, int ySize)
-	: m_xSize(xSize) 
-	, m_ySize(ySize)
+ggb::FrameBuffer::FrameBuffer(size_t width, size_t height)
+	: m_width(width)
+	, m_height(height)
 {
-	for (size_t x = 0; x < m_xSize; x++) 
-		m_buffer.emplace_back(std::vector<RGBA>(ySize, {0,0,0}));
+	m_buffer.resize(width * height);
 }
 
-void ggb::FrameBuffer::setPixel(int x, int y, const RGBA& pixelValue)
+RGB* ggb::FrameBuffer::getRow(size_t y)
 {
-	m_buffer[x][y] = pixelValue;
+	return &(m_buffer[y * m_width]);
 }
 
-RGBA ggb::FrameBuffer::getPixel(int x, int y) const
+void ggb::FrameBuffer::setPixel(size_t x, size_t y, const RGB& pixelValue)
 {
-	return m_buffer[x][y];
+	m_buffer[calculateIndex(x, y)] = pixelValue;
+}
+
+RGB ggb::FrameBuffer::getPixel(size_t x, size_t y) const
+{
+	return m_buffer[calculateIndex(x, y)];
 }
 
 void ggb::FrameBuffer::serialization(Serialization* serialization)
 {
-	serialization->read_write(m_xSize);
-	serialization->read_write(m_ySize);
+	serialization->read_write(m_width);
+	serialization->read_write(m_height);
 	serialization->read_write(m_buffer);
+}
+
+std::vector<RGB>& ggb::FrameBuffer::getRawData()
+{
+	return m_buffer;
+}
+
+size_t ggb::FrameBuffer::width() const
+{
+	return m_width;
+}
+
+size_t ggb::FrameBuffer::height() const
+{
+	return m_height;
+}
+
+size_t ggb::FrameBuffer::calculateIndex(size_t x, size_t y) const
+{
+	return y * m_width + x;
 }
 
 void ggb::Tile::serialization(Serialization* serialization)
@@ -34,7 +58,7 @@ void ggb::Tile::serialization(Serialization* serialization)
 	serialization->read_write(m_data);
 }
 
-RGBA ggb::colorCorrection(ggb::RGBA rgb)
+RGB ggb::colorCorrection(ggb::RGB rgb)
 {
 	// Color correction factors where found by bruteforcing the factors so that the result is somewhat similiar to BGB
 	int r = static_cast<int>(9 * rgb.r + rgb.g + rgb.b);
@@ -47,14 +71,14 @@ RGBA ggb::colorCorrection(ggb::RGBA rgb)
 	return rgb;
 }
 
-RGBA ggb::convertGBColorToRGB(GBColor color)
+RGB ggb::convertGBColorToRGB(GBColor color)
 {
 	switch (color)
 	{
-	case ggb::GBColor::BLACK:		return { 0,0,0,0 };
-	case ggb::GBColor::DARK_GREY:	return { 85, 85, 85, 0 };
-	case ggb::GBColor::LIGHT_GREY:	return { 170, 170, 170, 0 };
-	case ggb::GBColor::WHITE:		return { 255, 255, 255, 0 };
+	case ggb::GBColor::BLACK:		return { 0,0,0 };
+	case ggb::GBColor::DARK_GREY:	return { 85, 85, 85 };
+	case ggb::GBColor::LIGHT_GREY:	return { 170, 170, 170 };
+	case ggb::GBColor::WHITE:		return { 255, 255, 255 };
 	default:
 		assert(!"Invalid value entered");
 		return {};
@@ -91,7 +115,7 @@ void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow
 	}
 }
 
-const RGBA& ggb::ColorPalette::getColor(size_t index) const
+const RGB& ggb::ColorPalette::getColor(size_t index) const
 {
 	return m_color[index];
 }

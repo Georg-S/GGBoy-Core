@@ -12,16 +12,6 @@ ggb::WaveChannel::WaveChannel(BUS* bus)
 	setBus(bus);
 }
 
-void ggb::WaveChannel::setBus(BUS* bus)
-{
-	m_enabled = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS);
-	m_lengthTimer = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_LENGTH_TIMER_ADDRESS);
-	m_outputLevel = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_OUTPUT_LEVEL_ADDRESS);
-	m_periodLow = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_PERIOD_LOW_ADDRESS);
-	m_periodHighAndControl = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS);
-	m_waveRamStart = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS);
-}
-
 void ggb::WaveChannel::step(int cyclesPassed)
 {
 	if (!m_isOn)
@@ -35,6 +25,16 @@ void ggb::WaveChannel::step(int cyclesPassed)
 		m_periodCounter = getPeriodCounter() + m_periodCounter;
 		m_sampleIndex = (m_sampleIndex + 1) % WAVE_RAM_SAMPLE_LENGTH;
 	}
+}
+
+void ggb::WaveChannel::setBus(BUS* bus)
+{
+	m_enabled = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_DAC_ENABLE_ADDRESS);
+	m_lengthTimer = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_LENGTH_TIMER_ADDRESS);
+	m_outputLevel = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_OUTPUT_LEVEL_ADDRESS);
+	m_periodLow = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_PERIOD_LOW_ADDRESS);
+	m_periodHighAndControl = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS);
+	m_waveRamStart = bus->getPointerIntoMemory(AUDIO_CHANNEL_3_WAVE_PATTERN_RAM_START_ADDRESS);
 }
 
 bool ggb::WaveChannel::write(uint16_t address, uint8_t value)

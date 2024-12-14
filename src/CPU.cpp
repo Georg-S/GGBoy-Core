@@ -5,9 +5,9 @@
 #include "Logging.hpp"
 #include "Constants.hpp"
 
-static void debugLog(const std::string& message) 
+static void debugLog(const std::string_view message) 
 {
-	bool debugLogEnabled = false;
+	static constexpr bool debugLogEnabled = false;
 
 	if (debugLogEnabled)
 		ggb::logInfo(message);

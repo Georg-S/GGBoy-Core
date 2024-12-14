@@ -222,13 +222,9 @@ void ggb::PixelProcessingUnit::renderGame()
 	if (!m_gameRenderer)
 		return;
 
-	for (auto& row : m_gameFrameBuffer->m_buffer) 
-	{
-		for (auto& value : row)
-		{
-			value = colorCorrection(value);
-		}
-	}
+	auto& rawData = m_gameFrameBuffer->getRawData();
+	for (auto& value : rawData)
+		value = colorCorrection(value);
 
 	m_gameRenderer->renderNewFrame(*m_gameFrameBuffer);
 }
@@ -253,6 +249,8 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 	if (isBitSet(*m_LCDControl, 1))
 		writeCurrentObjectLineIntoBuffer();
 
+	const auto currentScanline = scanLine();
+	auto frameBufferRow = m_gameFrameBuffer->getRow(currentScanline);
 	const bool objectAlwaysOnTop = m_GBCMode && !isBitSet(*m_LCDControl, 0);
 
 	for (int x = 0; x < GAME_WINDOW_WIDTH; x++)
@@ -264,9 +262,10 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 		const bool backgroundSettingBackgroundOverObject = m_GBCMode && backgroundAndWindowPixel.backgroundOverObj && (backgroundAndWindowPixel.rawColorValue != 0);
 		const bool drawObject = objectPixel.pixelSet && (objectAlwaysOnTop || (!objectSettingBackgroundOverObject && !backgroundSettingBackgroundOverObject));
 
-		m_gameFrameBuffer->setPixel(x, scanLine(), backgroundAndWindowPixel.rgb);
 		if (drawObject)
-			m_gameFrameBuffer->setPixel(x, scanLine(), objectPixel.rgb);
+			frameBufferRow[x] = objectPixel.rgb;
+		else
+			frameBufferRow[x] = backgroundAndWindowPixel.rgb;
 	}
 }
 
@@ -562,7 +561,7 @@ static void renderTileData(const std::vector<Tile>& tiles, FrameBuffer* frameBuf
 			for (int y = 0; y < TILE_HEIGHT; y++)
 			{
 				const auto& color = tile.m_data[x][y];
-				frameBuffer->m_buffer[currX * margin + x][currY * margin + y] = color;
+				frameBuffer->setPixel(currX * margin + x, currY * margin + y, color);
 			}
 		}
 		currX += 1;
