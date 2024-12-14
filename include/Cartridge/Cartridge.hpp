@@ -18,6 +18,7 @@ namespace ggb
 		void deserialize(Serialization* deserialize);
 		void saveRAM(const std::filesystem::path& outputPath);
 		void loadRAM(const std::filesystem::path& inputPath);
+		bool supportsColor() const;
 
 	private:
 		void serialization(Serialization* serialize);

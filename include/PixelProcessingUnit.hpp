@@ -91,6 +91,7 @@ namespace ggb
 		void setLCDMode(LCDMode mode);
 		void setTileDataRenderer(std::unique_ptr<Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<Renderer> renderer);
+		void setGBCMode(bool value);
 		Dimensions getTileDataDimensions() const;
 		void setDrawTileData(bool enable);
 		void setDrawWholeBackground(bool enable);

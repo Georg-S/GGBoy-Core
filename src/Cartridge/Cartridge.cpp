@@ -66,6 +66,11 @@ void ggb::Cartridge::loadRAM(const std::filesystem::path& inputPath)
 	m_memoryBankController->loadRAM(inputPath);
 }
 
+bool ggb::Cartridge::supportsColor() const
+{
+	return m_memoryBankController->supportsColor();
+}
+
 void ggb::Cartridge::serialization(Serialization* serialize)
 {
 	serialize->read_write(m_mbcType);

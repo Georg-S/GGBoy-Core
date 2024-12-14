@@ -25,6 +25,7 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 		logError("Was not able to read ROM!");
 		return false;
 	}
+	m_ppu->setGBCMode(m_currentCartridge->supportsColor());
 	reset();
 
 	return true;

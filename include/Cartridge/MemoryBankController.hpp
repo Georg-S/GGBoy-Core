@@ -42,6 +42,7 @@ namespace ggb
 		int getROMBankCount() const;
 		int getRAMSize() const;
 		int getRAMBankCount() const;
+		bool supportsColor() const;
 		void loadRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		void saveRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		virtual void initialize(std::vector<uint8_t>&& cartridgeData);

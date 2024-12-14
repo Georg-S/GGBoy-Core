@@ -10,7 +10,8 @@ namespace ggb
 	constexpr uint16_t TIMER_INTERRUPT_ADDRESS = 0x50;
 	constexpr uint16_t SERIAL_INTERRUPT_ADDRESS = 0x58;
 	constexpr uint16_t JOYPAD_INTERRUPT_ADDRESS = 0x60;
-	constexpr uint16_t MBC_TYPE_ADDRESS = 0x0147;
+	constexpr uint16_t GBC_FLAG_ADDRESS = 0x143;
+	constexpr uint16_t MBC_TYPE_ADDRESS = 0x147;
 	constexpr uint16_t CARTRIDGE_ROM_END_ADDRESS = 0x7FFF;
 	constexpr uint16_t VRAM_START_ADDRESS = 0x8000;
 	constexpr uint16_t TILE_MAP_1_ADDRESS = VRAM_START_ADDRESS;

@@ -39,6 +39,15 @@ int ggb::MemoryBankController::getRAMBankCount() const
 	return valueToRAMBankCountMapping[val];
 }
 
+bool ggb::MemoryBankController::supportsColor() const
+{
+	if (m_cartridgeData.empty())
+		return false;
+	auto value = m_cartridgeData[GBC_FLAG_ADDRESS];
+
+	return value == 0x80 || value == 0xC0;
+}
+
 void ggb::MemoryBankController::loadRAM(const std::filesystem::path& path)
 {
 	if (!m_hasRam)

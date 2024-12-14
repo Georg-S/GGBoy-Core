@@ -162,6 +162,11 @@ void ggb::PixelProcessingUnit::setGameRenderer(std::unique_ptr<Renderer> rendere
 	m_gameRenderer = std::move(renderer);
 }
 
+void ggb::PixelProcessingUnit::setGBCMode(bool value)
+{
+	m_GBCMode = value;
+}
+
 Dimensions ggb::PixelProcessingUnit::getTileDataDimensions() const
 {
 	return Dimensions{ TILE_DATA_WIDTH, TILE_DATA_HEIGHT };
