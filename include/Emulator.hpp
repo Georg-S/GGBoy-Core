@@ -38,6 +38,7 @@ namespace ggb
 		Dimensions getGameWindowDimensions() const;
 		void muteChannel(size_t channelID, bool mute);
 		bool isChannelMuted(size_t channelID) const;
+		double getMaxSpeedup() const;
 
 	private:
 		void rewire();
@@ -54,5 +55,8 @@ namespace ggb
 		int m_syncCounter = 0;
 		long long m_previousTimeStamp = 0;
 		double m_emulationSpeed = 1.0;
+		double m_lastMaxSpeedup = 1.0;
+		long long m_speedupTimeCounter = 0;
+		long long m_speedupCycleCounter = 0;
 	};
 }

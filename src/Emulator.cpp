@@ -38,7 +38,7 @@ void ggb::Emulator::run()
 
 void ggb::Emulator::step()
 {
-	bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();
+	const bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();
 
 	int cycles = m_cpu->step();
 	assert((cycles % 2) == 0);
@@ -159,6 +159,11 @@ bool ggb::Emulator::isChannelMuted(size_t channelID) const
 	return m_audio->isChannelMuted(channelID);
 }
 
+double ggb::Emulator::getMaxSpeedup() const
+{
+	return m_lastMaxSpeedup;
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);
@@ -187,21 +192,34 @@ void ggb::Emulator::rewire()
 
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
+	static constexpr long long nanoSecondsPerSecond = 1000000000;
 	static constexpr double masterSynchronizationAfterCycles = static_cast<double>(CPU_BASE_CLOCK) / 100.0; 
 
+	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;
-	if (m_syncCounter >= masterSynchronizationAfterCycles)
+	if (m_syncCounter < masterSynchronizationAfterCycles)
+		return;
+
+	const long long nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
+
+	auto currentTime = getCurrentTimeInNanoSeconds();
+	long long timeDiff = currentTime - m_previousTimeStamp;
+
+	m_speedupTimeCounter += timeDiff;
+	if (m_speedupTimeCounter >= nanoSecondsPerSecond)
 	{
-		long long nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
-		long long timeDiff = 0;
-
-		do
-		{
-			auto currentTime = getCurrentTimeInNanoSeconds();
-			timeDiff = currentTime - m_previousTimeStamp;
-		} while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed));
-
-		m_previousTimeStamp = getCurrentTimeInNanoSeconds();
-		m_syncCounter = 0;
+		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
+		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK) / (m_speedupTimeCounter / nanoSecondsPerSecond);
+ 		m_speedupTimeCounter = 0;
+		m_speedupCycleCounter = 0;
 	}
+
+	while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed))
+	{
+		currentTime = getCurrentTimeInNanoSeconds();
+		timeDiff = currentTime - m_previousTimeStamp;
+	};
+
+	m_previousTimeStamp = currentTime;
+	m_syncCounter = 0;
 }
