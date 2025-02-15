@@ -40,6 +40,8 @@ namespace ggb
 		void serialization(Serialization* serialization); // Used for both serialize / deserialize
 		void handleHBlank();
 		bool isGBCDoubleSpeedOn() const;
+		/// Returns if the current BUS object is valid and can be used
+		bool valid() const;
 
 	private:
 		void toggleGBCDoubleSpeed();

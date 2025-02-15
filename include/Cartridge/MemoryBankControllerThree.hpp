@@ -11,6 +11,8 @@ namespace ggb
 		virtual uint8_t read(uint16_t address) const override;
 		void initialize(std::vector<uint8_t>&& cartridgeData) override;
 		virtual void serialization(Serialization* serialization) override;
+		virtual void saveRTC(const std::filesystem::path& path) override;
+		virtual void loadRTC(const std::filesystem::path& path) override;
 
 	private:
 		void setROMBank(uint8_t value);

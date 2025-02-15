@@ -18,6 +18,8 @@ namespace ggb
 		void deserialize(Serialization* deserialize);
 		void saveRAM(const std::filesystem::path& outputPath);
 		void loadRAM(const std::filesystem::path& inputPath);
+		void saveRTC(const std::filesystem::path& outputPath) const;
+		void loadRTC(const std::filesystem::path& outputPath);
 		bool supportsColor() const;
 
 	private:

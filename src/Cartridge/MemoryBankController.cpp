@@ -66,12 +66,22 @@ void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path)
 	serialize.read_write(m_ram);
 }
 
+void ggb::MemoryBankController::saveRTC(const std::filesystem::path& outputPath)
+{
+	// Do nothing on purpose
+}
+
+void ggb::MemoryBankController::loadRTC(const std::filesystem::path& outputPath)
+{
+	// Do nothing on purpose
+}
+
 void ggb::MemoryBankController::initialize(std::vector<uint8_t>&& cartridgeData)
 {
 	m_cartridgeData = std::move(cartridgeData);
 	m_ROMBankCount = getROMBankCount();
 	m_RAMBankCount = getRAMBankCount();
-	m_hasRam = m_ROMBankCount > 0;
+	m_hasRam = m_RAMBankCount > 0;
 }
 
 void ggb::MemoryBankController::serialization(Serialization* serialization)

@@ -45,6 +45,8 @@ namespace ggb
 		bool supportsColor() const;
 		void loadRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
 		void saveRAM(const std::filesystem::path& path); // Does nothing if MBC has no RAM
+		virtual void saveRTC(const std::filesystem::path& outputPath); // Does noting if MBC has no RTC
+		virtual void loadRTC(const std::filesystem::path& outputPath); // Does noting if MBC has no RTC
 		virtual void initialize(std::vector<uint8_t>&& cartridgeData);
 		virtual void serialization(Serialization* serialization);
 		static bool shouldEnableRAM(uint8_t value);

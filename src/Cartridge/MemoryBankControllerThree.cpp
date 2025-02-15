@@ -239,6 +239,18 @@ void ggb::MemoryBankControllerThree::serialization(Serialization* serialization)
 	m_rtc.serialize(serialization);
 }
 
+void ggb::MemoryBankControllerThree::saveRTC(const std::filesystem::path& path)
+{
+	Serialize serialize = Serialize(path);
+	m_rtc.serialize(&serialize);
+}
+
+void ggb::MemoryBankControllerThree::loadRTC(const std::filesystem::path& path)
+{
+	Deserialize deserialize = Deserialize(path);
+	m_rtc.serialize(&deserialize);
+}
+
 void ggb::MemoryBankControllerThree::setROMBank(uint8_t value)
 {
 	auto bank = (getROMBankCount() - 1) & value;

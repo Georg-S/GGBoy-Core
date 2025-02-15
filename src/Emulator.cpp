@@ -19,6 +19,7 @@ ggb::Emulator::Emulator()
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 {
+	m_loadedCartridgePath.clear();
 	m_currentCartridge = ggb::loadCartridge(path);
 	if (!m_currentCartridge)
 	{
@@ -27,6 +28,7 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 	}
 	m_ppu->setGBCMode(m_currentCartridge->supportsColor());
 	reset();
+	m_loadedCartridgePath = path;
 
 	return true;
 }
@@ -81,7 +83,7 @@ void ggb::Emulator::setInput(std::unique_ptr<Input> input)
 	m_input->setBus(m_bus.get());
 }
 
-void ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
+bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 {
 	try 
 	{
@@ -94,10 +96,12 @@ void ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 	catch (const std::exception& e) 
 	{
 		logError(std::string("Error saving emulator state: ")  + e.what());
+		return false;
 	}
+	return true;
 }
 
-void ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
+bool ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 {
 	try
 	{
@@ -105,6 +109,12 @@ void ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 		auto deserialize = deserializeUnique.get();
 
 		serialization(deserialize);
+		if (!m_bus->valid()) 
+		{
+			// We currently have an invalid state of the emulator -> reset
+			reset();
+			return false; // Invalid file
+		}
 		m_currentCartridge->deserialize(deserialize);
 
 		rewire();
@@ -112,17 +122,29 @@ void ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 	catch (const std::exception& e)
 	{
 		logError(std::string("Error saving emulator state: ") + e.what());
+		return false;
 	}
+	return true;
 }
 
-void ggb::Emulator::saveRAM(const std::filesystem::path& outputPath)
+void ggb::Emulator::saveRAM(const std::filesystem::path& path)
 {
-	m_currentCartridge->saveRAM(outputPath);
+	m_currentCartridge->saveRAM(path);
 }
 
-void ggb::Emulator::loadRAM(const std::filesystem::path& inputPath)
+void ggb::Emulator::loadRAM(const std::filesystem::path& path)
 {
-	m_currentCartridge->loadRAM(inputPath);
+	m_currentCartridge->loadRAM(path);
+}
+
+void ggb::Emulator::saveRTC(const std::filesystem::path& path) const
+{
+	m_currentCartridge->saveRTC(path);
+}
+
+void ggb::Emulator::loadRTC(const std::filesystem::path& path)
+{
+	m_currentCartridge->loadRTC(path);
 }
 
 void ggb::Emulator::setEmulationSpeed(double emulationSpeed)
@@ -163,6 +185,16 @@ bool ggb::Emulator::isChannelMuted(size_t channelID) const
 double ggb::Emulator::getMaxSpeedup() const
 {
 	return m_lastMaxSpeedup;
+}
+
+bool ggb::Emulator::isCartridgeLoaded() const
+{
+	return m_currentCartridge != nullptr;
+}
+
+std::filesystem::path ggb::Emulator::getLoadedCartridgePath() const
+{
+	return m_loadedCartridgePath;
 }
 
 void ggb::Emulator::serialization(ggb::Serialization* serialization)

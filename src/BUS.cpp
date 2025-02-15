@@ -264,6 +264,11 @@ bool ggb::BUS::isGBCDoubleSpeedOn() const
 	return isBitSet(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7);
 }
 
+bool ggb::BUS::valid() const
+{
+	return !m_memory.empty();
+}
+
 void ggb::BUS::toggleGBCDoubleSpeed()
 {
 	setBitToValue(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7, !isGBCDoubleSpeedOn());

@@ -17,6 +17,7 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
 	if (!std::filesystem::exists(romPath))
 	{
 		logError("File not found: " + romPath.string());
+		throw std::exception("File not found");
 	}
 
 	std::ifstream stream(romPath, std::ios::in | std::ios::binary);
@@ -64,6 +65,16 @@ void ggb::Cartridge::saveRAM(const std::filesystem::path& outputPath)
 void ggb::Cartridge::loadRAM(const std::filesystem::path& inputPath)
 {
 	m_memoryBankController->loadRAM(inputPath);
+}
+
+void ggb::Cartridge::saveRTC(const std::filesystem::path& outputPath) const
+{
+	m_memoryBankController->saveRTC(outputPath);
+}
+
+void ggb::Cartridge::loadRTC(const std::filesystem::path& outputPath)
+{
+	m_memoryBankController->loadRTC(outputPath);
 }
 
 bool ggb::Cartridge::supportsColor() const

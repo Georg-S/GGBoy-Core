@@ -27,10 +27,12 @@ namespace ggb
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setInput(std::unique_ptr<Input> input);
 		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
-		void saveEmulatorState(const std::filesystem::path& outputPath);
-		void loadEmulatorState(const std::filesystem::path& filePath);
-		void saveRAM(const std::filesystem::path& outputPath);
-		void loadRAM(const std::filesystem::path& inputPath);
+		bool saveEmulatorState(const std::filesystem::path& outputPath);
+		bool loadEmulatorState(const std::filesystem::path& filePath);
+		void saveRAM(const std::filesystem::path& path);
+		void loadRAM(const std::filesystem::path& path);
+		void saveRTC(const std::filesystem::path& path) const;
+		void loadRTC(const std::filesystem::path& path);
 		void setEmulationSpeed(double emulationSpeed); // 1.0 is the normal and default speed, the higher - the faster the emulator runs
 		double emulationSpeed() const;
 		SampleBuffer* getSampleBuffer();
@@ -39,6 +41,8 @@ namespace ggb
 		void muteChannel(size_t channelID, bool mute);
 		bool isChannelMuted(size_t channelID) const;
 		double getMaxSpeedup() const;
+		bool isCartridgeLoaded() const;
+		std::filesystem::path getLoadedCartridgePath() const;
 
 	private:
 		void rewire();
@@ -52,6 +56,7 @@ namespace ggb
 		std::unique_ptr<Timer> m_timer;
 		std::unique_ptr<Input> m_input;
 		std::unique_ptr<AudioProcessingUnit> m_audio;
+		std::filesystem::path m_loadedCartridgePath;
 		int m_syncCounter = 0;
 		long long m_previousTimeStamp = 0;
 		double m_emulationSpeed = 1.0;

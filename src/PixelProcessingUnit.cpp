@@ -13,13 +13,8 @@ static constexpr int VRAM_TILE_COUNT = 384;
 
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 {
+	reset();
 	setBus(bus);
-	m_objColorBuffer = std::vector<uint8_t>(8, 0);
-	m_currentObjectRowPixelBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
-	m_backgroundAndWindowPixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
-	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
-	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
-	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
 }
 
 void ggb::PixelProcessingUnit::reset()
@@ -27,6 +22,12 @@ void ggb::PixelProcessingUnit::reset()
 	m_cycleCounter = 0;
 	m_GBCBackgroundColorRAM.reset();
 	m_GBCObjectColorRAM.reset();
+	m_objColorBuffer = std::vector<uint8_t>(8, 0);
+	m_currentObjectRowPixelBuffer = std::vector<ObjectPixel>(GAME_WINDOW_WIDTH, { {} });
+	m_backgroundAndWindowPixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
+	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
+	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
+	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
 }
 
 void ggb::PixelProcessingUnit::setBus(BUS* bus)
