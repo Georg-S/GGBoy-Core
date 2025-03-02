@@ -17,7 +17,7 @@ bool ggb::Cartridge::load(const std::filesystem::path& romPath)
 	if (!std::filesystem::exists(romPath))
 	{
 		logError("File not found: " + romPath.string());
-		throw std::exception("File not found");
+		throw std::runtime_error("File not found");
 	}
 
 	std::ifstream stream(romPath, std::ios::in | std::ios::binary);

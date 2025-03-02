@@ -33,12 +33,6 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 	return true;
 }
 
-void ggb::Emulator::run()
-{
-	while (true)
-		step();
-}
-
 void ggb::Emulator::step()
 {
 	const bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();

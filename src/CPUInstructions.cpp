@@ -53,7 +53,7 @@ static void pushOnStack(CPUState* cpu, BUS* bus, uint16_t num)
 static void invalidInstruction(CPUInstructionParameters)
 {
 	assert(!"Tried to execute an invalid instruction");
-	throw std::exception("Tried to execute an invalid instruction");
+	throw std::runtime_error("Tried to execute an invalid instruction");
 }
 
 static void noop(CPUInstructionParameters)

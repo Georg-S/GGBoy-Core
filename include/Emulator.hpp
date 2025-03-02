@@ -20,7 +20,6 @@ namespace ggb
 	public:
 		Emulator();
 		bool loadCartridge(const std::filesystem::path& path);
-		void run();
 		void step();
 		void reset();
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
