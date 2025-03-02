@@ -20,7 +20,7 @@ namespace ggb
 		AUDIO_FORMAT getSample() const override;
 		bool isChannelAddress(uint16_t address) const override;
 		void tickLengthShutdown() override;
-		void serialization(Serialization* serialization);
+		void serialization(Serialization* serialization) override;
 
 	private:
 		void trigger();

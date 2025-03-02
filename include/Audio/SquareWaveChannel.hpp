@@ -38,7 +38,7 @@ namespace ggb
 		void tickLengthShutdown() override;
 		void tickVolumeEnvelope();
 		void tickFrequencySweep();
-		void serialization(Serialization* serialization);
+		void serialization(Serialization* serialization) override;
 
 	private:
 		void trigger();

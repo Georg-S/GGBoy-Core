@@ -20,7 +20,7 @@ namespace ggb
 		bool isChannelAddress(uint16_t address) const override;
 		void tickLengthShutdown() override;
 		void tickVolumeEnvelope();
-		void serialization(Serialization* serialization);
+		void serialization(Serialization* serialization) override;
 
 	private:
 		int getInitialLengthCounter() const;

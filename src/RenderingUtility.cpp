@@ -26,6 +26,12 @@ RGB ggb::FrameBuffer::getPixel(size_t x, size_t y) const
 	return m_buffer[calculateIndex(x, y)];
 }
 
+std::vector<RGB> ggb::FrameBuffer::getRawData() const
+{
+    return m_buffer;
+};
+
+
 void ggb::FrameBuffer::serialization(Serialization* serialization)
 {
 	serialization->read_write(m_width);

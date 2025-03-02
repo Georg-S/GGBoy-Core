@@ -27,6 +27,7 @@ namespace ggb
 		RGB* getRow(size_t y);
 		void setPixel(size_t x, size_t y, const RGB& pixelValue);
 		RGB getPixel(size_t x, size_t y) const;
+        std::vector<RGB> getRawData() const;
 		void serialization(Serialization* serialization);
 		std::vector<RGB>& getRawData();
 		size_t width() const;
