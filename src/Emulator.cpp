@@ -35,6 +35,9 @@ bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
 
 void ggb::Emulator::step()
 {
+	if (m_paused)
+		return;
+
 	const bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();
 
 	int cycles = m_cpu->step();
@@ -57,6 +60,7 @@ void ggb::Emulator::reset()
 	m_timer->reset();
 	m_syncCounter = 0;
 	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
+	m_paused = false;
 	rewire();
 }
 
@@ -79,7 +83,7 @@ void ggb::Emulator::setInput(std::unique_ptr<Input> input)
 
 bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 {
-	try 
+	try
 	{
 		auto serializeUnique = std::make_unique<ggb::Serialize>(outputPath);
 		auto serialize = serializeUnique.get();
@@ -87,9 +91,9 @@ bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 		serialization(serialize);
 		m_currentCartridge->serialize(serialize);
 	}
-	catch (const std::exception& e) 
+	catch (const std::exception& e)
 	{
-		logError(std::string("Error saving emulator state: ")  + e.what());
+		logError(std::string("Error saving emulator state: ") + e.what());
 		return false;
 	}
 	return true;
@@ -103,7 +107,7 @@ bool ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 		auto deserialize = deserializeUnique.get();
 
 		serialization(deserialize);
-		if (!m_bus->valid()) 
+		if (!m_bus->valid())
 		{
 			// We currently have an invalid state of the emulator -> reset
 			reset();
@@ -191,6 +195,23 @@ std::filesystem::path ggb::Emulator::getLoadedCartridgePath() const
 	return m_loadedCartridgePath;
 }
 
+void ggb::Emulator::pause() 
+{
+	m_paused = true;
+}
+
+void ggb::Emulator::resume()
+{
+	m_paused = false;
+	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
+	m_syncCounter = 0;
+}
+
+bool ggb::Emulator::isPaused() const
+{
+	return m_paused;
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);
@@ -201,6 +222,7 @@ void ggb::Emulator::serialization(ggb::Serialization* serialization)
 	serialization->read_write(m_emulationSpeed);
 	serialization->read_write(m_previousTimeStamp);
 	serialization->read_write(m_syncCounter);
+	serialization->read_write(m_paused);
 }
 
 void ggb::Emulator::rewire()
@@ -220,7 +242,7 @@ void ggb::Emulator::rewire()
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
 	static constexpr long long nanoSecondsPerSecond = 1000000000;
-	static constexpr double masterSynchronizationAfterCycles = static_cast<double>(CPU_BASE_CLOCK) / 100.0; 
+	static constexpr double masterSynchronizationAfterCycles = static_cast<double>(CPU_BASE_CLOCK) / 100.0;
 
 	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;
@@ -237,7 +259,7 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 	{
 		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
 		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK) / (m_speedupTimeCounter / nanoSecondsPerSecond);
- 		m_speedupTimeCounter = 0;
+		m_speedupTimeCounter = 0;
 		m_speedupCycleCounter = 0;
 	}
 

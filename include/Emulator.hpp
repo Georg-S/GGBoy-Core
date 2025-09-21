@@ -42,6 +42,9 @@ namespace ggb
 		double getMaxSpeedup() const;
 		bool isCartridgeLoaded() const;
 		std::filesystem::path getLoadedCartridgePath() const;
+		void pause();
+		void resume();
+		bool isPaused() const;
 
 	private:
 		void rewire();
@@ -62,5 +65,6 @@ namespace ggb
 		double m_lastMaxSpeedup = 1.0;
 		long long m_speedupTimeCounter = 0;
 		long long m_speedupCycleCounter = 0;
+		bool m_paused = false;
 	};
 }
