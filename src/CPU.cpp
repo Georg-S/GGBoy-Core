@@ -48,6 +48,22 @@ bool ggb::CPU::handleInterrupts()
 	if (!m_cpuState.interruptsEnabled())
 		return false;
 
+	auto anyInterruptBits = (*m_requestedInterrupts & *m_enabledInterrupts);
+	if (!anyInterruptBits)
+		return false;
+
+	auto handleInterrupt = [this, anyInterruptBits](int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString)
+	{
+		if (!isBitSet(anyInterruptBits, interruptBit))
+			return false;
+
+		m_cpuState.disableInterrupts();
+		clearBit(*m_requestedInterrupts, interruptBit);
+		callAddress(&m_cpuState, m_bus, interruptHandlerAddress);
+		debugLog(interruptString);
+		return true;
+	};
+
 	if (handleInterrupt(INTERRUPT_VBLANK_BIT, VBLANK_INTERRUPT_ADDRESS, "VBLANK INTERRUPT"))
 		return true;
 	if (handleInterrupt(INTERRUPT_LCD_STAT_BIT, LCD_STAT_INTERRUPT_ADDRESS, "LCD STAT INTERRUPT"))
@@ -59,18 +75,6 @@ bool ggb::CPU::handleInterrupts()
 	if (handleInterrupt(INTERRUPT_JOYPAD_BIT, JOYPAD_INTERRUPT_ADDRESS, "JOYPAD INTERRUPT"))
 		return true;
 	return false;
-}
-
-bool ggb::CPU::handleInterrupt(int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString)
-{
-	if (!isBitSet(*m_requestedInterrupts, interruptBit) || !isBitSet(*m_enabledInterrupts, interruptBit))
-		return false;
-
-	m_cpuState.disableInterrupts();
-	clearBit(*m_requestedInterrupts, interruptBit);
-	callAddress(&m_cpuState, m_bus, interruptHandlerAddress);
-	debugLog(interruptString);
-	return true;
 }
 
 int ggb::CPU::step()

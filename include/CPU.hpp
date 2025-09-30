@@ -16,7 +16,6 @@ namespace ggb
 
 	private:
 		bool handleInterrupts();
-		bool handleInterrupt(int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString);
 
 		BUS* m_bus = nullptr;
 		OPCodes m_opcodes; // TODO maybe not make this part of cpu but instead a static variable

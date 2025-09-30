@@ -14,6 +14,7 @@ ggb::Emulator::Emulator()
 	m_ppu = std::make_unique<PixelProcessingUnit>(m_bus.get());
 	m_timer = std::make_unique<Timer>(m_bus.get());
 	m_audio = std::make_unique<AudioProcessingUnit>(m_bus.get());
+	m_input = std::make_unique<Input>();
 	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
 }
 
@@ -73,12 +74,6 @@ void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
 void ggb::Emulator::setGameRenderer(std::unique_ptr<ggb::Renderer> renderer)
 {
 	m_ppu->setGameRenderer(std::move(renderer));
-}
-
-void ggb::Emulator::setInput(std::unique_ptr<Input> input)
-{
-	m_input = std::move(input);
-	m_input->setBus(m_bus.get());
 }
 
 bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
@@ -212,6 +207,11 @@ bool ggb::Emulator::isPaused() const
 	return m_paused;
 }
 
+void ggb::Emulator::setInputState(const ggb::GameboyInput& input)
+{
+	m_input->setButtonState(input);
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);
@@ -241,8 +241,9 @@ void ggb::Emulator::rewire()
 
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
+	static constexpr double synchronizationsPerSecond = 100.0;
 	static constexpr long long nanoSecondsPerSecond = 1000000000;
-	static constexpr double masterSynchronizationAfterCycles = static_cast<double>(CPU_BASE_CLOCK) / 100.0;
+	static double masterSynchronizationAfterCycles = CPU_BASE_CLOCK / (synchronizationsPerSecond / m_emulationSpeed);
 
 	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;

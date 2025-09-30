@@ -24,7 +24,6 @@ namespace ggb
 		void reset();
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
-		void setInput(std::unique_ptr<Input> input);
 		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
 		bool saveEmulatorState(const std::filesystem::path& outputPath);
 		bool loadEmulatorState(const std::filesystem::path& filePath);
@@ -45,6 +44,7 @@ namespace ggb
 		void pause();
 		void resume();
 		bool isPaused() const;
+		void setInputState(const ggb::GameboyInput& input);
 
 	private:
 		void rewire();

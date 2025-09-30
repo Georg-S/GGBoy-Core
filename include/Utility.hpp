@@ -56,6 +56,6 @@ namespace ggb
 	{
 		assert(bit < (sizeof(T) * 8));
 		const T bitToCheck = 1 << bit;
-		return (number & bitToCheck) == bitToCheck;
+		return static_cast<bool>(number & bitToCheck);
 	}
 } 

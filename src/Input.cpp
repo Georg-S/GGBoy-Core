@@ -36,10 +36,14 @@ void ggb::Input::update()
 			setBit(*m_inputRegister, bit);
 	};
 
-	setInputBitAndHandleInterrupt(isAPressed(), isRightPressed(), RIGHT_A_BIT);
-	setInputBitAndHandleInterrupt(isBPressed(), isLeftPressed(), LEFT_B_BIT);
-	setInputBitAndHandleInterrupt(isSelectPressed(), isUpPressed(), UP_SELECT_BIT);
-	setInputBitAndHandleInterrupt(isStartPressed(), isDownPressed(), DOWN_START_BIT);
+	const auto& buttons = m_currentState;
+	setInputBitAndHandleInterrupt(buttons.isAPressed, buttons.isRightPressed, RIGHT_A_BIT);
+	setInputBitAndHandleInterrupt(buttons.isBPressed, buttons.isLeftPressed, LEFT_B_BIT);
+	setInputBitAndHandleInterrupt(buttons.isSelectPressed, buttons.isUpPressed, UP_SELECT_BIT);
+	setInputBitAndHandleInterrupt(buttons.isStartPressed, buttons.isDownPressed, DOWN_START_BIT);
 }
 
-
+void ggb::Input::setButtonState(GameboyInput input)
+{
+	m_currentState = std::move(input);
+}
