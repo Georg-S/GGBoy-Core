@@ -12,11 +12,13 @@ namespace ggb
 		void setBus(BUS* bus);
 		void step(int elapsedCycles);
 		void resetDividerRegister();
-		void updateTimerDivider(int elapsedCycles);
 		void serialization(Serialization* serialization);
+		void updateAfterWrite();
 
 	private:
 		BUS* m_bus;
+		bool m_enabled = false;
+		uint32_t m_timerControlValue = 0;
 		uint8_t* m_dividerRegister = nullptr;
 		uint8_t* m_timerCounter = nullptr;
 		uint8_t* m_timerModulo = nullptr;

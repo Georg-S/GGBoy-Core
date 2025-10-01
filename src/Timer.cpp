@@ -18,6 +18,7 @@ static uint32_t getTimerControlDivisor(uint8_t num)
 ggb::Timer::Timer(BUS* bus)
 {
 	setBus(bus);
+	updateAfterWrite();
 }
 
 void ggb::Timer::reset()
@@ -37,19 +38,25 @@ void ggb::Timer::setBus(BUS* bus)
 
 void ggb::Timer::step(int elapsedCycles)
 {
-	updateTimerDivider(elapsedCycles);
+	auto updateTimerDivider = [this, elapsedCycles]() 
+	{
+		m_dividerCounter += elapsedCycles;
+		if (m_dividerCounter >= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT)
+		{
+			++(*m_dividerRegister);
+			m_dividerCounter -= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT;
+		}
+	};
 
-	const bool enabled = isBitSet<2>(*m_timerControl);
-	if (!enabled)
+	updateTimerDivider();
+
+	if (!m_enabled)
 		return;
 
-	const auto timerControlDividerBits = *m_timerControl & 0b11;
-	const auto timerControl = getTimerControlDivisor(timerControlDividerBits);
-
 	m_counterForTimerCounter += elapsedCycles;
-	while (m_counterForTimerCounter >= timerControl)
+	while (m_counterForTimerCounter >= m_timerControlValue)
 	{
-		m_counterForTimerCounter -= timerControl;
+		m_counterForTimerCounter -= m_timerControlValue;
 		++(*m_timerCounter);
 		if (*m_timerCounter == 0) 
 		{
@@ -64,18 +71,18 @@ void ggb::Timer::resetDividerRegister()
 	*m_dividerRegister = 0x00;
 }
 
-void ggb::Timer::updateTimerDivider(int elapsedCycles)
-{
-	m_dividerCounter += elapsedCycles;
-	if (m_dividerCounter >= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT)
-	{
-		++(*m_dividerRegister);
-		m_dividerCounter -= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT;
-	}
-}
-
 void ggb::Timer::serialization(Serialization* serialization)
 {
 	serialization->read_write(m_dividerCounter);
 	serialization->read_write(m_counterForTimerCounter);
+	serialization->read_write(m_enabled);
+	serialization->read_write(m_timerControlValue);
+}
+
+void ggb::Timer::updateAfterWrite()
+{
+	m_enabled = isBitSet<2>(*m_timerControl);
+
+	const auto timerControlDividerBits = *m_timerControl & 0b11;
+	m_timerControlValue = getTimerControlDivisor(timerControlDividerBits);
 }

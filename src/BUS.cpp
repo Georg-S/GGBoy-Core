@@ -216,6 +216,11 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 	{
 		m_input->update();
 	}
+
+	if (address == TIMER_CONTROL_ADDRESS) 
+	{
+		m_timer->updateAfterWrite();
+	}
 }
 
 void ggb::BUS::write(uint16_t address, uint16_t value)
