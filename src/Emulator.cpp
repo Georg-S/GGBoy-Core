@@ -268,7 +268,7 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 	if (m_speedupTimeCounter >= nanoSecondsPerSecond)
 	{
 		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
-		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK) / (m_speedupTimeCounter / nanoSecondsPerSecond);
+		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK / (static_cast<double>(m_speedupTimeCounter) / nanoSecondsPerSecond));
 		m_speedupTimeCounter = 0;
 		m_speedupCycleCounter = 0;
 	}
