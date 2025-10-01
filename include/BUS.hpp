@@ -11,6 +11,7 @@ namespace ggb
 	class Timer;
 	class AudioProcessingUnit;
 	class PixelProcessingUnit;
+	class Input;
 
 	struct HBlankDMA
 	{
@@ -29,6 +30,7 @@ namespace ggb
 		void setTimer(Timer* cartridge);
 		void setAudio(AudioProcessingUnit* audio);
 		void setPixelProcessingUnit(PixelProcessingUnit* ppu);
+		void setInput(Input* input);
 		uint8_t read(uint16_t address) const;
 		int8_t readSigned(uint16_t address) const;
 		void write(uint16_t address, uint8_t value);
@@ -56,6 +58,7 @@ namespace ggb
 		Timer* m_timer = nullptr;
 		AudioProcessingUnit* m_audio = nullptr;
 		PixelProcessingUnit* m_ppu = nullptr;
+		Input* m_input = nullptr;
 		std::vector<uint8_t> m_memory = std::vector<uint8_t>(0xFFFF + 1, 0);
 		std::array<std::array<uint8_t, WRAM_BANK_MEMORY_SIZE>, GBC_WRAM_BANK_COUNT> m_wram = {};
 		std::array<std::array<uint8_t, VRAM_BANK_MEMORY_SIZE>, GBC_VRAM_BANK_COUNT> m_vram = {};

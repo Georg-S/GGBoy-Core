@@ -47,3 +47,8 @@ void ggb::Input::setButtonState(GameboyInput input)
 {
 	m_currentState = std::move(input);
 }
+
+void ggb::Input::serialization(Serialization* serialization) 
+{
+	m_currentState.serialization(serialization);
+}

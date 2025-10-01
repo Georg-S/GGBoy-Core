@@ -49,7 +49,6 @@ void ggb::Emulator::step()
 		gbcDoubleSpeedAdjustedCycles = cycles / 2;
 	m_ppu->step(gbcDoubleSpeedAdjustedCycles);
 	m_timer->step(cycles);
-	m_input->update();
 	m_audio->step(gbcDoubleSpeedAdjustedCycles);
 	synchronizeEmulatorMasterClock(gbcDoubleSpeedAdjustedCycles);
 }
@@ -229,6 +228,7 @@ void ggb::Emulator::serialization(ggb::Serialization* serialization)
 	m_ppu->serialization(serialization);
 	m_timer->serialization(serialization);
 	m_audio->serialization(serialization);
+	m_input->serialization(serialization);
 	serialization->read_write(m_emulationSpeed);
 	serialization->read_write(m_previousTimeStamp);
 	serialization->read_write(m_syncCounter);
@@ -241,6 +241,7 @@ void ggb::Emulator::rewire()
 	m_bus->setTimer(m_timer.get());
 	m_bus->setPixelProcessingUnit(m_ppu.get());
 	m_bus->setAudio(m_audio.get());
+	m_bus->setInput(m_input.get());
 	m_ppu->setBus(m_bus.get());
 	m_cpu->setBus(m_bus.get());
 	m_timer->setBus(m_bus.get());

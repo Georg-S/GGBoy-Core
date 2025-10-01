@@ -7,6 +7,7 @@
 #include "Utility.hpp"
 #include "Timer.hpp"
 #include "PixelProcessingUnit.hpp"
+#include "Input.hpp"
 
 void ggb::BUS::reset()
 {
@@ -91,6 +92,11 @@ void ggb::BUS::setAudio(AudioProcessingUnit* audio)
 void ggb::BUS::setPixelProcessingUnit(PixelProcessingUnit* ppu)
 {
 	m_ppu = ppu;
+}
+
+void ggb::BUS::setInput(Input* input) 
+{
+	m_input = input;
 }
 
 uint8_t ggb::BUS::read(uint16_t address) const
@@ -205,6 +211,11 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 	}
 
 	m_memory[address] = value;
+
+	if (address == INPUT_REGISTER_ADDRESS)
+	{
+		m_input->update();
+	}
 }
 
 void ggb::BUS::write(uint16_t address, uint16_t value)

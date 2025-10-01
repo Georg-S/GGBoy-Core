@@ -14,6 +14,18 @@ namespace ggb
 		bool isDownPressed = false;
 		bool isLeftPressed = false;
 		bool isRightPressed = false;
+
+		void serialization(Serialization* serialization) 
+		{
+			serialization->read_write(isAPressed);
+			serialization->read_write(isBPressed);
+			serialization->read_write(isStartPressed);
+			serialization->read_write(isSelectPressed);
+			serialization->read_write(isUpPressed);
+			serialization->read_write(isDownPressed);
+			serialization->read_write(isLeftPressed);
+			serialization->read_write(isRightPressed);
+		}
 	};
 
 	class Input
@@ -23,6 +35,7 @@ namespace ggb
 		void setBus(BUS* bus);
 		void update();
 		void setButtonState(GameboyInput input);
+		void serialization(Serialization* serialization);
 
 	private:
 		BUS* m_bus = nullptr;
