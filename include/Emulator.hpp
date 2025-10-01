@@ -63,6 +63,7 @@ namespace ggb
 		long long m_previousTimeStamp = 0;
 		double m_emulationSpeed = 1.0;
 		double m_lastMaxSpeedup = 1.0;
+		double m_masterSynchronizationAfterCPUCycles = 0.0;
 		long long m_speedupTimeCounter = 0;
 		long long m_speedupCycleCounter = 0;
 		bool m_paused = false;

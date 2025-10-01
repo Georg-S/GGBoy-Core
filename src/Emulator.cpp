@@ -16,6 +16,7 @@ ggb::Emulator::Emulator()
 	m_audio = std::make_unique<AudioProcessingUnit>(m_bus.get());
 	m_input = std::make_unique<Input>();
 	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
+	setEmulationSpeed(1.0);
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -108,6 +109,8 @@ bool ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 			reset();
 			return false; // Invalid file
 		}
+		if (!m_currentCartridge)
+			m_currentCartridge = std::make_unique<Cartridge>();
 		m_currentCartridge->deserialize(deserialize);
 
 		rewire();
@@ -142,7 +145,9 @@ void ggb::Emulator::loadRTC(const std::filesystem::path& path)
 
 void ggb::Emulator::setEmulationSpeed(double emulationSpeed)
 {
+	static constexpr double synchronizationsPerSecond = 100.0;
 	m_emulationSpeed = emulationSpeed;
+	m_masterSynchronizationAfterCPUCycles = CPU_BASE_CLOCK / (synchronizationsPerSecond / m_emulationSpeed);
 }
 
 double ggb::Emulator::emulationSpeed() const
@@ -241,13 +246,11 @@ void ggb::Emulator::rewire()
 
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
-	static constexpr double synchronizationsPerSecond = 100.0;
 	static constexpr long long nanoSecondsPerSecond = 1000000000;
-	static double masterSynchronizationAfterCycles = CPU_BASE_CLOCK / (synchronizationsPerSecond / m_emulationSpeed);
 
 	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;
-	if (m_syncCounter < masterSynchronizationAfterCycles)
+	if (m_syncCounter < m_masterSynchronizationAfterCPUCycles)
 		return;
 
 	const long long nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
