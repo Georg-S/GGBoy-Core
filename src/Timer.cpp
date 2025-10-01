@@ -39,7 +39,7 @@ void ggb::Timer::step(int elapsedCycles)
 {
 	updateTimerDivider(elapsedCycles);
 
-	const bool enabled = isBitSet(*m_timerControl, 2);
+	const bool enabled = isBitSet<2>(*m_timerControl);
 	if (!enabled)
 		return;
 

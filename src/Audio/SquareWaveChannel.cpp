@@ -67,7 +67,7 @@ bool ggb::SquareWaveChannel::write(uint16_t memory, uint8_t value)
 	if (offset == PERIOD_HIGH_AND_CONTROL_OFFSET)
 	{
 		*m_periodHighAndControl = value;
-		if (isBitSet(*m_periodHighAndControl, 7))
+		if (isBitSet<7>(*m_periodHighAndControl))
 			trigger();
 
 		return true;
@@ -132,7 +132,7 @@ void ggb::SquareWaveChannel::tickLengthShutdown()
 void ggb::SquareWaveChannel::tickVolumeEnvelope()
 {
 	m_volumeSweepCounter++;
-	const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
+	const bool increase = isBitSet<3>(*m_volumeAndEnvelope);
 	const auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
 	if (m_volumeSweepCounter < m_sweepPace)
 		return;
@@ -162,7 +162,7 @@ void ggb::SquareWaveChannel::tickFrequencySweep()
 		return;
 
 	const auto individualStep = *m_sweep & 0b111;
-	const bool increase = !isBitSet(*m_sweep, 3);
+	const bool increase = !isBitSet<3>(*m_sweep);
 	if (individualStep == 0 && (m_frequencySweepPace == 0))
 	{
 		m_frequencySweepCounter = 0;
@@ -234,7 +234,7 @@ void ggb::SquareWaveChannel::trigger()
 
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
 {
-	return isBitSet(*m_periodHighAndControl, 6);
+	return isBitSet<6>(*m_periodHighAndControl);
 }
 
 uint16_t ggb::SquareWaveChannel::getPeriodValue() const
@@ -253,8 +253,8 @@ uint16_t ggb::SquareWaveChannel::getInitialPeriodCounter() const
 
 int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const
 {
-	bool msb = isBitSet(*m_lengthTimerAndDutyCycle, 7);
-	bool lsb = isBitSet(*m_lengthTimerAndDutyCycle, 6);
+	bool msb = isBitSet<7>(*m_lengthTimerAndDutyCycle);
+	bool lsb = isBitSet<6>(*m_lengthTimerAndDutyCycle);
 
 	return getNumberFromBits(lsb, msb);
 }

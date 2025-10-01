@@ -19,10 +19,10 @@ namespace ggb
 
 	enum class LCDInterrupt
 	{
-		LYCEqualsLY = 6,
-		OAM = 5,
-		VBlank = 4,
-		HBlank = 3,
+		LYCEqualsLY = BIT6,
+		OAM = BIT5,
+		VBlank = BIT4,
+		HBlank = BIT3,
 	};
 
 	struct Dimensions 
@@ -35,22 +35,22 @@ namespace ggb
 	{
 		bool usePalette1() const
 		{
-			return isBitSet(*attributes, 4);
+			return isBitSet<4>(*attributes);
 		}
 
 		bool isFlipXSet() const
 		{
-			return isBitSet(*attributes, 5);
+			return isBitSet<5>(*attributes);
 		}
 
 		bool isFlipYSet() const 
 		{
-			return isBitSet(*attributes, 6);
+			return isBitSet<6>(*attributes);
 		}
 
 		bool drawBackgroundOverObject() const 
 		{
-			return isBitSet(*attributes, 7); // background and window
+			return isBitSet<7>(*attributes); // background and window
 		}
 
 		size_t getGBCPaletteIndex() const 

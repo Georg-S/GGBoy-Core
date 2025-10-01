@@ -181,7 +181,7 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 
 	if (address == GBC_SPEED_SWITCH_ADDRESS) 
 	{
-		if (isBitSet(value, 0))
+		if (isBitSet<0>(value))
 			toggleGBCDoubleSpeed();
 		return;
 	}
@@ -246,7 +246,7 @@ void ggb::BUS::serialization(Serialization* serialization)
 
 void ggb::BUS::handleHBlank()
 {
-	if ((m_hBlankDMA.length == 0) || !isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7))
+	if ((m_hBlankDMA.length == 0) || !isBitSet<7>(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS]))
 		return;
 
 	const auto source = (m_hBlankDMA.source) + m_hBlankDMA.index * 0x10;
@@ -261,7 +261,7 @@ void ggb::BUS::handleHBlank()
 
 bool ggb::BUS::isGBCDoubleSpeedOn() const
 {
-	return isBitSet(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7);
+	return isBitSet<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS]);
 }
 
 bool ggb::BUS::valid() const
@@ -271,7 +271,7 @@ bool ggb::BUS::valid() const
 
 void ggb::BUS::toggleGBCDoubleSpeed()
 {
-	setBitToValue(m_memory[GBC_SPEED_SWITCH_ADDRESS], 7, !isGBCDoubleSpeedOn());
+	setBitToValue<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS], !isGBCDoubleSpeedOn());
 	m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
 	m_memory[INPUT_REGISTER_ADDRESS] = 0x30;
 }
@@ -309,7 +309,7 @@ void ggb::BUS::gbcVRAMDirectMemoryAccess()
 	dma.destination = (VRAM_START_ADDRESS + combineUpperAndLower(destinationHigh, destinationLow)); // Four lower bits are ignored
 	dma.length = static_cast<uint16_t>((m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS] & 0b1111111) + 1) * 0x10;
 
-	const bool isHblankDMA = isBitSet(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS], 7);
+	const bool isHblankDMA = isBitSet<7>(m_memory[GBC_VRAM_DMA_LENGTH_START_ADDRESS]);
 	if (isHblankDMA) 
 	{
 		m_hBlankDMA = std::move(dma);
@@ -332,7 +332,7 @@ void ggb::BUS::gbcVRAMDirectMemoryAccess()
 
 int ggb::BUS::getActiveVRAMBank() const
 {
-	if (isBitSet(m_memory[GBC_VRAM_BANKING_ADDRESS], 0))
+	if (isBitSet<0>(m_memory[GBC_VRAM_BANKING_ADDRESS]))
 		return 1;
 	return 0;
 }

@@ -105,6 +105,15 @@ void ggb::overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& pa
 	//}
 }
 
+template <int number>
+static inline constexpr void fillData(uint8_t low, uint8_t high, std::vector<uint8_t>& outVec) 
+{
+	auto lsb = isBitSet<number>(low);
+	auto msb = isBitSet<number>(high);
+	auto num = getNumberFromBits(lsb, msb);
+	outVec[7 - number] = num;
+}
+
 void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
 	assert(outVec.size() >= 8);
@@ -112,13 +121,14 @@ void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow
 	auto low = vramPtr[vramIndex];
 	auto high = vramPtr[vramIndex + 1];
 
-	for (int x = 7; x >= 0; x--)
-	{
-		auto lsb = isBitSet(low, x);
-		auto msb = isBitSet(high, x);
-		auto num = getNumberFromBits(lsb, msb);
-		outVec[7 - x] = num;
-	}
+	fillData<7>(low, high, outVec);
+	fillData<6>(low, high, outVec);
+	fillData<5>(low, high, outVec);
+	fillData<4>(low, high, outVec);
+	fillData<3>(low, high, outVec);
+	fillData<2>(low, high, outVec);
+	fillData<1>(low, high, outVec);
+	fillData<0>(low, high, outVec);
 }
 
 const RGB& ggb::ColorPalette::getColor(size_t index) const

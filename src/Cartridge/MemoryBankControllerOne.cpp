@@ -46,7 +46,7 @@ void ggb::MemoryBankControllerOne::write(uint16_t address, uint8_t value)
 
 	if (isBankingModeAddress(address)) 
 	{
-		m_romBankingMode = !isBitSet(value, 0);
+		m_romBankingMode = !isBitSet<0>(value);
 		return;
 	}
 }

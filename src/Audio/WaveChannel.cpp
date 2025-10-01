@@ -43,7 +43,7 @@ bool ggb::WaveChannel::write(uint16_t address, uint8_t value)
 	{
 		*m_enabled = value;
 		// Turning of the DAC disables the channel and enabling the DAC doesn't seem to enable the channel again.
-		if (!isBitSet(*m_enabled, 7))
+		if (!isBitSet<7>(*m_enabled))
 			m_isOn = false;
 		return true;
 	}
@@ -51,7 +51,7 @@ bool ggb::WaveChannel::write(uint16_t address, uint8_t value)
 	if (address == AUDIO_CHANNEL_3_PERIOD_HIGH_CONTROL_ADDRESS)
 	{
 		*m_periodHighAndControl = value;
-		if (isBitSet(*m_periodHighAndControl, 7))
+		if (isBitSet<7>(*m_periodHighAndControl))
 			trigger();
 
 		return true;
@@ -138,7 +138,7 @@ int ggb::WaveChannel::getPeriodCounter() const
 
 bool ggb::WaveChannel::isLengthShutdownEnabled() const
 {
-	return isBitSet(*m_periodHighAndControl, 6);
+	return isBitSet<6>(*m_periodHighAndControl);
 }
 
 uint8_t ggb::WaveChannel::getInitialLengthCounter() const

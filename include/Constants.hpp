@@ -3,6 +3,20 @@
 
 namespace ggb
 {
+	// Bits
+	constexpr int BIT0 = 0b00000001;
+	constexpr int BIT1 = 0b00000010;
+	constexpr int BIT2 = 0b00000100;
+	constexpr int BIT3 = 0b00001000;
+	constexpr int BIT4 = 0b00010000;
+	constexpr int BIT5 = 0b00100000;
+	constexpr int BIT6 = 0b01000000;
+	constexpr int BIT7 = 0b10000000;
+	constexpr uint16_t INTERRUPT_VBLANK_BIT = BIT0;
+	constexpr uint16_t INTERRUPT_LCD_STAT_BIT = BIT1;
+	constexpr uint16_t INTERRUPT_TIMER_BIT = BIT2;
+	constexpr uint16_t INTERRUPT_SERIAL_BIT = BIT3;
+	constexpr uint16_t INTERRUPT_JOYPAD_BIT = BIT4;
 	// ADDRESSES
 	constexpr uint16_t CARTRIDGE_ROM_START_ADDRESS = 0x0000;
 	constexpr uint16_t VBLANK_INTERRUPT_ADDRESS = 0x40;
@@ -94,11 +108,6 @@ namespace ggb
 	constexpr double NANO_SECONDS_PER_CYCLE = 1000000000.0 / CPU_BASE_CLOCK;
 	constexpr uint32_t STANDARD_SAMPLE_RATE = 44100; // In hertz
 	constexpr uint16_t TIMER_DIVIDER_REGISTER_INCREMENT_COUNT = CPU_BASE_CLOCK / 16384;
-	constexpr uint16_t INTERRUPT_VBLANK_BIT = 0;
-	constexpr uint16_t INTERRUPT_LCD_STAT_BIT = 1;
-	constexpr uint16_t INTERRUPT_TIMER_BIT = 2;
-	constexpr uint16_t INTERRUPT_SERIAL_BIT = 3;
-	constexpr uint16_t INTERRUPT_JOYPAD_BIT = 4;
 	constexpr uint16_t GAME_WINDOW_WIDTH = 160;
 	constexpr uint16_t GAME_WINDOW_HEIGHT = 144;
 	constexpr uint16_t TILE_DATA_WIDTH = 300;

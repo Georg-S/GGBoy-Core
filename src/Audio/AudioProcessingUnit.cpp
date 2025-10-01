@@ -35,7 +35,7 @@ bool ggb::AudioProcessingUnit::write(uint16_t address, uint8_t value)
 
 	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
-		setBitToValue(*m_soundOn, 7, isBitSet(value, 7));
+		setBitToValue<7>(*m_soundOn, isBitSet<7>(value));
 		return true;
 	}
 	return false;
@@ -52,10 +52,11 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 	if (address == AUDIO_MASTER_CONTROL_ADDRESS)
 	{
 		uint8_t result = 0;
-		setBitToValue(result, 7, isBitSet(*m_soundOn, 7));
-
-		for (int i = 0; i < std::size(m_channels); i++)
-			setBitToValue(result, i, m_channels[i]->isOn());
+		setBitToValue<7>(result, isBitSet<7>(*m_soundOn));
+		setBitToValue<0>(result, m_channels[0]->isOn());
+		setBitToValue<1>(result, m_channels[1]->isOn());
+		setBitToValue<2>(result, m_channels[2]->isOn());
+		setBitToValue<3>(result, m_channels[3]->isOn());
 
 		return result;
 	}
@@ -65,7 +66,8 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 
 void ggb::AudioProcessingUnit::step(int cyclesPassed)
 {
-	if (!isBitSet(*m_soundOn, 7))
+	return;
+	if (!isBitSet<7>(*m_soundOn))
 		return; // TODO reset state?
 
 	// Call step directly without dynamic dispatch to improve performance
@@ -121,10 +123,10 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 	if (m_cycleCounter >= m_sampleGeneratingRate)
 	{
 		m_cycleCounter -= m_sampleGeneratingRate;
-		soundPanning(4, 0, m_channel1.get());
-		soundPanning(5, 1, m_channel2.get());
-		soundPanning(6, 2, m_channel3.get());
-		soundPanning(7, 3, m_channel4.get());
+		soundPanning(BIT4, BIT0, m_channel1.get());
+		soundPanning(BIT5, BIT1, m_channel2.get());
+		soundPanning(BIT6, BIT2, m_channel3.get());
+		soundPanning(BIT7, BIT3, m_channel4.get());
 
 		const auto masterVolume = getMasterVolume();
 		// Mixing is done by simply adding up the channel outputs

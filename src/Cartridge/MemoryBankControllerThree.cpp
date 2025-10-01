@@ -37,7 +37,7 @@ ggb::MemoryBankControllerThree::RealTimeClock::RegisterType ggb::MemoryBankContr
 
 bool ggb::MemoryBankControllerThree::RealTimeClock::isStopped() const
 {
-	return isBitSet(m_registers.m_daysUpperAndFlags, 6);
+	return isBitSet<6>(m_registers.m_daysUpperAndFlags);
 }
 
 void ggb::MemoryBankControllerThree::RealTimeClock::update()
@@ -60,8 +60,8 @@ void ggb::MemoryBankControllerThree::RealTimeClock::update()
 	{
 		uint32_t days = static_cast<int>(secondsPassed / SECONDS_PER_DAY);
 		if (days > 0x1FF)
-			setBit(m_registers.m_daysUpperAndFlags, 7);
-		setBitToValue(m_registers.m_daysUpperAndFlags, 0, isBitSet(days, 8));
+			setBit<7>(m_registers.m_daysUpperAndFlags);
+		setBitToValue<0>(m_registers.m_daysUpperAndFlags, isBitSet<8>(days));
 		m_registers.m_daysLower = static_cast<uint8_t>(days & 0XFF);
 		secondsPassed -= (days * SECONDS_PER_DAY);
 		m_registers.m_seconds = secondsPassed % 60;
@@ -77,8 +77,8 @@ void ggb::MemoryBankControllerThree::RealTimeClock::update()
 	auto secondsPassed = timePassed / NANO_SECONDS_PER_SECOND;
 
 	uint32_t days = m_registers.m_daysLower;
-	bool mostSignificantDayBitSet = isBitSet(m_registers.m_daysUpperAndFlags, 0);
-	setBitToValue(days, 8, mostSignificantDayBitSet);
+	bool mostSignificantDayBitSet = isBitSet<0>(m_registers.m_daysUpperAndFlags);
+	setBitToValue<8>(days, mostSignificantDayBitSet);
 
 	secondsPassed += m_registers.m_seconds;
 	secondsPassed += m_registers.m_minutes * SECONDS_PER_MINUTE;

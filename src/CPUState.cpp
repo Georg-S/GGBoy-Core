@@ -75,43 +75,43 @@ uint16_t& ggb::CPUState::InstructionPointer()
 
 void ggb::CPUState::setZeroFlag(bool value)
 {
-	setBitToValue(F(), 7, value);
+	setBitToValue<7>(F(), value);
 }
 
 bool ggb::CPUState::getZeroFlag() const
 {
-	return isBitSet(F(), 7);
+	return isBitSet<7>(F());
 }
 
 void ggb::CPUState::setSubtractionFlag(bool value) 
 {
-	setBitToValue(F(), 6, value);
+	setBitToValue<6>(F(), value);
 }
 
 bool ggb::CPUState::getSubtractionFlag() const
 {
-	return isBitSet(F(), 6);
+	return isBitSet<6>(F());
 
 }
 
 void ggb::CPUState::setHalfCarryFlag(bool value) 
 {
-	setBitToValue(F(), 5, value);
+	setBitToValue<5>(F(), value);
 }
 
 bool ggb::CPUState::getHalfCarryFlag() const
 {
-	return isBitSet(F(), 5);
+	return isBitSet<5>(F());
 }
 
 void ggb::CPUState::setCarryFlag(bool value) 
 {
-	setBitToValue(F(), 4, value);
+	setBitToValue<4>(F(), value);
 }
 
 bool ggb::CPUState::getCarryFlag() const
 {
-	return isBitSet(F(), 4);
+	return isBitSet<4>(F());
 }
 
 void ggb::CPUState::disableInterrupts()
@@ -300,26 +300,26 @@ void ggb::swap(CPUState* cpu, uint8_t& out)
 
 void ggb::rotateLeft(CPUState* cpu, uint8_t& outNum)
 {
-	const bool carry = isBitSet(outNum, 7);
+	const bool carry = isBitSet<7>(outNum);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(carry);
 	// TODO if upgrade to C++ 20 is made, use the std::rot functions
 	outNum = outNum << 1;
-	setBitToValue(outNum, 0, carry);
+	setBitToValue<0>(outNum, carry);
 }
 
 void ggb::rotateLeftThroughCarry(CPUState* cpu, uint8_t& out)
 {
 	const bool oldCarry = cpu->getCarryFlag();
-	const bool carry = isBitSet(out, 7);
+	const bool carry = isBitSet<7>(out);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(static_cast<bool>(carry));
 	out = out << 1;
-	setBitToValue(out, 0, oldCarry);
+	setBitToValue<0>(out, oldCarry);
 }
 
 void ggb::rotateLeftSetZero(CPUState* cpu, uint8_t& out)
@@ -336,7 +336,7 @@ void ggb::rotateLeftThroughCarrySetZero(CPUState* cpu, uint8_t& out)
 
 void ggb::shiftLeftArithmetically(CPUState* cpu, uint8_t& out)
 {
-	const bool carry = isBitSet(out, 7);
+	const bool carry = isBitSet<7>(out);
 	out = out << 1;
 	cpu->setZeroFlag(out == 0);
 	cpu->setSubtractionFlag(false);
@@ -346,25 +346,25 @@ void ggb::shiftLeftArithmetically(CPUState* cpu, uint8_t& out)
 
 void ggb::rotateRight(CPUState* cpu, uint8_t& out)
 {
-	const bool carry = isBitSet(out, 0);
+	const bool carry = isBitSet<0>(out);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(carry);
 	out = out >> 1;
-	setBitToValue(out, 7, carry);
+	setBitToValue<7>(out, carry);
 }
 
 void ggb::rotateRightThroughCarry(CPUState* cpu, uint8_t& out)
 {
 	const bool oldCarry = cpu->getCarryFlag();
-	const bool carry = isBitSet(out, 0);
+	const bool carry = isBitSet<0>(out);
 	cpu->setZeroFlag(false);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(carry);
 	out = out >> 1;
-	setBitToValue(out, 7, oldCarry);
+	setBitToValue<7>(out, oldCarry);
 }
 
 void ggb::rotateRightSetZero(CPUState* cpu, uint8_t& out)
@@ -381,20 +381,20 @@ void ggb::rotateRightThroughCarrySetZero(CPUState* cpu, uint8_t& out)
 
 void ggb::shiftRightArithmetically(CPUState* cpu, uint8_t& out)
 {
-	const bool carry = isBitSet(out, 0);
-	const bool upperBit = isBitSet(out, 7);
+	const bool carry = isBitSet<0>(out);
+	const bool upperBit = isBitSet<7>(out);
 
 	out = out >> 1;
 	cpu->setZeroFlag(out == 0);
 	cpu->setSubtractionFlag(false);
 	cpu->setHalfCarryFlag(false);
 	cpu->setCarryFlag(carry);
-	setBitToValue(out, 7, upperBit);
+	setBitToValue<7>(out, upperBit);
 }
 
 void ggb::shiftRightLogically(CPUState* cpu, uint8_t& out)
 {
-	const bool carry = isBitSet(out, 0);
+	const bool carry = isBitSet<0>(out);
 
 	out = out >> 1;
 	cpu->setZeroFlag(out == 0);

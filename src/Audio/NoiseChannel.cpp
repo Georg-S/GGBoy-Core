@@ -46,7 +46,7 @@ bool ggb::NoiseChannel::write(uint16_t address, uint8_t value)
 	if (address == AUDIO_CHANNEL_4_CONTROL_ADDRESS)
 	{
 		*m_control = value;
-		if (isBitSet(*m_control, 7))
+		if (isBitSet<7>(*m_control))
 			trigger();
 		return true;
 	}
@@ -76,7 +76,7 @@ ggb::AUDIO_FORMAT ggb::NoiseChannel::getSample() const
 	if (!m_isOn)
 		return 0;
 
-	if (isBitSet(m_lfsr, 0))
+	if (isBitSet<0>(m_lfsr))
 		return 0;
 
 	return m_volume;
@@ -103,7 +103,7 @@ void ggb::NoiseChannel::tickLengthShutdown()
 void ggb::NoiseChannel::tickVolumeEnvelope()
 {
 	m_volumeSweepCounter++;
-	const bool increase = isBitSet(*m_volumeAndEnvelope, 3);
+	const bool increase = isBitSet<3>(*m_volumeAndEnvelope);
 	const auto m_sweepPace = *m_volumeAndEnvelope & 0b111;
 	if (m_volumeSweepCounter < m_sweepPace)
 		return;
@@ -151,12 +151,12 @@ int ggb::NoiseChannel::getInitialVolume() const
 
 void ggb::NoiseChannel::stepLFSR()
 {
-	const bool bit1 = isBitSet(m_lfsr, 0);
-	const bool bit2 = isBitSet(m_lfsr, 1);
+	const bool bit1 = isBitSet<0>(m_lfsr);
+	const bool bit2 = isBitSet<1>(m_lfsr);
 	const bool newBitValue = bit1 ^ bit2;
-	setBitToValue(m_lfsr, 15, newBitValue);
+	setBitToValue<15>(m_lfsr, newBitValue);
 	if (isLFSR7Bit())
-		setBitToValue(m_lfsr, 7, newBitValue);
+		setBitToValue<7>(m_lfsr, newBitValue);
 
 	m_lfsr = m_lfsr >> 1;
 }
@@ -171,12 +171,12 @@ void ggb::NoiseChannel::trigger()
 
 bool ggb::NoiseChannel::isLengthShutdownEnabled() const
 {
-	return isBitSet(*m_control, 6);
+	return isBitSet<6>(*m_control);
 }
 
 bool ggb::NoiseChannel::isLFSR7Bit() const
 {
-	return isBitSet(*m_frequencyAndRandomness, 3);
+	return isBitSet<3>(*m_frequencyAndRandomness);
 }
 
 int ggb::NoiseChannel::getClockShift() const

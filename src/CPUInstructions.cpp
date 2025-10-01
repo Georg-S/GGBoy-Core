@@ -1750,996 +1750,996 @@ static void shiftARightLogically(CPUInstructionParameters)
 
 static void checkBit0A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 0);
+	checkBit(cpu, cpu->A(), ggb::BIT0);
 }
 
 static void checkBit1A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 1);
+	checkBit(cpu, cpu->A(), ggb::BIT1);
 }
 
 static void checkBit2A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 2);
+	checkBit(cpu, cpu->A(), ggb::BIT2);
 }
 
 static void checkBit3A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 3);
+	checkBit(cpu, cpu->A(), ggb::BIT3);
 }
 
 static void checkBit4A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 4);
+	checkBit(cpu, cpu->A(), ggb::BIT4);
 }
 
 static void checkBit5A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 5);
+	checkBit(cpu, cpu->A(), ggb::BIT5);
 }
 
 static void checkBit6A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 6);
+	checkBit(cpu, cpu->A(), ggb::BIT6);
 }
 
 static void checkBit7A(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->A(), 7);
+	checkBit(cpu, cpu->A(), ggb::BIT7);
 }
 
 static void checkBit0B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 0);
+	checkBit(cpu, cpu->B(), ggb::BIT0);
 }
 
 static void checkBit1B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 1);
+	checkBit(cpu, cpu->B(), ggb::BIT1);
 }
 
 static void checkBit2B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 2);
+	checkBit(cpu, cpu->B(), ggb::BIT2);
 }
 
 static void checkBit3B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 3);
+	checkBit(cpu, cpu->B(), ggb::BIT3);
 }
 
 static void checkBit4B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 4);
+	checkBit(cpu, cpu->B(), ggb::BIT4);
 }
 
 static void checkBit5B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 5);
+	checkBit(cpu, cpu->B(), ggb::BIT5);
 }
 
 static void checkBit6B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 6);
+	checkBit(cpu, cpu->B(), ggb::BIT6);
 }
 
 static void checkBit7B(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->B(), 7);
+	checkBit(cpu, cpu->B(), ggb::BIT7);
 }
 
 static void checkBit0C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 0);
+	checkBit(cpu, cpu->C(), ggb::BIT0);
 }
 
 static void checkBit1C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 1);
+	checkBit(cpu, cpu->C(), ggb::BIT1);
 }
 
 static void checkBit2C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 2);
+	checkBit(cpu, cpu->C(), ggb::BIT2);
 }
 
 static void checkBit3C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 3);
+	checkBit(cpu, cpu->C(), ggb::BIT3);
 }
 
 static void checkBit4C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 4);
+	checkBit(cpu, cpu->C(), ggb::BIT4);
 }
 
 static void checkBit5C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 5);
+	checkBit(cpu, cpu->C(), ggb::BIT5);
 }
 
 static void checkBit6C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 6);
+	checkBit(cpu, cpu->C(), ggb::BIT6);
 }
 
 static void checkBit7C(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->C(), 7);
+	checkBit(cpu, cpu->C(), ggb::BIT7);
 }
 
 
 static void checkBit0D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 0);
+	checkBit(cpu, cpu->D(), ggb::BIT0);
 }
 
 static void checkBit1D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 1);
+	checkBit(cpu, cpu->D(), ggb::BIT1);
 }
 
 static void checkBit2D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 2);
+	checkBit(cpu, cpu->D(), ggb::BIT2);
 }
 
 static void checkBit3D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 3);
+	checkBit(cpu, cpu->D(), ggb::BIT3);
 }
 
 static void checkBit4D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 4);
+	checkBit(cpu, cpu->D(), ggb::BIT4);
 }
 
 static void checkBit5D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 5);
+	checkBit(cpu, cpu->D(), ggb::BIT5);
 }
 
 static void checkBit6D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 6);
+	checkBit(cpu, cpu->D(), ggb::BIT6);
 }
 
 static void checkBit7D(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->D(), 7);
+	checkBit(cpu, cpu->D(), ggb::BIT7);
 }
 
 static void checkBit0E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 0);
+	checkBit(cpu, cpu->E(), ggb::BIT0);
 }
 
 static void checkBit1E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 1);
+	checkBit(cpu, cpu->E(), ggb::BIT1);
 }
 
 static void checkBit2E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 2);
+	checkBit(cpu, cpu->E(), ggb::BIT2);
 }
 
 static void checkBit3E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 3);
+	checkBit(cpu, cpu->E(), ggb::BIT3);
 }
 
 static void checkBit4E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 4);
+	checkBit(cpu, cpu->E(), ggb::BIT4);
 }
 
 static void checkBit5E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 5);
+	checkBit(cpu, cpu->E(), ggb::BIT5);
 }
 
 static void checkBit6E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 6);
+	checkBit(cpu, cpu->E(), ggb::BIT6);
 }
 
 static void checkBit7E(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->E(), 7);
+	checkBit(cpu, cpu->E(), ggb::BIT7);
 }
 
 static void checkBit0H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 0);
+	checkBit(cpu, cpu->H(), ggb::BIT0);
 }
 
 static void checkBit1H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 1);
+	checkBit(cpu, cpu->H(), ggb::BIT1);
 }
 
 static void checkBit2H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 2);
+	checkBit(cpu, cpu->H(), ggb::BIT2);
 }
 
 static void checkBit3H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 3);
+	checkBit(cpu, cpu->H(), ggb::BIT3);
 }
 
 static void checkBit4H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 4);
+	checkBit(cpu, cpu->H(), ggb::BIT4);
 }
 
 static void checkBit5H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 5);
+	checkBit(cpu, cpu->H(), ggb::BIT5);
 }
 
 static void checkBit6H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 6);
+	checkBit(cpu, cpu->H(), ggb::BIT6);
 }
 
 static void checkBit7H(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->H(), 7);
+	checkBit(cpu, cpu->H(), ggb::BIT7);
 }
 
 static void checkBit0L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 0);
+	checkBit(cpu, cpu->L(), ggb::BIT0);
 }
 
 static void checkBit1L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 1);
+	checkBit(cpu, cpu->L(), ggb::BIT1);
 }
 
 static void checkBit2L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 2);
+	checkBit(cpu, cpu->L(), ggb::BIT2);
 }
 
 static void checkBit3L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 3);
+	checkBit(cpu, cpu->L(), ggb::BIT3);
 }
 
 static void checkBit4L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 4);
+	checkBit(cpu, cpu->L(), ggb::BIT4);
 }
 
 static void checkBit5L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 5);
+	checkBit(cpu, cpu->L(), ggb::BIT5);
 }
 
 static void checkBit6L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 6);
+	checkBit(cpu, cpu->L(), ggb::BIT6);
 }
 
 static void checkBit7L(CPUInstructionParameters)
 {
-	checkBit(cpu, cpu->L(), 7);
+	checkBit(cpu, cpu->L(), ggb::BIT7);
 }
 
 static void checkBit0HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 0);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT0);
 }
 
 static void checkBit1HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 1);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT1);
 }
 
 static void checkBit2HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 2);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT2);
 }
 
 static void checkBit3HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 3);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT3);
 }
 
 static void checkBit4HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 4);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT4);
 }
 
 static void checkBit5HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 5);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT5);
 }
 
 static void checkBit6HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 6);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT6);
 }
 
 static void checkBit7HLAddress(CPUInstructionParameters)
 {
-	checkBit(cpu, bus->read(cpu->HL()), 7);
+	checkBit(cpu, bus->read(cpu->HL()), ggb::BIT7);
 }
 
 static void resetBit0A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 0);
+	clearBit<0>(cpu->A());
 }
 
 static void resetBit1A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 1);
+	clearBit<1>(cpu->A());
 }
 
 static void resetBit2A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 2);
+	clearBit<2>(cpu->A());
 }
 
 static void resetBit3A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 3);
+	clearBit<3>(cpu->A());
 }
 
 static void resetBit4A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 4);
+	clearBit<4>(cpu->A());
 }
 
 static void resetBit5A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 5);
+	clearBit<5>(cpu->A());
 }
 
 static void resetBit6A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 6);
+	clearBit<6>(cpu->A());
 }
 
 static void resetBit7A(CPUInstructionParameters)
 {
-	clearBit(cpu->A(), 7);
+	clearBit<7>(cpu->A());
 }
 
 static void resetBit0B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 0);
+	clearBit<0>(cpu->B());
 }
 
 static void resetBit1B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 1);
+	clearBit<1>(cpu->B());
 }
 
 static void resetBit2B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 2);
+	clearBit<2>(cpu->B());
 }
 
 static void resetBit3B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 3);
+	clearBit<3>(cpu->B());
 }
 
 static void resetBit4B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 4);
+	clearBit<4>(cpu->B());
 }
 
 static void resetBit5B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 5);
+	clearBit<5>(cpu->B());
 }
 
 static void resetBit6B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 6);
+	clearBit<6>(cpu->B());
 }
 
 static void resetBit7B(CPUInstructionParameters)
 {
-	clearBit(cpu->B(), 7);
+	clearBit<7>(cpu->B());
 }
 
 static void resetBit0C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 0);
+	clearBit<0>(cpu->C());
 }
 
 static void resetBit1C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 1);
+	clearBit<1>(cpu->C());
 }
 
 static void resetBit2C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 2);
+	clearBit<2>(cpu->C());
 }
 
 static void resetBit3C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 3);
+	clearBit<3>(cpu->C());
 }
 
 static void resetBit4C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 4);
+	clearBit<4>(cpu->C());
 }
 
 static void resetBit5C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 5);
+	clearBit<5>(cpu->C());
 }
 
 static void resetBit6C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 6);
+	clearBit<6>(cpu->C());
 }
 
 static void resetBit7C(CPUInstructionParameters)
 {
-	clearBit(cpu->C(), 7);
+	clearBit<7>(cpu->C());
 }
 
 
 static void resetBit0D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 0);
+	clearBit<0>(cpu->D());
 }
 
 static void resetBit1D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 1);
+	clearBit<1>(cpu->D());
 }
 
 static void resetBit2D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 2);
+	clearBit<2>(cpu->D());
 }
 
 static void resetBit3D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 3);
+	clearBit<3>(cpu->D());
 }
 
 static void resetBit4D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 4);
+	clearBit<4>(cpu->D());
 }
 
 static void resetBit5D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 5);
+	clearBit<5>(cpu->D());
 }
 
 static void resetBit6D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 6);
+	clearBit<6>(cpu->D());
 }
 
 static void resetBit7D(CPUInstructionParameters)
 {
-	clearBit(cpu->D(), 7);
+	clearBit<7>(cpu->D());
 }
 
 static void resetBit0E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 0);
+	clearBit<0>(cpu->E());
 }
 
 static void resetBit1E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 1);
+	clearBit<1>(cpu->E());
 }
 
 static void resetBit2E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 2);
+	clearBit<2>(cpu->E());
 }
 
 static void resetBit3E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 3);
+	clearBit<3>(cpu->E());
 }
 
 static void resetBit4E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 4);
+	clearBit<4>(cpu->E());
 }
 
 static void resetBit5E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 5);
+	clearBit<5>(cpu->E());
 }
 
 static void resetBit6E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 6);
+	clearBit<6>(cpu->E());
 }
 
 static void resetBit7E(CPUInstructionParameters)
 {
-	clearBit(cpu->E(), 7);
+	clearBit<7>(cpu->E());
 }
 
 static void resetBit0H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 0);
+	clearBit<0>(cpu->H());
 }
 
 static void resetBit1H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 1);
+	clearBit<1>(cpu->H());
 }
 
 static void resetBit2H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 2);
+	clearBit<2>(cpu->H());
 }
 
 static void resetBit3H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 3);
+	clearBit<3>(cpu->H());
 }
 
 static void resetBit4H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 4);
+	clearBit<4>(cpu->H());
 }
 
 static void resetBit5H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 5);
+	clearBit<5>(cpu->H());
 }
 
 static void resetBit6H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 6);
+	clearBit<6>(cpu->H());
 }
 
 static void resetBit7H(CPUInstructionParameters)
 {
-	clearBit(cpu->H(), 7);
+	clearBit<7>(cpu->H());
 }
 
 static void resetBit0L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 0);
+	clearBit<0>(cpu->L());
 }
 
 static void resetBit1L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 1);
+	clearBit<1>(cpu->L());
 }
 
 static void resetBit2L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 2);
+	clearBit<2>(cpu->L());
 }
 
 static void resetBit3L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 3);
+	clearBit<3>(cpu->L());
 }
 
 static void resetBit4L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 4);
+	clearBit<4>(cpu->L());
 }
 
 static void resetBit5L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 5);
+	clearBit<5>(cpu->L());
 }
 
 static void resetBit6L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 6);
+	clearBit<6>(cpu->L());
 }
 
 static void resetBit7L(CPUInstructionParameters)
 {
-	clearBit(cpu->L(), 7);
+	clearBit<7>(cpu->L());
 }
 
 static void resetBit0HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 0);
+	clearBit<0>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit1HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 1);
+	clearBit<1>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit2HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 2);
+	clearBit<2>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit3HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 3);
+	clearBit<3>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit4HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 4);
+	clearBit<4>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit5HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 5);
+	clearBit<5>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit6HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 6);
+	clearBit<6>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void resetBit7HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	clearBit(val, 7);
+	clearBit<7>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit0A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 0);
+	setBit<0>(cpu->A());
 }
 
 static void setBit1A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 1);
+	setBit<1>(cpu->A());
 }
 
 static void setBit2A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 2);
+	setBit<2>(cpu->A());
 }
 
 static void setBit3A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 3);
+	setBit<3>(cpu->A());
 }
 
 static void setBit4A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 4);
+	setBit<4>(cpu->A());
 }
 
 static void setBit5A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 5);
+	setBit<5>(cpu->A());
 }
 
 static void setBit6A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 6);
+	setBit<6>(cpu->A());
 }
 
 static void setBit7A(CPUInstructionParameters)
 {
-	setBit(cpu->A(), 7);
+	setBit<7>(cpu->A());
 }
 
 static void setBit0B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 0);
+	setBit<0>(cpu->B());
 }
 
 static void setBit1B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 1);
+	setBit<1>(cpu->B());
 }
 
 static void setBit2B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 2);
+	setBit<2>(cpu->B());
 }
 
 static void setBit3B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 3);
+	setBit<3>(cpu->B());
 }
 
 static void setBit4B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 4);
+	setBit<4>(cpu->B());
 }
 
 static void setBit5B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 5);
+	setBit<5>(cpu->B());
 }
 
 static void setBit6B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 6);
+	setBit<6>(cpu->B());
 }
 
 static void setBit7B(CPUInstructionParameters)
 {
-	setBit(cpu->B(), 7);
+	setBit<7>(cpu->B());
 }
 
 static void setBit0C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 0);
+	setBit<0>(cpu->C());
 }
 
 static void setBit1C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 1);
+	setBit<1>(cpu->C());
 }
 
 static void setBit2C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 2);
+	setBit<2>(cpu->C());
 }
 
 static void setBit3C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 3);
+	setBit<3>(cpu->C());
 }
 
 static void setBit4C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 4);
+	setBit<4>(cpu->C());
 }
 
 static void setBit5C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 5);
+	setBit<5>(cpu->C());
 }
 
 static void setBit6C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 6);
+	setBit<6>(cpu->C());
 }
 
 static void setBit7C(CPUInstructionParameters)
 {
-	setBit(cpu->C(), 7);
+	setBit<7>(cpu->C());
 }
 
 
 static void setBit0D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 0);
+	setBit<0>(cpu->D());
 }
 
 static void setBit1D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 1);
+	setBit<1>(cpu->D());
 }
 
 static void setBit2D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 2);
+	setBit<2>(cpu->D());
 }
 
 static void setBit3D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 3);
+	setBit<3>(cpu->D());
 }
 
 static void setBit4D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 4);
+	setBit<4>(cpu->D());
 }
 
 static void setBit5D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 5);
+	setBit<5>(cpu->D());
 }
 
 static void setBit6D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 6);
+	setBit<6>(cpu->D());
 }
 
 static void setBit7D(CPUInstructionParameters)
 {
-	setBit(cpu->D(), 7);
+	setBit<7>(cpu->D());
 }
 
 static void setBit0E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 0);
+	setBit<0>(cpu->E());
 }
 
 static void setBit1E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 1);
+	setBit<1>(cpu->E());
 }
 
 static void setBit2E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 2);
+	setBit<2>(cpu->E());
 }
 
 static void setBit3E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 3);
+	setBit<3>(cpu->E());
 }
 
 static void setBit4E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 4);
+	setBit<4>(cpu->E());
 }
 
 static void setBit5E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 5);
+	setBit<5>(cpu->E());
 }
 
 static void setBit6E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 6);
+	setBit<6>(cpu->E());
 }
 
 static void setBit7E(CPUInstructionParameters)
 {
-	setBit(cpu->E(), 7);
+	setBit<7>(cpu->E());
 }
 
 static void setBit0H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 0);
+	setBit<0>(cpu->H());
 }
 
 static void setBit1H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 1);
+	setBit<1>(cpu->H());
 }
 
 static void setBit2H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 2);
+	setBit<2>(cpu->H());
 }
 
 static void setBit3H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 3);
+	setBit<3>(cpu->H());
 }
 
 static void setBit4H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 4);
+	setBit<4>(cpu->H());
 }
 
 static void setBit5H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 5);
+	setBit<5>(cpu->H());
 }
 
 static void setBit6H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 6);
+	setBit<6>(cpu->H());
 }
 
 static void setBit7H(CPUInstructionParameters)
 {
-	setBit(cpu->H(), 7);
+	setBit<7>(cpu->H());
 }
 
 static void setBit0L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 0);
+	setBit<0>(cpu->L());
 }
 
 static void setBit1L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 1);
+	setBit<1>(cpu->L());
 }
 
 static void setBit2L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 2);
+	setBit<2>(cpu->L());
 }
 
 static void setBit3L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 3);
+	setBit<3>(cpu->L());
 }
 
 static void setBit4L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 4);
+	setBit<4>(cpu->L());
 }
 
 static void setBit5L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 5);
+	setBit<5>(cpu->L());
 }
 
 static void setBit6L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 6);
+	setBit<6>(cpu->L());
 }
 
 static void setBit7L(CPUInstructionParameters)
 {
-	setBit(cpu->L(), 7);
+	setBit<7>(cpu->L());
 }
 
 static void setBit0HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 0);
+	setBit<0>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit1HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 1);
+	setBit<1>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit2HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 2);
+	setBit<2>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit3HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 3);
+	setBit<3>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit4HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 4);
+	setBit<4>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit5HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 5);
+	setBit<5>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit6HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 6);
+	setBit<6>(val);
 	bus->write(cpu->HL(), val);
 }
 
 static void setBit7HLAddress(CPUInstructionParameters)
 {
 	auto val = bus->read(cpu->HL());
-	setBit(val, 7);
+	setBit<7>(val);
 	bus->write(cpu->HL(), val);
 }
 

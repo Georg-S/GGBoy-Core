@@ -4,12 +4,12 @@
 #include "Constants.hpp"
 #include "Logging.hpp"
 
-static constexpr int ACTION_BUTTONS_BIT = 5;
-static constexpr int DIRECTION_BUTTONS_BIT = 4;
-static constexpr int DOWN_START_BIT = 3;
-static constexpr int UP_SELECT_BIT = 2;
-static constexpr int LEFT_B_BIT = 1;
-static constexpr int RIGHT_A_BIT = 0;
+static constexpr int ACTION_BUTTONS_BIT = ggb::BIT5;
+static constexpr int DIRECTION_BUTTONS_BIT = ggb::BIT4;
+static constexpr int DOWN_START_BIT = ggb::BIT3;
+static constexpr int UP_SELECT_BIT = ggb::BIT2;
+static constexpr int LEFT_B_BIT = ggb::BIT1;
+static constexpr int RIGHT_A_BIT = ggb::BIT0;
 
 void ggb::Input::setBus(BUS* bus)
 {
@@ -27,7 +27,7 @@ void ggb::Input::update()
 		const bool actionSelectedAndPressed = actionSelected && actionPressed;
 		const bool directionSelectedAndPressed = directionSelected && directionPressed;
 
-		if (isBitSet(*m_inputRegister, bit) && (actionSelectedAndPressed || directionSelectedAndPressed))
+		if ((actionSelectedAndPressed || directionSelectedAndPressed) && isBitSet(*m_inputRegister, bit))
 			m_bus->requestInterrupt(INTERRUPT_JOYPAD_BIT);
 
 		if (actionSelectedAndPressed || directionSelectedAndPressed)

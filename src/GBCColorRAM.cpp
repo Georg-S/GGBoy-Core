@@ -21,7 +21,7 @@ void ggb::GBCColorRAM::setBus(BUS* bus)
 void ggb::GBCColorRAM::write(uint8_t value)
 {
 	m_colorRAM[getRAMAddress()] = value;
-	if (isBitSet(*m_paletteSpecification, 7))
+	if (isBitSet<7>(*m_paletteSpecification))
 		incrementAddress();
 }
 

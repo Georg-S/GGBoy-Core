@@ -138,7 +138,7 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 
 bool ggb::PixelProcessingUnit::isEnabled() const
 {
-	return isBitSet(*m_LCDControl, 7);
+	return isBitSet<7>(*m_LCDControl);
 }
 
 LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
@@ -149,8 +149,8 @@ LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
 
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
-	setBitToValue(*m_LCDStatus, 0, static_cast<uint8_t>(mode) & 1);
-	setBitToValue(*m_LCDStatus, 1, static_cast<uint8_t>(mode) & (1 << 1));
+	setBitToValue<0>(*m_LCDStatus, static_cast<uint8_t>(mode) & 1);
+	setBitToValue<1>(*m_LCDStatus, static_cast<uint8_t>(mode) & (1 << 1));
 }
 
 void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
@@ -243,15 +243,15 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 		m_GBCObjectColorRAM.updateColorPalettes();
 	}
 
-	if (m_GBCMode || isBitSet(*m_LCDControl, 0)) 
+	if (m_GBCMode || isBitSet<0>(*m_LCDControl)) 
 	{
 		// Not quite correct, instead of turning the background and window off, it should be white
 		writeCurrentBackgroundLineIntoFrameBuffer();
-		if (isBitSet(*m_LCDControl, 5))
+		if (isBitSet<5>(*m_LCDControl))
 			writeCurrentWindowLineIntoBuffer();
 	}
 	
-	const bool fillObjectBuffer = isBitSet(*m_LCDControl, 1);
+	const bool fillObjectBuffer = isBitSet<1>(*m_LCDControl);
 	if (fillObjectBuffer) 
 	{
 		updateCurrentScanlineObjects();
@@ -260,7 +260,7 @@ void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 
 	const auto currentScanline = scanLine();
 	auto frameBufferRow = m_gameFrameBuffer->getRow(currentScanline);
-	const bool objectAlwaysOnTop = m_GBCMode && !isBitSet(*m_LCDControl, 0);
+	const bool objectAlwaysOnTop = m_GBCMode && !isBitSet<0>(*m_LCDControl);
 
 	for (int x = 0; x < GAME_WINDOW_WIDTH; x++)
 	{
@@ -298,7 +298,7 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 			break;
 	}
 
-	if (!m_GBCMode || isBitSet(*m_GBCObjectPriorityMode, 0)) 
+	if (!m_GBCMode || isBitSet<0>(*m_GBCObjectPriorityMode)) 
 	{
 		// Order objects by x-coordinate
 		// If obj1.x == obj2.x the obj which is first in memory should overlap the one coming after it -> therefore use stable_sort
@@ -319,8 +319,8 @@ void ggb::PixelProcessingUnit::updateCurrentScanlineObjects()
 void ggb::PixelProcessingUnit::writeCurrentBackgroundLineIntoFrameBuffer()
 {
 	RenderingScanlineData data = {};
-	const uint16_t backgroundTileMap = isBitSet(*m_LCDControl, 3) ? 0x9C00 : 0x9800;
-	data.signedAddressingMode = !isBitSet(*m_LCDControl, 4);
+	const uint16_t backgroundTileMap = isBitSet<3>(*m_LCDControl) ? 0x9C00 : 0x9800;
+	data.signedAddressingMode = !isBitSet<4>(*m_LCDControl);
 
 	// TODO is the % 256 correct?
 	const auto yPosInBackground = (scanLine() + *m_viewPortYPos) % 256;
@@ -352,13 +352,13 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 	const auto tileAddress = getTileAddress(inOutData->tileIndexAddress, inOutData->signedAddressingMode);
 	uint8_t* vramBank = getVRAMBankPointer(GBCTileData);
 	int tileRow = inOutData->tileRow;
-	const bool tileOverObject = m_GBCMode && isBitSet(GBCTileData, 7);
+	const bool tileOverObject = m_GBCMode && isBitSet<7>(GBCTileData);
 
-	if (isBitSet(GBCTileData, 6))
+	if (isBitSet<6>(GBCTileData))
 		tileRow = (TILE_HEIGHT - 1) - tileRow; // Flip Y
 
 	getTileRowData(vramBank, tileAddress, tileRow, m_objColorBuffer);
-	if (isBitSet(GBCTileData, 5))
+	if (isBitSet<5>(GBCTileData))
 		std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end()); // Flip X
 
 	while (inOutData->tileColumn < TILE_WIDTH && screenXPos < GAME_WINDOW_WIDTH)
@@ -392,8 +392,8 @@ void ggb::PixelProcessingUnit::writeCurrentWindowLineIntoBuffer()
 
 	RenderingScanlineData data = {};
 	// TODO Refactor it into the same method as the background?
-	const uint16_t windowTileMap = isBitSet(*m_LCDControl, 6) ? 0x9C00 : 0x9800;
-	data.signedAddressingMode = !isBitSet(*m_LCDControl, 4);
+	const uint16_t windowTileMap = isBitSet<6>(*m_LCDControl) ? 0x9C00 : 0x9800;
+	data.signedAddressingMode = !isBitSet<4>(*m_LCDControl);
 
 	const auto yPos = scanLine() - *m_windowYPos;
 	const auto yTileOffset = (yPos / TILE_HEIGHT) * TILE_MAP_WIDTH;
@@ -459,7 +459,7 @@ void ggb::PixelProcessingUnit::writeCurrentObjectLineIntoBuffer()
 
 uint8_t* ggb::PixelProcessingUnit::getVRAMBankPointer(uint8_t attributes)
 {
-	if (m_GBCMode && isBitSet(attributes, 3))
+	if (m_GBCMode && isBitSet<3>(attributes))
 		return m_VRAMBank1Ptr;
 	return m_VRAMBank0Ptr;
 }
@@ -512,14 +512,14 @@ uint8_t ggb::PixelProcessingUnit::incrementScanline()
 
 	if (*m_LYCompare == *m_LCDYCoordinate)
 	{
-		setBit(*m_LCDStatus, 2);
+		setBit<2>(*m_LCDStatus);
 
-		if (isBitSet(*m_LCDStatus, 6))
+		if (isBitSet<6>(*m_LCDStatus))
 			m_bus->requestInterrupt(INTERRUPT_LCD_STAT_BIT);
 	}
 	else
 	{
-		clearBit(*m_LCDStatus, 2);
+		clearBit<2>(*m_LCDStatus);
 	}
 
 	return *m_LCDYCoordinate;
@@ -598,7 +598,7 @@ void ggb::PixelProcessingUnit::updateAndRenderTileData()
 
 int ggb::PixelProcessingUnit::getObjectHeight() const
 {
-	if (isBitSet(*m_LCDControl, 2))
+	if (isBitSet<2>(*m_LCDControl))
 		return TILE_HEIGHT * 2;
 	return TILE_HEIGHT;
 }
