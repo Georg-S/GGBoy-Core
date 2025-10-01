@@ -117,7 +117,7 @@ bool ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 	}
 	catch (const std::exception& e)
 	{
-		logError(std::string("Error saving emulator state: ") + e.what());
+		logError(std::string("Error loading emulator state: ") + e.what());
 		return false;
 	}
 	return true;
@@ -215,6 +215,11 @@ bool ggb::Emulator::isPaused() const
 void ggb::Emulator::setInputState(const ggb::GameboyInput& input)
 {
 	m_input->setButtonState(input);
+}
+
+void ggb::Emulator::setColorCorrectionEnabled(bool enabled) 
+{
+	m_ppu->setColorCorrectionEnabled(enabled);
 }
 
 void ggb::Emulator::serialization(ggb::Serialization* serialization)

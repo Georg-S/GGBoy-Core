@@ -98,6 +98,7 @@ namespace ggb
 		void serialization(Serialization* serialization);
 		void GBCWriteToColorRAM(uint16_t address, uint8_t value);
 		uint8_t GBCReadColorRAM(uint16_t address) const;
+		void setColorCorrectionEnabled(bool enabled);
 
 	private:
 		// Helper struct for rendering the current scanline
@@ -135,6 +136,7 @@ namespace ggb
 		bool m_drawWholeBackground = false;
 		bool m_drawTileData = false;
 		bool m_GBCMode = true;
+		bool m_colorCorrectionEnabled = false;
 		std::vector<Object> m_objects;
 		std::vector<Object> m_currentScanlineObjects;
 		std::vector<Tile> m_vramTiles;

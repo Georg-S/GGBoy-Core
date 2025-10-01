@@ -42,19 +42,19 @@ void ggb::CPU::setBus(BUS* bus)
 
 bool ggb::CPU::handleInterrupts()
 {
-	if (m_cpuState.isStopped() && (*m_requestedInterrupts & *m_enabledInterrupts)) 
+	const auto anyActiveInterruptRequested = (*m_requestedInterrupts & *m_enabledInterrupts);
+	if (!anyActiveInterruptRequested)
+		return false;
+
+	if (m_cpuState.isStopped())
 		m_cpuState.resume();
 
 	if (!m_cpuState.interruptsEnabled())
 		return false;
 
-	auto anyInterruptBits = (*m_requestedInterrupts & *m_enabledInterrupts);
-	if (!anyInterruptBits)
-		return false;
-
-	auto handleInterrupt = [this, anyInterruptBits](int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString)
+	auto handleInterrupt = [this, anyActiveInterruptRequested](int interruptBit, uint16_t interruptHandlerAddress, const char* interruptString)
 	{
-		if (!isBitSet(anyInterruptBits, interruptBit))
+		if (!isBitSet(anyActiveInterruptRequested, interruptBit))
 			return false;
 
 		m_cpuState.disableInterrupts();
@@ -91,12 +91,17 @@ int ggb::CPU::step()
 	++m_cpuState.InstructionPointer();
 	const int duration = m_opcodes.execute(opCode, &m_cpuState, m_bus);
 
-	auto serial = m_bus->read(0xff02);
-	if (serial == 0x81) 
+	static constexpr bool readSerial = false;
+	if constexpr (readSerial)
 	{
-		char c = m_bus->read(0xff01);
-		printf("%c", c);
-		m_bus->write(0xFF02, uint8_t(0x0));
+		// We don't have a "good" serial implementation, the following is just and implementation for the test roms
+		auto serial = m_bus->read(0xff02);
+		if (serial == 0x81) 
+		{
+			char c = m_bus->read(0xff01);
+			printf("%c", c);
+			m_bus->write(0xFF02, uint8_t(0x0));
+		}
 	}
 
 	return duration;

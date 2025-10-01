@@ -45,6 +45,7 @@ namespace ggb
 		void resume();
 		bool isPaused() const;
 		void setInputState(const ggb::GameboyInput& input);
+		void setColorCorrectionEnabled(bool enabled);
 
 	private:
 		void rewire();

@@ -196,6 +196,7 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_objColorBuffer);
 	serialization->read_write(m_backgroundAndWindowPixelBuffer);
 	serialization->read_write(m_currentObjectRowPixelBuffer);
+	serialization->read_write(m_colorCorrectionEnabled);
 
 	m_gameFrameBuffer->serialization(serialization);
 	m_tileDataFrameBuffer->serialization(serialization);
@@ -223,14 +224,22 @@ uint8_t ggb::PixelProcessingUnit::GBCReadColorRAM(uint16_t address) const
 	return m_GBCObjectColorRAM.read();
 }
 
+void ggb::PixelProcessingUnit::setColorCorrectionEnabled(bool enabled)
+{
+	m_colorCorrectionEnabled = enabled;
+}
+
 void ggb::PixelProcessingUnit::renderGame()
 {
 	if (!m_gameRenderer)
 		return;
 
-	auto& rawData = m_gameFrameBuffer->getRawData();
-	for (auto& value : rawData)
-		value = colorCorrection(value);
+	if (m_colorCorrectionEnabled) 
+	{
+		auto& rawData = m_gameFrameBuffer->getRawData();
+		for (auto& value : rawData)
+			value = colorCorrection(value);
+	}
 
 	m_gameRenderer->renderNewFrame(*m_gameFrameBuffer);
 }
