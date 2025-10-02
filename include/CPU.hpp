@@ -21,6 +21,6 @@ namespace ggb
 		OPCodes m_opcodes; // TODO maybe not make this part of cpu but instead a static variable
 		CPUState m_cpuState;
 		uint8_t* m_requestedInterrupts = nullptr;
-		uint8_t* m_enabledInterrupts = nullptr;
+		const uint8_t* m_enabledInterrupts = nullptr;
 	};
 }

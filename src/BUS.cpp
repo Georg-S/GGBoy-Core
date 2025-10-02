@@ -258,6 +258,7 @@ void ggb::BUS::serialization(Serialization* serialization)
 	serialization->read_write(m_wram);
 	serialization->read_write(m_vram);
 	serialization->read_write(m_hBlankDMA);
+	serialization->read_write(m_doubleSpeedOn);
 }
 
 void ggb::BUS::handleHBlank()
@@ -277,7 +278,7 @@ void ggb::BUS::handleHBlank()
 
 bool ggb::BUS::isGBCDoubleSpeedOn() const
 {
-	return isBitSet<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS]);
+	return m_doubleSpeedOn;
 }
 
 bool ggb::BUS::valid() const
@@ -287,9 +288,11 @@ bool ggb::BUS::valid() const
 
 void ggb::BUS::toggleGBCDoubleSpeed()
 {
-	setBitToValue<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS], !isGBCDoubleSpeedOn());
-	m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
-	m_memory[INPUT_REGISTER_ADDRESS] = 0x30;
+	setBitToValue<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS], !m_doubleSpeedOn);
+	m_doubleSpeedOn = !m_doubleSpeedOn;
+
+	write(ENABLED_INTERRUPT_ADDRESS, static_cast<uint8_t>(0x00));
+	write(INPUT_REGISTER_ADDRESS, static_cast<uint8_t>(0x30));
 }
 
 void ggb::BUS::directMemoryAccess(uint8_t value)

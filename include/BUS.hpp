@@ -63,6 +63,7 @@ namespace ggb
 		std::array<std::array<uint8_t, WRAM_BANK_MEMORY_SIZE>, GBC_WRAM_BANK_COUNT> m_wram = {};
 		std::array<std::array<uint8_t, VRAM_BANK_MEMORY_SIZE>, GBC_VRAM_BANK_COUNT> m_vram = {};
 		HBlankDMA m_hBlankDMA = {};
+		bool m_doubleSpeedOn = false;
 	};
 	int getVRAMIndexFromAddress(uint16_t address);
 }
