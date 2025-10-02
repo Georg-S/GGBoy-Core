@@ -39,6 +39,7 @@ namespace ggb
 		void tickVolumeEnvelope();
 		void tickFrequencySweep();
 		void serialization(Serialization* serialization) override;
+		void reset() override;
 
 	private:
 		void trigger();
@@ -59,8 +60,8 @@ namespace ggb
 		int m_volume = 0;
 		int m_frequencySweepCounter = 0;
 		int m_frequencySweepPace = 0;
-		bool m_hasSweep = true;
 		bool m_volumeChange = false;
+		bool m_hasSweep = true;
 		uint8_t* m_sweep = nullptr;
 		uint8_t* m_lengthTimerAndDutyCycle = nullptr;
 		uint8_t* m_volumeAndEnvelope = nullptr;

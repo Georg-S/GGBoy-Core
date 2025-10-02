@@ -18,13 +18,14 @@ static uint32_t getTimerControlDivisor(uint8_t num)
 ggb::Timer::Timer(BUS* bus)
 {
 	setBus(bus);
-	updateAfterWrite();
+	reset();
 }
 
 void ggb::Timer::reset()
 {
 	m_dividerCounter = 0;
 	m_counterForTimerCounter = 0;
+	updateAfterWrite();
 }
 
 void ggb::Timer::setBus(BUS* bus)
@@ -63,10 +64,10 @@ void ggb::Timer::resetDividerRegister()
 
 void ggb::Timer::serialization(Serialization* serialization)
 {
-	serialization->read_write(m_dividerCounter);
-	serialization->read_write(m_counterForTimerCounter);
 	serialization->read_write(m_enabled);
 	serialization->read_write(m_timerControlValue);
+	serialization->read_write(m_dividerCounter);
+	serialization->read_write(m_counterForTimerCounter);
 }
 
 void ggb::Timer::updateAfterWrite()

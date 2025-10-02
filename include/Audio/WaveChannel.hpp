@@ -21,6 +21,7 @@ namespace ggb
 		bool isChannelAddress(uint16_t address) const override;
 		void tickLengthShutdown() override;
 		void serialization(Serialization* serialization) override;
+		void reset() override;
 
 	private:
 		void trigger();

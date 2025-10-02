@@ -5,14 +5,8 @@
 ggb::SquareWaveChannel::SquareWaveChannel(bool hasSweep, BUS* bus)
 	: m_hasSweep(hasSweep)
 {
-	if (!hasSweep) 
-	{
-		// Base Address for channel2 points into unused memory (because it has no frequency sweep functionalaty)
-		// This is done, so that the offset calculation works correctly
-		m_baseAddres = AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS - 1;
-	}
-
 	setBus(bus);
+	reset();
 }
 
 void ggb::SquareWaveChannel::step(int cyclesPassed)
@@ -218,6 +212,25 @@ void ggb::SquareWaveChannel::serialization(Serialization* serialization)
 	serialization->read_write(m_frequencySweepPace);
 	serialization->read_write(m_hasSweep);
 	serialization->read_write(m_volumeChange);
+}
+
+void ggb::SquareWaveChannel::reset()
+{
+	m_dutyCyclePosition = 0;
+	m_periodCounter = 0;
+	m_lengthCounter = 0;
+	m_volumeSweepCounter = 0;
+	m_volume = 0;
+	m_frequencySweepCounter = 0;
+	m_frequencySweepPace = 0;
+	// Don't reset m_hasSweep
+	m_volumeChange = false;
+	if (!m_hasSweep)
+	{
+		// Base Address for channel2 points into unused memory (because it has no frequency sweep functionalaty)
+		// This is done, so that the offset calculation works correctly
+		m_baseAddres = AUDIO_CHANNEL_2_LENGTH_DUTY_ADDRESS - 1;
+	}
 }
 
 void ggb::SquareWaveChannel::trigger()

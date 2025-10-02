@@ -10,6 +10,7 @@ static constexpr int WAVE_RAM_MEMORY_SIZE = WAVE_RAM_SAMPLE_LENGTH / SAMPLES_PER
 ggb::WaveChannel::WaveChannel(BUS* bus)
 {
 	setBus(bus);
+	reset();
 }
 
 void ggb::WaveChannel::step(int cyclesPassed)
@@ -124,6 +125,14 @@ void ggb::WaveChannel::serialization(Serialization* serialization)
 	serialization->read_write(m_sampleIndex);
 	serialization->read_write(m_periodCounter);
 	serialization->read_write(m_lengthCounter);
+}
+
+void ggb::WaveChannel::reset()
+{
+	AudioChannel::reset();
+	m_sampleIndex = 0;
+	m_periodCounter = 0;
+	m_lengthCounter = 0;
 }
 
 int ggb::WaveChannel::getPeriodCounter() const

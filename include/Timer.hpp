@@ -18,14 +18,14 @@ namespace ggb
 	private:
 		void updateTimerDivider(int elapsedCycles);
 
-		BUS* m_bus;
 		bool m_enabled = false;
 		uint32_t m_timerControlValue = 0;
+		uint16_t m_dividerCounter = 0;
+		uint32_t m_counterForTimerCounter = 0;
+		BUS* m_bus;
 		uint8_t* m_dividerRegister = nullptr;
 		uint8_t* m_timerCounter = nullptr;
 		uint8_t* m_timerModulo = nullptr;
 		uint8_t* m_timerControl = nullptr;
-		uint16_t m_dividerCounter = 0;
-		uint32_t m_counterForTimerCounter = 0;
 	};
 }

@@ -15,8 +15,9 @@ ggb::Emulator::Emulator()
 	m_timer = std::make_unique<Timer>(m_bus.get());
 	m_audio = std::make_unique<AudioProcessingUnit>(m_bus.get());
 	m_input = std::make_unique<Input>();
-	m_previousTimeStamp = m_previousTimeStampSpeedup = getCurrentTimeInNanoSeconds();
 	setEmulationSpeed(1.0);
+
+	reset();
 }
 
 bool ggb::Emulator::loadCartridge(const std::filesystem::path& path)
@@ -68,13 +69,24 @@ void ggb::Emulator::stepAiMode()
 
 void ggb::Emulator::reset()
 {
+	// Reset emulator class variables
+	m_syncCounter = 0;
+	m_previousTimeStamp = m_previousTimeStampSpeedup = getCurrentTimeInNanoSeconds();
+	m_paused = false;
+	m_lastMaxSpeedup = 1.0;
+	m_updateSpeedupCounter = 0;
+	m_masterSynchronizationAfterCPUCycles = 0.0;
+	m_speedupTimeCounter = 0;
+	m_speedupCycleCounter = 0;
+	m_paused = false;
+	// Reset emulated components
 	m_bus->reset();
 	m_cpu->reset();
 	m_ppu->reset();
 	m_timer->reset();
-	m_syncCounter = 0;
-	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
-	m_paused = false;
+	m_input->reset();
+	m_audio->reset();
+
 	rewire();
 }
 
@@ -242,9 +254,14 @@ void ggb::Emulator::serialization(ggb::Serialization* serialization)
 	m_timer->serialization(serialization);
 	m_audio->serialization(serialization);
 	m_input->serialization(serialization);
-	serialization->read_write(m_emulationSpeed);
-	serialization->read_write(m_previousTimeStamp);
 	serialization->read_write(m_syncCounter);
+	serialization->read_write(m_previousTimeStamp);
+	serialization->read_write(m_emulationSpeed);
+	serialization->read_write(m_lastMaxSpeedup);
+	serialization->read_write(m_updateSpeedupCounter);
+	serialization->read_write(m_masterSynchronizationAfterCPUCycles);
+	serialization->read_write(m_speedupTimeCounter);
+	serialization->read_write(m_speedupCycleCounter);
 	serialization->read_write(m_paused);
 }
 
@@ -259,8 +276,7 @@ void ggb::Emulator::rewire()
 	m_cpu->setBus(m_bus.get());
 	m_timer->setBus(m_bus.get());
 	m_audio->setBus(m_bus.get());
-	if (m_input)
-		m_input->setBus(m_bus.get());
+	m_input->setBus(m_bus.get());
 }
 
 void ggb::Emulator::updateMaxSpeedup(int elapsedCycles)

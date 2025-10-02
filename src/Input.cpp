@@ -43,6 +43,11 @@ void ggb::Input::update()
 	setInputBitAndHandleInterrupt(buttons.isStartPressed, buttons.isDownPressed, DOWN_START_BIT);
 }
 
+void ggb::Input::reset()
+{
+	m_currentState = {};
+}
+
 void ggb::Input::setButtonState(GameboyInput input)
 {
 	m_currentState = std::move(input);

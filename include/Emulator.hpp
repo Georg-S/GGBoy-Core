@@ -55,14 +55,6 @@ namespace ggb
 		void synchronizeEmulatorMasterClock(int elapsedCycles);
 		void serialization(ggb::Serialization* serialization);
 
-		std::unique_ptr<CPU> m_cpu;
-		std::unique_ptr<BUS> m_bus;
-		std::unique_ptr<Cartridge> m_currentCartridge;
-		std::unique_ptr<PixelProcessingUnit> m_ppu;
-		std::unique_ptr<Timer> m_timer;
-		std::unique_ptr<Input> m_input;
-		std::unique_ptr<AudioProcessingUnit> m_audio;
-		std::filesystem::path m_loadedCartridgePath;
 		int m_syncCounter = 0;
 		long long m_previousTimeStamp = 0;
 		long long m_previousTimeStampSpeedup = 0;
@@ -73,5 +65,13 @@ namespace ggb
 		long long m_speedupTimeCounter = 0;
 		long long m_speedupCycleCounter = 0;
 		bool m_paused = false;
+		std::unique_ptr<CPU> m_cpu;
+		std::unique_ptr<BUS> m_bus;
+		std::unique_ptr<Cartridge> m_currentCartridge;
+		std::unique_ptr<PixelProcessingUnit> m_ppu;
+		std::unique_ptr<Timer> m_timer;
+		std::unique_ptr<Input> m_input;
+		std::unique_ptr<AudioProcessingUnit> m_audio;
+		std::filesystem::path m_loadedCartridgePath;
 	};
 }

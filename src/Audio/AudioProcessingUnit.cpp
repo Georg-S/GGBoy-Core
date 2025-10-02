@@ -14,6 +14,7 @@ ggb::AudioProcessingUnit::AudioProcessingUnit(BUS* bus)
 	m_channels[2] = m_channel3.get();
 	m_channels[3] = m_channel4.get();
 	setBus(bus);
+	reset();
 }
 
 void ggb::AudioProcessingUnit::setBus(BUS* bus)
@@ -89,8 +90,19 @@ void ggb::AudioProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_frameSequencerStep);
 	serialization->read_write(m_frameFrequencerCounter);
 	serialization->read_write(m_cycleCounter);
+	serialization->read_write(m_sampleGeneratingRate);
 	for (auto channel : m_channels)
 		channel->serialization(serialization);
+}
+
+void ggb::AudioProcessingUnit::reset() 
+{
+	m_frameSequencerStep = 0;
+	m_frameFrequencerCounter = 0;
+	m_cycleCounter = 0;
+	m_sampleGeneratingRate = baseSampleGeneratingRate;
+	for (auto channel : m_channels)
+		channel->reset();
 }
 
 void ggb::AudioProcessingUnit::muteChannel(size_t channelID, bool mute)

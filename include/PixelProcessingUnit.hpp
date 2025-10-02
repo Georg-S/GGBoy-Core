@@ -92,7 +92,6 @@ namespace ggb
 		void setGBCMode(bool value);
 		Dimensions getTileDataDimensions() const;
 		void setDrawTileData(bool enable);
-		void setDrawWholeBackground(bool enable);
 		void serialization(Serialization* serialization);
 		void GBCWriteToColorRAM(uint16_t address, uint8_t value);
 		uint8_t GBCReadColorRAM(uint16_t address) const;

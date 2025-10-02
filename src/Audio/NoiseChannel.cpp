@@ -135,6 +135,18 @@ void ggb::NoiseChannel::serialization(Serialization* serialization)
 	serialization->read_write(m_lengthCounter);
 	serialization->read_write(m_cycleCounter);
 	serialization->read_write(m_volumeChange);
+	serialization->read_write(m_lfsr);
+}
+
+void ggb::NoiseChannel::reset()
+{
+	AudioChannel::reset();
+	m_volumeSweepCounter = 0;
+	m_volume = 0;
+	m_lengthCounter = 0;
+	m_cycleCounter = 0;
+	m_volumeChange = false;
+	m_lfsr = 0xFFFFu; // LFSR = Linear-feedback shift register
 }
 
 int ggb::NoiseChannel::getInitialLengthCounter() const

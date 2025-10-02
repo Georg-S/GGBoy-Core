@@ -13,10 +13,8 @@ static constexpr int VRAM_TILE_COUNT = 384;
 
 ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 {
-	reset();
 	setBus(bus);
-	updateLCDMode();
-	updateEnabled();
+	reset();
 }
 
 void ggb::PixelProcessingUnit::reset()
@@ -30,6 +28,9 @@ void ggb::PixelProcessingUnit::reset()
 	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
 	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
+
+	updateLCDMode();
+	updateEnabled();
 }
 
 void ggb::PixelProcessingUnit::setBus(BUS* bus)
@@ -167,35 +168,29 @@ void ggb::PixelProcessingUnit::setDrawTileData(bool enable)
 	m_drawTileData = enable;
 }
 
-void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
-{
-	m_drawWholeBackground = enable;
-}
-
 void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 {
 	// TODO emulator should probably save / serialize the last saved frame and render it (will be useful if the emulator is paused)
-	serialization->read_write(m_currentMode);
 	serialization->read_write(m_enabled);
+	serialization->read_write(m_currentMode);
+	serialization->read_write(m_currentModeDuration);
 	serialization->read_write(m_cycleCounter);
-	serialization->read_write(m_drawWholeBackground);
 	serialization->read_write(m_drawTileData);
 	serialization->read_write(m_GBCMode);
+	serialization->read_write(m_colorCorrectionEnabled);
 	serialization->read_write(m_objects);
 	serialization->read_write(m_currentScanlineObjects);
 	serialization->read_write(m_vramTiles);
 	serialization->read_write(m_objColorBuffer);
 	serialization->read_write(m_backgroundAndWindowPixelBuffer);
 	serialization->read_write(m_currentObjectRowPixelBuffer);
-	serialization->read_write(m_colorCorrectionEnabled);
-	serialization->read_write(m_currentModeDuration);
 	// No need to serialize m_backgroundPaletteValue, as it should always get set before using it
 	//serialization->read_write(m_backgroundPaletteValue); 
 
-	m_gameFrameBuffer->serialization(serialization);
-	m_tileDataFrameBuffer->serialization(serialization);
 	m_GBCBackgroundColorRAM.serialization(serialization);
 	m_GBCObjectColorRAM.serialization(serialization);
+	m_gameFrameBuffer->serialization(serialization);
+	m_tileDataFrameBuffer->serialization(serialization);
 }
 
 void ggb::PixelProcessingUnit::GBCWriteToColorRAM(uint16_t address, uint8_t value)

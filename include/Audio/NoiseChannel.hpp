@@ -21,6 +21,7 @@ namespace ggb
 		void tickLengthShutdown() override;
 		void tickVolumeEnvelope();
 		void serialization(Serialization* serialization) override;
+		void reset() override;
 
 	private:
 		int getInitialLengthCounter() const;

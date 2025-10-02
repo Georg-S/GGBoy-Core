@@ -34,6 +34,7 @@ namespace ggb
 		Input() = default;
 		void setBus(BUS* bus);
 		void update();
+		void reset();
 		void setButtonState(GameboyInput input);
 		void serialization(Serialization* serialization);
 

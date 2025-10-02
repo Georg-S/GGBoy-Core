@@ -18,4 +18,12 @@ void ggb::AudioChannel::mute(bool mute)
 void ggb::AudioChannel::serialization(Serialization* serialization)
 {
 	serialization->read_write(m_isOn);
+	serialization->read_write(m_muted);
 }
+
+void ggb::AudioChannel::reset() 
+{
+	m_isOn = false;
+	m_muted = false;
+}
+

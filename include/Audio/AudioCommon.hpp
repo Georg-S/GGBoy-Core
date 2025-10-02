@@ -22,6 +22,7 @@ namespace ggb
 		bool isMuted() const;
 		void mute(bool mute); // This has nothing to do with the originial gameboy (just an emulator feature)
 		virtual void serialization(Serialization* serialization);
+		virtual void reset();
 		virtual void tickLengthShutdown() = 0; 
 
 	protected:
