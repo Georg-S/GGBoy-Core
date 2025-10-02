@@ -15,6 +15,8 @@ ggb::PixelProcessingUnit::PixelProcessingUnit(BUS* bus)
 {
 	reset();
 	setBus(bus);
+	updateLCDMode();
+	updateEnabled();
 }
 
 void ggb::PixelProcessingUnit::reset()
@@ -63,13 +65,12 @@ void ggb::PixelProcessingUnit::setBus(BUS* bus)
 
 void ggb::PixelProcessingUnit::step(int elapsedCycles)
 {
-	const auto currentMode = getCurrentLCDMode();
-	if (!isEnabled())
+	if (!m_enabled)
 	{
-		if (currentMode == LCDMode::HBLank)
+		if (m_currentMode == LCDMode::HBLank)
 			return;
 
-		if (currentMode != LCDMode::HBLank)
+		if (m_currentMode != LCDMode::HBLank)
 		{
 			// This is probably the "correct" way of handling the disabling of the screen
 			setLCDMode(LCDMode::HBLank);
@@ -80,15 +81,13 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 		return;
 	}
 
-	const auto currentModeDuration = getModeDuration(currentMode);
 	m_cycleCounter += elapsedCycles;
-
-	if (m_cycleCounter < currentModeDuration)
+	if (m_cycleCounter < m_currentModeDuration)
 		return;
 
-	m_cycleCounter -= currentModeDuration;
+	m_cycleCounter -= m_currentModeDuration;
 
-	switch (currentMode)
+	switch (m_currentMode)
 	{
 	case ggb::LCDMode::OAMBlocked:
 	{
@@ -136,21 +135,11 @@ void ggb::PixelProcessingUnit::step(int elapsedCycles)
 	}
 }
 
-bool ggb::PixelProcessingUnit::isEnabled() const
-{
-	return isBitSet<7>(*m_LCDControl);
-}
-
-LCDMode ggb::PixelProcessingUnit::getCurrentLCDMode() const
-{
-	const uint8_t buf = *m_LCDStatus & 0b11;
-	return static_cast<LCDMode>(buf);
-}
-
 void ggb::PixelProcessingUnit::setLCDMode(LCDMode mode)
 {
 	setBitToValue<0>(*m_LCDStatus, static_cast<uint8_t>(mode) & 1);
 	setBitToValue<1>(*m_LCDStatus, static_cast<uint8_t>(mode) & (1 << 1));
+	updateLCDMode();
 }
 
 void ggb::PixelProcessingUnit::setTileDataRenderer(std::unique_ptr<Renderer> renderer)
@@ -186,6 +175,8 @@ void ggb::PixelProcessingUnit::setDrawWholeBackground(bool enable)
 void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 {
 	// TODO emulator should probably save / serialize the last saved frame and render it (will be useful if the emulator is paused)
+	serialization->read_write(m_currentMode);
+	serialization->read_write(m_enabled);
 	serialization->read_write(m_cycleCounter);
 	serialization->read_write(m_drawWholeBackground);
 	serialization->read_write(m_drawTileData);
@@ -197,6 +188,7 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_backgroundAndWindowPixelBuffer);
 	serialization->read_write(m_currentObjectRowPixelBuffer);
 	serialization->read_write(m_colorCorrectionEnabled);
+	serialization->read_write(m_currentModeDuration);
 
 	m_gameFrameBuffer->serialization(serialization);
 	m_tileDataFrameBuffer->serialization(serialization);
@@ -227,6 +219,18 @@ uint8_t ggb::PixelProcessingUnit::GBCReadColorRAM(uint16_t address) const
 void ggb::PixelProcessingUnit::setColorCorrectionEnabled(bool enabled)
 {
 	m_colorCorrectionEnabled = enabled;
+}
+
+void ggb::PixelProcessingUnit::updateLCDMode()
+{
+	const uint8_t buf = *m_LCDStatus & 0b11;
+	m_currentMode = static_cast<LCDMode>(buf);
+	m_currentModeDuration = getModeDuration(m_currentMode);
+}
+
+void ggb::PixelProcessingUnit::updateEnabled()
+{
+	m_enabled = isBitSet<7>(*m_LCDControl);
 }
 
 void ggb::PixelProcessingUnit::renderGame()

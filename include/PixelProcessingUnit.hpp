@@ -86,8 +86,6 @@ namespace ggb
 		void reset();
 		void setBus(BUS* bus);
 		void step(int elapsedCycles);
-		bool isEnabled() const;
-		LCDMode getCurrentLCDMode() const; 
 		void setLCDMode(LCDMode mode);
 		void setTileDataRenderer(std::unique_ptr<Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<Renderer> renderer);
@@ -99,6 +97,8 @@ namespace ggb
 		void GBCWriteToColorRAM(uint16_t address, uint8_t value);
 		uint8_t GBCReadColorRAM(uint16_t address) const;
 		void setColorCorrectionEnabled(bool enabled);
+		void updateLCDMode();
+		void updateEnabled();
 
 	private:
 		// Helper struct for rendering the current scanline
@@ -132,6 +132,9 @@ namespace ggb
 		uint8_t getBackgroundTileAttributes(uint16_t address) const;
 
 		BUS* m_bus = nullptr;
+		bool m_enabled = false;
+		LCDMode m_currentMode = LCDMode::HBLank;
+		int m_currentModeDuration = 0;
 		int m_cycleCounter = 0;
 		bool m_drawWholeBackground = false;
 		bool m_drawTileData = false;
@@ -149,7 +152,7 @@ namespace ggb
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;
 		std::unique_ptr<FrameBuffer> m_tileDataFrameBuffer;
-		uint8_t* m_LCDControl = nullptr;
+		const uint8_t* m_LCDControl = nullptr;
 		uint8_t* m_LCDYCoordinate = nullptr;
 		uint8_t* m_LYCompare = nullptr;
 		uint8_t* m_LCDStatus = nullptr;

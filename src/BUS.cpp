@@ -223,6 +223,16 @@ void ggb::BUS::write(uint16_t address, uint8_t value)
 	{
 		m_timer->updateAfterWrite();
 	}
+
+	if (address == LCD_STATUS_REGISTER_ADDRESS) 
+	{
+		m_ppu->updateLCDMode();
+	}
+
+	if (address == LCD_CONTROL_REGISTER_ADDRESS) 
+	{
+		m_ppu->updateEnabled();
+	}
 }
 
 void ggb::BUS::write(uint16_t address, uint16_t value)

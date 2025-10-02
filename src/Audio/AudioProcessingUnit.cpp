@@ -66,7 +66,6 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 
 void ggb::AudioProcessingUnit::step(int cyclesPassed)
 {
-	return;
 	if (!isBitSet<7>(*m_soundOn))
 		return; // TODO reset state?
 

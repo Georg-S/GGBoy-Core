@@ -53,6 +53,19 @@ void ggb::Emulator::step()
 	synchronizeEmulatorMasterClock(gbcDoubleSpeedAdjustedCycles);
 }
 
+void ggb::Emulator::stepAiMode()
+{
+	const bool doubleSpeed = m_bus->isGBCDoubleSpeedOn();
+	const int cycles = m_cpu->step();
+	assert((cycles % 2) == 0);
+	int gbcDoubleSpeedAdjustedCycles = cycles;
+	if (doubleSpeed)
+		gbcDoubleSpeedAdjustedCycles = cycles / 2;
+	m_ppu->step(gbcDoubleSpeedAdjustedCycles);
+	m_timer->step(cycles);
+	synchronizeEmulatorMasterClock(gbcDoubleSpeedAdjustedCycles);
+}
+
 void ggb::Emulator::reset()
 {
 	m_bus->reset();

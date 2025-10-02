@@ -21,6 +21,8 @@ namespace ggb
 		Emulator();
 		bool loadCartridge(const std::filesystem::path& path);
 		void step();
+		// Steps the emulation as fast as possible, does not emulate sound at all
+		void stepAiMode();
 		void reset();
 		void setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer);
 		void setGameRenderer(std::unique_ptr<ggb::Renderer> renderer);
