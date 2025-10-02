@@ -79,6 +79,7 @@ void ggb::Emulator::reset()
 	m_speedupTimeCounter = 0;
 	m_speedupCycleCounter = 0;
 	m_paused = false;
+	setEmulationSpeed(1.0);
 	// Reset emulated components
 	m_bus->reset();
 	m_cpu->reset();
@@ -308,6 +309,7 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
 	static constexpr long long nanoSecondsPerSecond = 1000000000;
 
+	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;
 	if (m_syncCounter < m_masterSynchronizationAfterCPUCycles)
 		return;
@@ -317,6 +319,14 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 	auto currentTime = getCurrentTimeInNanoSeconds();
 	long long timeDiff = currentTime - m_previousTimeStamp;
 
+	m_speedupTimeCounter += timeDiff;
+	if (m_speedupTimeCounter >= nanoSecondsPerSecond)
+	{
+		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
+		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK / (static_cast<double>(m_speedupTimeCounter) / nanoSecondsPerSecond));
+		m_speedupTimeCounter = 0;
+		m_speedupCycleCounter = 0;
+	}
 
 	while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed))
 	{
