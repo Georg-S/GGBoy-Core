@@ -16,6 +16,8 @@ namespace ggb
 		void updateAfterWrite();
 
 	private:
+		void updateTimerDivider(int elapsedCycles);
+
 		BUS* m_bus;
 		bool m_enabled = false;
 		uint32_t m_timerControlValue = 0;

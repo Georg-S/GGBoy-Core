@@ -38,17 +38,7 @@ void ggb::Timer::setBus(BUS* bus)
 
 void ggb::Timer::step(int elapsedCycles)
 {
-	auto updateTimerDivider = [this, elapsedCycles]() 
-	{
-		m_dividerCounter += elapsedCycles;
-		if (m_dividerCounter >= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT)
-		{
-			++(*m_dividerRegister);
-			m_dividerCounter -= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT;
-		}
-	};
-
-	updateTimerDivider();
+	updateTimerDivider(elapsedCycles);
 
 	if (!m_enabled)
 		return;
@@ -85,4 +75,14 @@ void ggb::Timer::updateAfterWrite()
 
 	const auto timerControlDividerBits = *m_timerControl & 0b11;
 	m_timerControlValue = getTimerControlDivisor(timerControlDividerBits);
+}
+
+inline void ggb::Timer::updateTimerDivider(int elapsedCycles)
+{
+	m_dividerCounter += elapsedCycles;
+	if (m_dividerCounter >= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT)
+	{
+		++(*m_dividerRegister);
+		m_dividerCounter -= TIMER_DIVIDER_REGISTER_INCREMENT_COUNT;
+	}
 }

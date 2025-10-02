@@ -148,6 +148,7 @@ namespace ggb
 		std::vector<ObjectPixel> m_currentObjectRowPixelBuffer;
 		GBCColorRAM m_GBCBackgroundColorRAM = GBCColorRAM(GBC_BACKGROUND_PALETTE_SPECIFICATION_ADDRESS);
 		GBCColorRAM m_GBCObjectColorRAM = GBCColorRAM(GBC_OBJECT_COLOR_PALETTE_SPECIFICATION_ADDRESS);
+		ColorPalette m_backgroundPaletteValue = {};
 		std::unique_ptr<Renderer> m_tileDataRenderer;
 		std::unique_ptr<Renderer> m_gameRenderer;
 		std::unique_ptr<FrameBuffer> m_gameFrameBuffer;

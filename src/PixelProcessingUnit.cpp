@@ -189,6 +189,8 @@ void ggb::PixelProcessingUnit::serialization(Serialization* serialization)
 	serialization->read_write(m_currentObjectRowPixelBuffer);
 	serialization->read_write(m_colorCorrectionEnabled);
 	serialization->read_write(m_currentModeDuration);
+	// No need to serialize m_backgroundPaletteValue, as it should always get set before using it
+	//serialization->read_write(m_backgroundPaletteValue); 
 
 	m_gameFrameBuffer->serialization(serialization);
 	m_tileDataFrameBuffer->serialization(serialization);
@@ -248,8 +250,19 @@ void ggb::PixelProcessingUnit::renderGame()
 	m_gameRenderer->renderNewFrame(*m_gameFrameBuffer);
 }
 
+static ColorPalette getPalette(uint8_t value)
+{
+	ColorPalette result = {};
+	result.m_color[0] = convertGBColorToRGB(static_cast<GBColor>(value & 0b11));
+	result.m_color[1] = convertGBColorToRGB(static_cast<GBColor>((value >> 2) & 0b11));
+	result.m_color[2] = convertGBColorToRGB(static_cast<GBColor>((value >> 4) & 0b11));
+	result.m_color[3] = convertGBColorToRGB(static_cast<GBColor>((value >> 6) & 0b11));
+	return result;
+}
+
 void ggb::PixelProcessingUnit::writeCurrentScanLineIntoFrameBuffer()
 {
+	m_backgroundPaletteValue = getPalette(*m_backgroundPalette);
 	if (m_GBCMode) 
 	{
 		m_GBCBackgroundColorRAM.updateColorPalettes();
@@ -379,9 +392,7 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 		if (screenXPos >= 0)
 		{
 			const auto colorValue = m_objColorBuffer[tileColumn];
-			const auto& rgb = GBCPalette.getColor(colorValue);
-			const bool tileOverObjectVal = tileOverObject;
-			m_backgroundAndWindowPixelBuffer[screenXPos] = { rgb, colorValue, tileOverObjectVal };
+			m_backgroundAndWindowPixelBuffer[screenXPos] = { GBCPalette.getColor(colorValue), colorValue, tileOverObject };
 		}
 		++tileColumn;
 		++screenXPos;
@@ -538,16 +549,6 @@ uint8_t ggb::PixelProcessingUnit::incrementScanline()
 	return *m_LCDYCoordinate;
 }
 
-static ColorPalette getPalette(uint8_t value)
-{
-	ColorPalette result = {};
-	result.m_color[0] = convertGBColorToRGB(static_cast<GBColor>(value & 0b11));
-	result.m_color[1] = convertGBColorToRGB(static_cast<GBColor>((value >> 2) & 0b11));
-	result.m_color[2] = convertGBColorToRGB(static_cast<GBColor>((value >> 4) & 0b11));
-	result.m_color[3] = convertGBColorToRGB(static_cast<GBColor>((value >> 6) & 0b11));
-	return result;
-}
-
 ColorPalette ggb::PixelProcessingUnit::getBackgroundAndWindowColorPalette() const
 {
 	return getPalette(*m_backgroundPalette);
@@ -557,7 +558,7 @@ ColorPalette ggb::PixelProcessingUnit::GBCGetBackgroundAndWindowColorPalette(siz
 {
 	if (m_GBCMode)
 		return m_GBCBackgroundColorRAM.getColorPalette(index);
-	return getPalette(*m_backgroundPalette);
+	return m_backgroundPaletteValue;
 }
 
 ColorPalette ggb::PixelProcessingUnit::GBCGetObjectColorPalette(const Object& obj) const
