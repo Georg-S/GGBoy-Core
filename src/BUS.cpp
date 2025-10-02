@@ -72,6 +72,8 @@ void ggb::BUS::reset()
 	m_memory[GBC_OBJECT_COLOR_PALETTE_DATA_ADDRESS] = 0xFF;
 	m_memory[GBC_WRAM_BANKING_ADDRESS] = 0xF8; // 0xFF for DMG
 	m_memory[ENABLED_INTERRUPT_ADDRESS] = 0x00;
+
+	updateGBCDoubleSpeed();
 }
 
 void ggb::BUS::setCartridge(Cartridge* cartridge)
@@ -289,10 +291,15 @@ bool ggb::BUS::valid() const
 void ggb::BUS::toggleGBCDoubleSpeed()
 {
 	setBitToValue<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS], !m_doubleSpeedOn);
-	m_doubleSpeedOn = !m_doubleSpeedOn;
+	updateGBCDoubleSpeed();
 
 	write(ENABLED_INTERRUPT_ADDRESS, static_cast<uint8_t>(0x00));
 	write(INPUT_REGISTER_ADDRESS, static_cast<uint8_t>(0x30));
+}
+
+void ggb::BUS::updateGBCDoubleSpeed()
+{
+	m_doubleSpeedOn = isBitSet<7>(m_memory[GBC_SPEED_SWITCH_ADDRESS]);
 }
 
 void ggb::BUS::directMemoryAccess(uint8_t value)

@@ -47,6 +47,7 @@ namespace ggb
 
 	private:
 		void toggleGBCDoubleSpeed();
+		void updateGBCDoubleSpeed();
 		void directMemoryAccess(uint8_t value);
 		void directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAddress, uint16_t sizeInBytes);
 		void gbcVRAMDirectMemoryAccess();
