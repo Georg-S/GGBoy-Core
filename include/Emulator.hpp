@@ -50,6 +50,7 @@ namespace ggb
 		void setColorCorrectionEnabled(bool enabled);
 
 	private:
+		void updateMaxSpeedup(int elapsedCycles);
 		void rewire();
 		void synchronizeEmulatorMasterClock(int elapsedCycles);
 		void serialization(ggb::Serialization* serialization);
@@ -64,8 +65,10 @@ namespace ggb
 		std::filesystem::path m_loadedCartridgePath;
 		int m_syncCounter = 0;
 		long long m_previousTimeStamp = 0;
+		long long m_previousTimeStampSpeedup = 0;
 		double m_emulationSpeed = 1.0;
 		double m_lastMaxSpeedup = 1.0;
+		int m_updateSpeedupCounter = 0;
 		double m_masterSynchronizationAfterCPUCycles = 0.0;
 		long long m_speedupTimeCounter = 0;
 		long long m_speedupCycleCounter = 0;

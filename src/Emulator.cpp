@@ -15,7 +15,7 @@ ggb::Emulator::Emulator()
 	m_timer = std::make_unique<Timer>(m_bus.get());
 	m_audio = std::make_unique<AudioProcessingUnit>(m_bus.get());
 	m_input = std::make_unique<Input>();
-	m_previousTimeStamp = getCurrentTimeInNanoSeconds();
+	m_previousTimeStamp = m_previousTimeStampSpeedup = getCurrentTimeInNanoSeconds();
 	setEmulationSpeed(1.0);
 }
 
@@ -63,7 +63,7 @@ void ggb::Emulator::stepAiMode()
 		gbcDoubleSpeedAdjustedCycles = cycles / 2;
 	m_ppu->step(gbcDoubleSpeedAdjustedCycles);
 	m_timer->step(cycles);
-	synchronizeEmulatorMasterClock(gbcDoubleSpeedAdjustedCycles);
+	updateMaxSpeedup(cycles);
 }
 
 void ggb::Emulator::reset()
@@ -263,11 +263,35 @@ void ggb::Emulator::rewire()
 		m_input->setBus(m_bus.get());
 }
 
+void ggb::Emulator::updateMaxSpeedup(int elapsedCycles)
+{
+	static constexpr long long nanoSecondsPerSecond = 1000000000;
+	static constexpr int updateSpeedupAfterSteps = 500;
+
+	m_speedupCycleCounter += elapsedCycles;
+	m_updateSpeedupCounter++;
+
+	if (m_updateSpeedupCounter < updateSpeedupAfterSteps)
+		return;
+
+	m_updateSpeedupCounter = 0;
+	auto currentTime = getCurrentTimeInNanoSeconds();
+	long long timeDiff = currentTime - m_previousTimeStampSpeedup;
+	m_previousTimeStampSpeedup = currentTime;
+	m_speedupTimeCounter += timeDiff;
+	if (m_speedupTimeCounter >= nanoSecondsPerSecond)
+	{
+		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
+		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK / (static_cast<double>(m_speedupTimeCounter) / nanoSecondsPerSecond));
+		m_speedupTimeCounter = 0;
+		m_speedupCycleCounter = 0;
+	}
+}
+
 void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 {
 	static constexpr long long nanoSecondsPerSecond = 1000000000;
 
-	m_speedupCycleCounter += elapsedCycles;
 	m_syncCounter += elapsedCycles;
 	if (m_syncCounter < m_masterSynchronizationAfterCPUCycles)
 		return;
@@ -277,14 +301,6 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 	auto currentTime = getCurrentTimeInNanoSeconds();
 	long long timeDiff = currentTime - m_previousTimeStamp;
 
-	m_speedupTimeCounter += timeDiff;
-	if (m_speedupTimeCounter >= nanoSecondsPerSecond)
-	{
-		// Calculate the maximum possible speedup to get a more wholistic picture on what refactorings do to the performance
-		m_lastMaxSpeedup = (static_cast<double>(m_speedupCycleCounter) / CPU_BASE_CLOCK / (static_cast<double>(m_speedupTimeCounter) / nanoSecondsPerSecond));
-		m_speedupTimeCounter = 0;
-		m_speedupCycleCounter = 0;
-	}
 
 	while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed))
 	{
