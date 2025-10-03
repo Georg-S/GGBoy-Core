@@ -82,13 +82,12 @@ void ggb::Emulator::reset()
 	setEmulationSpeed(1.0);
 	// Reset emulated components
 	m_bus->reset();
+	rewire();
 	m_cpu->reset();
 	m_ppu->reset();
 	m_timer->reset();
 	m_input->reset();
 	m_audio->reset();
-
-	rewire();
 }
 
 void ggb::Emulator::setTileDataRenderer(std::unique_ptr<ggb::Renderer> renderer)
