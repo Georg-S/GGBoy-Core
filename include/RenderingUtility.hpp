@@ -75,5 +75,5 @@ namespace ggb
 	RGB colorCorrection(ggb::RGB rgb);
 	RGB convertGBColorToRGB(GBColor color);
 	void overWriteTileData(BUS* bus, uint16_t tileIndex, const ColorPalette& palette, Tile* outTile, std::vector<uint8_t>& bufVec);
-	void getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
+	void getTileRowData(const uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec);
 }

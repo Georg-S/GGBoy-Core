@@ -124,7 +124,7 @@ namespace ggb
 		uint8_t scanLine() const;
 		uint8_t incrementScanline();
 		ColorPalette getBackgroundAndWindowColorPalette() const;
-		ColorPalette GBCGetBackgroundAndWindowColorPalette(size_t index) const;
+		const ColorPalette& GBCGetBackgroundAndWindowColorPalette(size_t index) const;
 		ColorPalette GBCGetObjectColorPalette(const Object& obj) const;
 		void updateAndRenderTileData();
 		int getObjectHeight() const;

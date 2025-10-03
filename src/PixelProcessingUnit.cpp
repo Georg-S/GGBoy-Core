@@ -549,7 +549,7 @@ ColorPalette ggb::PixelProcessingUnit::getBackgroundAndWindowColorPalette() cons
 	return getPalette(*m_backgroundPalette);
 }
 
-ColorPalette ggb::PixelProcessingUnit::GBCGetBackgroundAndWindowColorPalette(size_t index) const
+const ColorPalette& ggb::PixelProcessingUnit::GBCGetBackgroundAndWindowColorPalette(size_t index) const
 {
 	if (m_GBCMode)
 		return m_GBCBackgroundColorRAM.getColorPalette(index);

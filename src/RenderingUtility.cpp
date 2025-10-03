@@ -114,7 +114,7 @@ static inline constexpr void fillData(uint8_t low, uint8_t high, std::vector<uin
 	outVec[7 - number] = num;
 }
 
-void ggb::getTileRowData(uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
+void ggb::getTileRowData(const uint8_t* vramPtr, uint16_t tileAddress, uint8_t tileRow, std::vector<uint8_t>& outVec)
 {
 	assert(outVec.size() >= 8);
 	auto vramIndex = getVRAMIndexFromAddress(tileAddress + (tileRow * 2));
