@@ -382,16 +382,24 @@ void ggb::PixelProcessingUnit::writeTileIntoBuffer(RenderingScanlineData* inOutD
 	if (isBitSet<5>(GBCTileData))
 		std::reverse(m_objColorBuffer.begin(), m_objColorBuffer.end()); // Flip X
 
-	while (inOutData->tileColumn < TILE_WIDTH && screenXPos < GAME_WINDOW_WIDTH)
+	if (screenXPos < 0) 
 	{
-		if (screenXPos >= 0)
-		{
-			const auto colorValue = m_objColorBuffer[tileColumn];
-			m_backgroundAndWindowPixelBuffer[screenXPos] = { GBCPalette.getColor(colorValue), colorValue, tileOverObject };
-		}
-		++tileColumn;
-		++screenXPos;
+		tileColumn += (-screenXPos);
+		screenXPos = 0;
 	}
+
+	int pixelToSet = std::min(TILE_WIDTH - tileColumn, GAME_WINDOW_WIDTH - screenXPos);
+	auto currentPixel = m_backgroundAndWindowPixelBuffer.data() + screenXPos;
+
+	for (int i = 0; i < pixelToSet; ++i)
+	{
+		const auto colorValue = m_objColorBuffer[tileColumn];
+		*currentPixel = { GBCPalette.getColor(colorValue), colorValue, tileOverObject };
+		++currentPixel;
+		++tileColumn;
+	}
+
+	screenXPos += pixelToSet;
 	tileColumn = 0;
 }
 
