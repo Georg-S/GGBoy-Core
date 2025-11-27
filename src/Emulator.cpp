@@ -246,6 +246,11 @@ void ggb::Emulator::setColorCorrectionEnabled(bool enabled)
 	m_ppu->setColorCorrectionEnabled(enabled);
 }
 
+uint8_t ggb::Emulator::readBUS(uint16_t address) const
+{
+	return m_bus->read(address);
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);
