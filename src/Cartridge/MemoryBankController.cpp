@@ -53,7 +53,7 @@ void ggb::MemoryBankController::loadRAM(const std::filesystem::path& path)
 	if (!m_hasRam)
 		return;
 
-	Deserialize deserialize = Deserialize(path);
+	Serialization deserialize = Serialization(path, false);
 	deserialize.read_write(m_ram);
 }
 
@@ -62,7 +62,7 @@ void ggb::MemoryBankController::saveRAM(const std::filesystem::path& path)
 	if (!m_hasRam)
 		return;
 
-	Serialize serialize = Serialize(path);
+	Serialization serialize = Serialization(path, true);
 	serialize.read_write(m_ram);
 }
 

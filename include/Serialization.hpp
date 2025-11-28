@@ -4,7 +4,7 @@
 #include <fstream>
 #include <filesystem>
 
-namespace ggb 
+namespace ggb
 {
 	template<typename T>
 	void serialize(std::ostream& outStream, const T& pod)
@@ -38,49 +38,93 @@ namespace ggb
 			deserialize(inStream, elem);
 	}
 
-	class Serialization 
+	class BinaryStream 
 	{
 	public:
-		virtual ~Serialization() = default;
+		BinaryStream(const std::vector<std::byte>& vec) 
+		{
+			m_current = reinterpret_cast<const char*>(vec.data());
+			m_remainingSize = vec.size();
+		}
+
+		template<typename T>
+		void deserialize(T& outPod)
+		{
+			static_assert(std::is_trivially_copyable_v<T> == true);
+			if (sizeof(T) > m_remainingSize)
+				throw std::runtime_error("Tried to read beyond the end of the binary stream");
+
+			memcpy_s(static_cast<void*>(&outPod), sizeof(T), m_current, sizeof(T));
+			m_current += sizeof(T);
+			m_remainingSize -= sizeof(T);
+		}
+
+		template<typename T>
+		void deserialize(std::vector<T>& outVec)
+		{
+			size_t size = 0;
+			deserialize(size);
+			outVec.resize(size);
+			for (auto& elem : outVec)
+				deserialize(elem);
+		}
+
+	private:
+		const char* m_current = nullptr;
+		size_t m_remainingSize = 0;
+	};
+
+	class Serialization
+	{
+	public:
+		enum Type 
+		{
+			Serialize, 
+			Deserialize, 
+			DeserializeVector,
+		};
+
+		Serialization(const std::filesystem::path& path, bool serialize) 
+		{
+			if (serialize) 
+			{
+				m_serializeStream.open(path, std::ios::binary);
+				m_type = Serialize;
+			}
+			else 
+			{
+				m_deserializeStream.open(path, std::ios::binary);
+				m_type = Deserialize;
+			}
+		}
+
+		Serialization(const std::vector<std::byte>& binaryData) 
+			: m_type(DeserializeVector)
+		{
+			m_binStream = std::make_unique<BinaryStream>(binaryData);
+		}
 
 		template<typename T>
 		void read_write(T& data)
 		{
 			static_assert(!std::is_pointer_v<T>, "Pointers are not allowed for serialization");
 
-			if (m_serialize)
+			if (m_type == Serialize)
 				serialize(m_serializeStream, data);
-			else 
+			else if (m_type == Deserialize)
 				deserialize(m_deserializeStream, data);
+			else
+				m_binStream->deserialize(data);
 		}
 
 	protected:
 		// The Serialization class is just an interface that shouldn't be used directly,
 		// therfore the constructor is protected
-		Serialization() = default; 
+		Serialization() = default;
 
-		bool m_serialize = true;
+		Type m_type = Serialize;
 		std::ofstream m_serializeStream;
 		std::ifstream m_deserializeStream;
-	};
-
-	class Serialize : public Serialization
-	{
-	public:
-		Serialize(const std::filesystem::path& outPath) 
-		{
-			m_serializeStream.open(outPath, std::ios::binary);
-			m_serialize = true;
-		}
-	};
-
-	class Deserialize : public Serialization 
-	{
-	public:
-		Deserialize(const std::filesystem::path& inPath) 
-		{
-			m_deserializeStream.open(inPath, std::ios::binary);
-			m_serialize = false;
-		}
+		std::unique_ptr<BinaryStream> m_binStream;
 	};
 }

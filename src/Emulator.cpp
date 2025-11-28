@@ -105,7 +105,7 @@ bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 {
 	try
 	{
-		auto serializeUnique = std::make_unique<ggb::Serialize>(outputPath);
+		auto serializeUnique = std::make_unique<ggb::Serialization>(outputPath, true);
 		auto serialize = serializeUnique.get();
 
 		serialization(serialize);
@@ -121,30 +121,25 @@ bool ggb::Emulator::saveEmulatorState(const std::filesystem::path& outputPath)
 
 bool ggb::Emulator::loadEmulatorState(const std::filesystem::path& filePath)
 {
+	std::unique_ptr<Serialization> deserializeUnique;
 	try
 	{
-		auto deserializeUnique = std::make_unique<ggb::Deserialize>(filePath);
-		auto deserialize = deserializeUnique.get();
-
-		serialization(deserialize);
-		if (!m_bus->valid())
-		{
-			// We currently have an invalid state of the emulator -> reset
-			reset();
-			return false; // Invalid file
-		}
-		if (!m_currentCartridge)
-			m_currentCartridge = std::make_unique<Cartridge>();
-		m_currentCartridge->deserialize(deserialize);
-
-		rewire();
+		deserializeUnique = std::make_unique<ggb::Serialization>(filePath, false);
 	}
 	catch (const std::exception& e)
 	{
 		logError(std::string("Error loading emulator state: ") + e.what());
 		return false;
 	}
-	return true;
+
+	return loadEmulatorState(deserializeUnique.get());
+}
+
+bool ggb::Emulator::loadEmulatorState(const std::vector<std::byte>& data)
+{
+	// Since we don't open a file with a vector, no need for try and catch
+	auto deserializeUnique = std::make_unique<ggb::Serialization>(data);
+	return loadEmulatorState(deserializeUnique.get());
 }
 
 void ggb::Emulator::saveRAM(const std::filesystem::path& path)
@@ -282,6 +277,31 @@ void ggb::Emulator::rewire()
 	m_timer->setBus(m_bus.get());
 	m_audio->setBus(m_bus.get());
 	m_input->setBus(m_bus.get());
+}
+
+bool ggb::Emulator::loadEmulatorState(Serialization* deserialize)
+{
+	try
+	{
+		serialization(deserialize);
+		if (!m_bus->valid())
+		{
+			// We currently have an invalid state of the emulator -> reset
+			reset();
+			return false; // Invalid file
+		}
+		if (!m_currentCartridge)
+			m_currentCartridge = std::make_unique<Cartridge>();
+		m_currentCartridge->deserialize(deserialize);
+
+		rewire();
+	}
+	catch (const std::exception& e)
+	{
+		logError(std::string("Error loading emulator state: ") + e.what());
+		return false;
+	}
+	return true;
 }
 
 void ggb::Emulator::updateMaxSpeedup(int elapsedCycles)

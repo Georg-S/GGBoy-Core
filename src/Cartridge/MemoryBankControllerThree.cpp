@@ -241,13 +241,13 @@ void ggb::MemoryBankControllerThree::serialization(Serialization* serialization)
 
 void ggb::MemoryBankControllerThree::saveRTC(const std::filesystem::path& path)
 {
-	Serialize serialize = Serialize(path);
+	Serialization serialize = Serialization(path, true);
 	m_rtc.serialize(&serialize);
 }
 
 void ggb::MemoryBankControllerThree::loadRTC(const std::filesystem::path& path)
 {
-	Deserialize deserialize = Deserialize(path);
+	Serialization deserialize = Serialization(path, false);
 	m_rtc.serialize(&deserialize);
 }
 

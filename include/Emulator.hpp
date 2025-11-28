@@ -29,6 +29,7 @@ namespace ggb
 		// Not const because "serialization" is called and this method is used for read and write and therefore cannot be const
 		bool saveEmulatorState(const std::filesystem::path& outputPath);
 		bool loadEmulatorState(const std::filesystem::path& filePath);
+		bool loadEmulatorState(const std::vector<std::byte>& data);
 		void saveRAM(const std::filesystem::path& path);
 		void loadRAM(const std::filesystem::path& path);
 		void saveRTC(const std::filesystem::path& path) const;
@@ -51,6 +52,7 @@ namespace ggb
 		uint8_t readBUS(uint16_t address) const;
 
 	private:
+		bool loadEmulatorState(Serialization* deserialize);
 		void updateMaxSpeedup(int elapsedCycles);
 		void rewire();
 		void synchronizeEmulatorMasterClock(int elapsedCycles);
