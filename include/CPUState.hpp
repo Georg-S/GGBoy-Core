@@ -24,6 +24,7 @@ namespace ggb
 		uint16_t& HL();
 		uint16_t& StackPointer();
 		uint16_t& InstructionPointer();
+		const uint16_t& getInstructionPointer() const;
 
 		void setZeroFlag(bool value);
 		bool getZeroFlag() const;

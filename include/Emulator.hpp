@@ -50,6 +50,7 @@ namespace ggb
 		void setInputState(const ggb::GameboyInput& input);
 		void setColorCorrectionEnabled(bool enabled);
 		uint8_t readBUS(uint16_t address) const;
+		const CPUState* getCPUState() const;
 
 	private:
 		bool loadEmulatorState(Serialization* deserialize);

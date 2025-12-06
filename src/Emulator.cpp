@@ -246,6 +246,11 @@ uint8_t ggb::Emulator::readBUS(uint16_t address) const
 	return m_bus->read(address);
 }
 
+const CPUState* ggb::Emulator::getCPUState() const
+{
+	return m_cpu->getCPUState();
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);

@@ -111,3 +111,8 @@ void ggb::CPU::serialization(Serialization* serialization)
 {
 	m_cpuState.serialization(serialization);
 }
+
+const ggb::CPUState* ggb::CPU::getCPUState() const
+{
+	return &m_cpuState;
+}

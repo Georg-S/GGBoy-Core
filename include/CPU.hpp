@@ -13,6 +13,7 @@ namespace ggb
 		void setBus(BUS* bus);
 		int step();
 		void serialization(Serialization* serialization); // Used for both serialize / deserialize
+		const CPUState* getCPUState() const;
 
 	private:
 		bool handleInterrupts();

@@ -73,6 +73,11 @@ uint16_t& ggb::CPUState::InstructionPointer()
 	return m_instructionPointer;
 }
 
+const uint16_t& ggb::CPUState::getInstructionPointer() const
+{
+	return m_instructionPointer;
+}
+
 void ggb::CPUState::setZeroFlag(bool value)
 {
 	setBitToValue<7>(F(), value);
