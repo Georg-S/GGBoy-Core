@@ -10,6 +10,7 @@ namespace ggb
 	void swap(uint16_t& num);
 	void swap(uint8_t& num);
 	long long getCurrentTimeInNanoSeconds();
+    bool memcpySecure(void* dest, size_t destSize, const void* source, size_t size);
 
 	/// Returns the lower 4 bits
 	inline constexpr uint8_t lowerNibble(uint8_t number) 

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include "Utility.hpp"
+
 namespace ggb
 {
 	template<typename T>
@@ -54,7 +56,7 @@ namespace ggb
 			if (sizeof(T) > m_remainingSize)
 				throw std::runtime_error("Tried to read beyond the end of the binary stream");
 
-			memcpy_s(static_cast<void*>(&outPod), sizeof(T), m_current, sizeof(T));
+            memcpySecure(static_cast<void*>(&outPod), sizeof(T), m_current, sizeof(T));
 			m_current += sizeof(T);
 			m_remainingSize -= sizeof(T);
 		}
