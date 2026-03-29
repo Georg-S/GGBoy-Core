@@ -51,6 +51,8 @@ namespace ggb
 		void setColorCorrectionEnabled(bool enabled);
 		uint8_t readBUS(uint16_t address) const;
 		const CPUState* getCPUState() const;
+        // True = sleep in the synchronization method when we have enough time, false = busy wait on synchronization
+        void setEnergySaving(bool value);
 
 	private:
 		bool loadEmulatorState(Serialization* deserialize);
@@ -69,6 +71,7 @@ namespace ggb
 		long long m_speedupTimeCounter = 0;
 		long long m_speedupCycleCounter = 0;
 		bool m_paused = false;
+        bool m_energySaving = false;
 		std::unique_ptr<CPU> m_cpu;
 		std::unique_ptr<BUS> m_bus;
 		std::unique_ptr<Cartridge> m_currentCartridge;

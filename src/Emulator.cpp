@@ -1,9 +1,9 @@
 #include "Emulator.hpp"
 #include "Logging.hpp"
 #include "Constants.hpp"
-
 #include "Utility.hpp"
 
+#include <thread>
 
 using namespace ggb;
 
@@ -251,6 +251,11 @@ const CPUState* ggb::Emulator::getCPUState() const
 	return m_cpu->getCPUState();
 }
 
+void Emulator::setEnergySaving(bool value)
+{
+    m_energySaving = value;
+}
+
 void ggb::Emulator::serialization(ggb::Serialization* serialization)
 {
 	m_bus->serialization(serialization);
@@ -268,6 +273,7 @@ void ggb::Emulator::serialization(ggb::Serialization* serialization)
 	serialization->read_write(m_speedupTimeCounter);
 	serialization->read_write(m_speedupCycleCounter);
 	serialization->read_write(m_paused);
+    serialization->read_write(m_energySaving);
 }
 
 void ggb::Emulator::rewire()
@@ -343,8 +349,6 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 	if (m_syncCounter < m_masterSynchronizationAfterCPUCycles)
 		return;
 
-	const long long nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
-
 	auto currentTime = getCurrentTimeInNanoSeconds();
 	long long timeDiff = currentTime - m_previousTimeStamp;
 
@@ -357,11 +361,18 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
 		m_speedupCycleCounter = 0;
 	}
 
-	while (timeDiff < (nanoSecondsNeedToPass / m_emulationSpeed))
+    const auto nanoSecondsNeedToPass = static_cast<long long>(NANO_SECONDS_PER_CYCLE * m_syncCounter);
+    const auto timeNeededToPass = static_cast<long long>(nanoSecondsNeedToPass / m_emulationSpeed);
+    auto diff = timeNeededToPass - timeDiff;
+	while (diff > 0)
 	{
+        if (m_energySaving && (diff > 10000))
+            std::this_thread::sleep_for(std::chrono::nanoseconds (5000));
+
 		currentTime = getCurrentTimeInNanoSeconds();
 		timeDiff = currentTime - m_previousTimeStamp;
-	};
+        diff = timeNeededToPass - timeDiff;;
+    };
 
 	m_previousTimeStamp = currentTime;
 	m_syncCounter = 0;
