@@ -366,8 +366,8 @@ void ggb::Emulator::synchronizeEmulatorMasterClock(int elapsedCycles)
     auto diff = timeNeededToPass - timeDiff;
 	while (diff > 0)
 	{
-        if (m_energySaving && (diff > 10000))
-            std::this_thread::sleep_for(std::chrono::nanoseconds (5000));
+        if (m_energySaving && (diff > 4000000))
+            std::this_thread::sleep_for(std::chrono::milliseconds (1));
 
 		currentTime = getCurrentTimeInNanoSeconds();
 		timeDiff = currentTime - m_previousTimeStamp;
