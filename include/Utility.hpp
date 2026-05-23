@@ -54,7 +54,7 @@ namespace ggb
 	inline constexpr void clearBit(T& number) 
 	{
 		static_assert(bitNumber < sizeof(T) * 8);
-		constexpr T bitMask = ~(1 << bitNumber);
+		constexpr T bitMask = static_cast<T>(~(1 << bitNumber));
 		number &= bitMask;
 	}
 

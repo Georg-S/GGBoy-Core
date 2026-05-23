@@ -51,12 +51,12 @@ void ggb::MemoryBankControllerThree::RealTimeClock::update()
 		return;
 	}
 
-	constexpr int SECONDS_PER_MINUTE = 60;
-	constexpr int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60;
-	constexpr int SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
-	constexpr int NANO_SECONDS_PER_SECOND = 1000000000;
+	static constexpr int SECONDS_PER_MINUTE = 60;
+	static constexpr int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60;
+	static constexpr int SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
+	static constexpr int NANO_SECONDS_PER_SECOND = 1000000000;
 
-	auto setRegistersWithSeconds = [this, SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE](long long secondsPassed)
+	auto setRegistersWithSeconds = [this](long long secondsPassed)
 	{
 		uint32_t days = static_cast<int>(secondsPassed / SECONDS_PER_DAY);
 		if (days > 0x1FF)

@@ -5,8 +5,8 @@
 ggb::SquareWaveChannel::SquareWaveChannel(bool hasSweep, BUS* bus)
 	: m_hasSweep(hasSweep)
 {
-	setBus(bus);
-	reset();
+	SquareWaveChannel::setBus(bus);
+	SquareWaveChannel::reset();
 }
 
 void ggb::SquareWaveChannel::step(int cyclesPassed)

@@ -9,8 +9,8 @@ static constexpr int WAVE_RAM_MEMORY_SIZE = WAVE_RAM_SAMPLE_LENGTH / SAMPLES_PER
 
 ggb::WaveChannel::WaveChannel(BUS* bus)
 {
-	setBus(bus);
-	reset();
+	WaveChannel::setBus(bus);
+	WaveChannel::reset();
 }
 
 void ggb::WaveChannel::step(int cyclesPassed)

@@ -4,7 +4,7 @@
 
 ggb::NoiseChannel::NoiseChannel(BUS* bus)
 {
-	setBus(bus);
+	NoiseChannel::setBus(bus);
 	resetLFSR();
 }
 

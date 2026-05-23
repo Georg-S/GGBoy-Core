@@ -335,7 +335,7 @@ void ggb::BUS::directMemoryAccess(uint16_t sourceAddress, uint16_t destinationAd
 void ggb::BUS::gbcVRAMDirectMemoryAccess()
 {
 	constexpr uint8_t clearLowerFourBitsMask = ~0b1111;
-	constexpr uint8_t clearUpperThreeBits = ~0b11100000;
+	constexpr uint8_t clearUpperThreeBits = static_cast<uint8_t>(~0b11100000);
 	const auto sourceHigh = m_memory[GBC_VRAM_DMA_SOURCE_HIGH_ADDRESS];
 	const auto sourceLow = m_memory[GBC_VRAM_DMA_SOURCE_LOW_ADDRESS] & clearLowerFourBitsMask;
 	const auto destinationHigh = m_memory[GBC_VRAM_DMA_DESTINATION_HIGH_ADDRESS] & clearUpperThreeBits;
