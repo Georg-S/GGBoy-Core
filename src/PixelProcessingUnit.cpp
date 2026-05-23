@@ -27,7 +27,7 @@ void ggb::PixelProcessingUnit::reset()
 	m_backgroundAndWindowPixelBuffer = std::vector<BackgroundAndWindowPixel>(GAME_WINDOW_WIDTH, { {} });
 	m_gameFrameBuffer = std::make_unique<FrameBuffer>(GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 	m_tileDataFrameBuffer = std::make_unique<FrameBuffer>(TILE_DATA_WIDTH, TILE_DATA_HEIGHT);
-	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, {});
+	m_vramTiles = std::vector<Tile>(VRAM_TILE_COUNT, ggb::Tile{});
 
 	updateLCDMode();
 	updateEnabled();

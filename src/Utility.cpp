@@ -1,6 +1,7 @@
 #include "Utility.hpp"
 
 #include <chrono>
+#include <cstring>
 
 uint16_t ggb::combineUpperAndLower(uint8_t upper, uint8_t lower)
 {
