@@ -70,10 +70,12 @@ std::optional<uint8_t> ggb::WaveChannel::read(uint16_t address) const
 
 void ggb::WaveChannel::trigger()
 {
-	m_isOn = true;
 	m_sampleIndex = 0;
 	m_periodCounter = getPeriodCounter();
 	m_lengthCounter = getInitialLengthCounter();
+	// "A channel is activated by a write to NRx4’s MSB, unless its DAC is off, which forces it to be disabled as well"
+	if (isBitSet<7>(*m_enabled))
+		m_isOn = true;
 }
 
 ggb::AUDIO_FORMAT ggb::WaveChannel::getSample() const

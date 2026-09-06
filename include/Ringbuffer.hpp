@@ -13,6 +13,8 @@ namespace ggb
 			return MAX_SIZE;
 		}
 
+		// Returns the amount of elements stored in the buffer AFTER the push was attempted.
+		// If the buffer is full the element is dropped.
 		size_t push(const T& data)
 		{
 			T toPush = data;
@@ -46,16 +48,14 @@ namespace ggb
 
 		bool pop(T* outValue)
 		{
-			auto writeIndex = m_lastWriteIndex.load();
-			auto readIndex = m_lastReadIndex.load();
-			if (writeIndex == readIndex)
-				return false;
+			const auto lastReadIndex = m_lastReadIndex.load();
 
-			readIndex = ((readIndex + 1) % MAX_SIZE);
-			const auto& result = m_buffer[readIndex];
+			if (m_lastWriteIndex.load() == lastReadIndex)
+				return false; // Buffer empty
+
+			const auto readIndex = ((lastReadIndex + 1) % MAX_SIZE);
+			*outValue = m_buffer[readIndex];
 			m_lastReadIndex.store(readIndex);
-
-			*outValue = result;
 			return true;
 		}
 

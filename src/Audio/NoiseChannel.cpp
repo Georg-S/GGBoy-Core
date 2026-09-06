@@ -175,10 +175,12 @@ void ggb::NoiseChannel::stepLFSR()
 
 void ggb::NoiseChannel::trigger()
 {
-	m_isOn = true;
 	m_volume = getInitialVolume();
 	m_volumeChange = true;
 	resetLFSR();
+	// "A channel is activated by a write to NRx4’s MSB, unless its DAC is off, which forces it to be disabled as well"
+	if ((*m_volumeAndEnvelope & 0b11111000) != 0)
+		m_isOn = true;
 }
 
 bool ggb::NoiseChannel::isLengthShutdownEnabled() const

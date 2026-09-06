@@ -24,7 +24,9 @@ void ggb::swap(uint8_t& num)
 
 long long ggb::getCurrentTimeInNanoSeconds()
 {
-	auto current_time = std::chrono::system_clock::now();
+	// steady_clock must be used here, since system_clock can jump in time (e.g. due to NTP synchronisation)
+	// which would cause hiccups in the emulation timing (and therefore in the audio output)
+	auto current_time = std::chrono::steady_clock::now();
 	return std::chrono::time_point_cast<std::chrono::nanoseconds>(current_time).time_since_epoch().count();
 }
 

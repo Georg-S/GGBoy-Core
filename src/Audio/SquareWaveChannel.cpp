@@ -235,14 +235,16 @@ void ggb::SquareWaveChannel::reset()
 
 void ggb::SquareWaveChannel::trigger()
 {
-	m_isOn = true;
 	m_dutyCyclePosition = 0;
-	m_periodCounter = getPeriodValue();
+	m_periodCounter = getInitialPeriodCounter();
 	m_volume = getInitialVolume(); // TODO is this correct?
 	m_volumeChange = true;
 	m_lengthCounter = getInitialLengthCounter();
 	if (m_hasSweep)
 		m_frequencySweepPace = getInitialFrequencySweepPace();
+	// "A channel is activated by a write to NRx4’s MSB, unless its DAC is off, which forces it to be disabled as well"
+	if ((*m_volumeAndEnvelope & 0b11111000) != 0)
+		m_isOn = true;
 }
 
 bool ggb::SquareWaveChannel::isLengthShutdownEnabled() const
@@ -261,7 +263,10 @@ uint16_t ggb::SquareWaveChannel::getPeriodValue() const
 
 uint16_t ggb::SquareWaveChannel::getInitialPeriodCounter() const
 {
-	return (2048 - getPeriodValue()) * 4;
+	static constexpr uint32_t PERIOD_DIVIDER_FREQUENCY = 1048576;
+	static constexpr uint32_t CPU_CYCLES_PER_DIVIDER_CYCLE = CPU_BASE_CLOCK / PERIOD_DIVIDER_FREQUENCY;
+
+	return (2048 - getPeriodValue()) * CPU_CYCLES_PER_DIVIDER_CYCLE;
 }
 
 int ggb::SquareWaveChannel::getUsedDutyCycleIndex() const

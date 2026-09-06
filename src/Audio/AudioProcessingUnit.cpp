@@ -67,17 +67,22 @@ std::optional<uint8_t> ggb::AudioProcessingUnit::read(uint16_t address) const
 
 void ggb::AudioProcessingUnit::step(int cyclesPassed)
 {
-	if (!isBitSet<7>(*m_soundOn))
-		return; // TODO reset state?
+	const bool poweredOn = isBitSet<7>(*m_soundOn);
+	if (poweredOn)
+	{
+		// Call step directly without dynamic dispatch to improve performance
+		m_channel1->step(cyclesPassed);
+		m_channel2->step(cyclesPassed);
+		m_channel3->step(cyclesPassed);
+		m_channel4->step(cyclesPassed);
 
-	// Call step directly without dynamic dispatch to improve performance
-	m_channel1->step(cyclesPassed);
-	m_channel2->step(cyclesPassed);
-	m_channel3->step(cyclesPassed);
-	m_channel4->step(cyclesPassed);
+		frameSequencerStep(cyclesPassed);
+	}
 
-	frameSequencerStep(cyclesPassed);
-	sampleGeneratorStep(cyclesPassed);
+	// Keep generating samples even when the APU is powered off.
+	// Otherwise the sample buffer would drain and the audio output would
+	// freeze on the last produced value instead of going silent.
+	sampleGeneratorStep(cyclesPassed, poweredOn);
 }
 
 ggb::SampleBuffer* ggb::AudioProcessingUnit::getSampleBuffer()
@@ -115,7 +120,7 @@ bool ggb::AudioProcessingUnit::isChannelMuted(size_t channelID) const
 	return m_channels[channelID]->isMuted();
 }
 
-void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
+void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed, bool poweredOn)
 {
 	Frame outFrame = {};
 	auto soundPanning = [this, &outFrame](int leftBit, int rightBit, const AudioChannel* channel)
@@ -134,24 +139,28 @@ void ggb::AudioProcessingUnit::sampleGeneratorStep(int cyclesPassed)
 	if (m_cycleCounter >= m_sampleGeneratingRate)
 	{
 		m_cycleCounter -= m_sampleGeneratingRate;
-		soundPanning(BIT4, BIT0, m_channel1.get());
-		soundPanning(BIT5, BIT1, m_channel2.get());
-		soundPanning(BIT6, BIT2, m_channel3.get());
-		soundPanning(BIT7, BIT3, m_channel4.get());
 
-		const auto masterVolume = getMasterVolume();
-		// Mixing is done by simply adding up the channel outputs
-		outFrame.leftSample = outFrame.leftSample * masterVolume;
-		outFrame.rightSample = outFrame.rightSample * masterVolume;
+		if (poweredOn)
+		{
+			soundPanning(BIT4, BIT0, m_channel1.get());
+			soundPanning(BIT5, BIT1, m_channel2.get());
+			soundPanning(BIT6, BIT2, m_channel3.get());
+			soundPanning(BIT7, BIT3, m_channel4.get());
+
+			// Mixing is done by simply adding up the channel outputs
+			outFrame.leftSample = outFrame.leftSample * getLeftMasterVolume();
+			outFrame.rightSample = outFrame.rightSample * getRightMasterVolume();
+		}
+		// When the APU is powered off the frame stays silent (see step)
 
 		// Try to stay in the "middle" of the sampling buffer
 		constexpr double upperSampleGeneratingRate = baseSampleGeneratingRate * 1.0001;
 		constexpr double lowerSampleGeneratingRate = baseSampleGeneratingRate * 0.9999;
-		const auto remainingSize = m_sampleBuffer->push(std::move(outFrame));
-		if (remainingSize >= (m_sampleBuffer->size() / 2))
-			m_sampleGeneratingRate = lowerSampleGeneratingRate;
-		else
+		const auto storedSamples = m_sampleBuffer->push(std::move(outFrame));
+		if (storedSamples >= (m_sampleBuffer->size() / 2))
 			m_sampleGeneratingRate = upperSampleGeneratingRate;
+		else
+			m_sampleGeneratingRate = lowerSampleGeneratingRate;
 	}
 }
 
@@ -195,7 +204,13 @@ void ggb::AudioProcessingUnit::tickChannelsLengthShutdown()
 		channel->tickLengthShutdown();
 }
 
-int ggb::AudioProcessingUnit::getMasterVolume() const
+int ggb::AudioProcessingUnit::getLeftMasterVolume() const
+{
+	// A master volume of 0 = very quiet (but not silent) therefore we just add one and call it a day
+	return ((*m_masterVolume >> 4) & 0b111) + 1;
+}
+
+int ggb::AudioProcessingUnit::getRightMasterVolume() const
 {
 	// A master volume of 0 = very quiet (but not silent) therefore we just add one and call it a day
 	return (*m_masterVolume & 0b111) + 1;

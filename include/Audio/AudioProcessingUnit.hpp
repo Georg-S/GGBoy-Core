@@ -36,10 +36,11 @@ namespace ggb
 		bool isChannelMuted(size_t channelID) const;
 
 	private:
-		void sampleGeneratorStep(int cyclesPassed);
+		void sampleGeneratorStep(int cyclesPassed, bool poweredOn);
 		void frameSequencerStep(int cyclesPassed);
 		void tickChannelsLengthShutdown();
-		int getMasterVolume() const;
+		int getLeftMasterVolume() const;
+		int getRightMasterVolume() const;
 		
 		int m_frameSequencerStep = 0;
 		int m_frameFrequencerCounter = 0;
