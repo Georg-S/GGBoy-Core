@@ -13,10 +13,12 @@ void ggb::NoiseChannel::step(int cyclesPassed)
 	if (!m_isOn)
 		return;
 
+	// The LFSR timer period in CPU cycles is basically baked into this "indexToDivisorMapping" array
+	// Therefore no additional conversion to CPU cycles is needed here.
 	static constexpr int indexToDivisorMapping[] = { 8, 16, 32, 48, 64, 80, 96, 112 };
 	const auto divider = getClockDivider();
 	const auto shift = getClockShift();
-
+	
 	const auto timer = indexToDivisorMapping[divider] << shift;
 	m_cycleCounter += cyclesPassed;
 	if (m_cycleCounter >= timer)
@@ -178,7 +180,7 @@ void ggb::NoiseChannel::trigger()
 	m_volume = getInitialVolume();
 	m_volumeChange = true;
 	resetLFSR();
-	// "A channel is activated by a write to NRx4’s MSB, unless its DAC is off, which forces it to be disabled as well"
+	// "A channel is activated by a write to NRx4ï¿½s MSB, unless its DAC is off, which forces it to be disabled as well"
 	if ((*m_volumeAndEnvelope & 0b11111000) != 0)
 		m_isOn = true;
 }

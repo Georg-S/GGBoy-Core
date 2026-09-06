@@ -23,21 +23,21 @@ namespace ggb
 
 		size_t push(T&& data)
 		{
-			auto writeIndex = m_lastWriteIndex.load();
-			auto readIndex = m_lastReadIndex.load();
-			auto buf = readIndex;
-			if (writeIndex > readIndex)
-				buf += MAX_SIZE;
-			auto distance = buf - writeIndex;
+			// Each index is loaded exactly once, every decision is made on the snapshot taken here
+			const auto writeIndex = m_lastWriteIndex.load();
+			const auto readIndex = m_lastReadIndex.load();
 
+			auto storedCount = (writeIndex >= readIndex)
+				? writeIndex - readIndex
+				: writeIndex + MAX_SIZE - readIndex;
 
-			writeIndex = ((writeIndex + 1) % MAX_SIZE);
-			if (writeIndex == readIndex) 
-				return distance;
+			const auto nextWriteIndex = ((writeIndex + 1) % MAX_SIZE);
+			if (nextWriteIndex == readIndex)
+				return storedCount; // Buffer full -> drop the element
 
-			m_buffer[writeIndex] = std::move(data);
-			m_lastWriteIndex.store(writeIndex);
-			return distance;
+			m_buffer[nextWriteIndex] = std::move(data);
+			m_lastWriteIndex.store(nextWriteIndex);
+			return ++storedCount;
 		}
 
 		T pop(T defaultReturnValue)
